@@ -2,14 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>VisionTory.ai - Upload Inventory</title>
     
-    <!-- CRUCIAL: Library required to read Excel (.xlsx) files -->
+    <!-- Library required to read Excel (.xlsx) files -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
     <style>
-        /* --- CSS TO MATCH YOUR SCREENSHOT DESIGN --- */
         :root {
             --bg-color: #11131f;
             --card-bg: #181b2a;
@@ -25,7 +24,7 @@
             background-color: var(--bg-color);
             color: var(--text-main);
             margin: 0;
-            padding: 40px 20px;
+            padding: 20px 15px; /* Mobile friendly padding */
             display: flex;
             justify-content: center;
         }
@@ -36,239 +35,84 @@
         }
 
         /* Header & Nav */
-        .header {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-        .logo-box {
-            background: linear-gradient(135deg, #d946ef, #8b5cf6);
-            width: 40px;
-            height: 40px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 20px;
-        }
-        .nav-links {
-            display: flex;
-            gap: 25px;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            margin-left: 40px;
-        }
-        .nav-link.active {
-            color: var(--text-main);
-            font-weight: 500;
-            background: rgba(217, 70, 239, 0.15);
-            padding: 6px 12px;
-            border-radius: 20px;
-        }
-        .nav-link {
-            cursor: pointer;
-            text-decoration: none;
-            color: inherit;
-        }
+        .header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .logo-box { background: linear-gradient(135deg, #d946ef, #8b5cf6); width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; }
+        .nav-links { display: flex; gap: 15px; color: var(--text-muted); font-size: 0.9rem; margin-left: auto; }
+        .nav-link.active { color: var(--text-main); font-weight: 500; background: rgba(217, 70, 239, 0.15); padding: 6px 12px; border-radius: 20px; }
+        .nav-link { cursor: pointer; text-decoration: none; color: inherit; }
 
-        /* Page Title */
-        .page-title {
-            font-size: 1.8rem;
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-        .back-btn {
-            background: transparent;
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-            padding: 8px 16px;
-            border-radius: 20px;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.9rem;
-            margin-bottom: 30px;
-        }
-        .back-btn:hover {
-            background: var(--border-color);
-        }
+        .page-title { font-size: 1.8rem; font-weight: 600; margin-bottom: 10px; }
+        .back-btn { background: transparent; border: 1px solid var(--border-color); color: var(--text-main); padding: 8px 16px; border-radius: 20px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-size: 0.9rem; margin-bottom: 20px; }
 
-        /* Upload Card (Drop Zone) */
-        .upload-card {
-            background-color: var(--card-bg);
-            border: 2px dashed var(--border-color);
-            border-radius: 16px;
-            padding: 60px 20px;
-            text-align: center;
-            transition: all 0.3s ease;
-            margin-bottom: 30px;
-        }
-        .upload-card.highlight {
-            border-color: var(--accent-end);
-            background-color: rgba(139, 92, 246, 0.05);
-        }
-        .cloud-icon {
-            font-size: 3rem;
-            color: var(--text-muted);
-            margin-bottom: 15px;
-            display: block;
-        }
-        .upload-title {
-            font-size: 1.25rem;
-            font-weight: 500;
-            margin-bottom: 8px;
-        }
-        .upload-desc {
-            color: var(--text-muted);
-            font-size: 0.95rem;
-            margin-bottom: 20px;
-        }
-        .badges {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            margin-bottom: 30px;
-        }
-        .badge {
-            background: #1f2336;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            border: 1px solid var(--border-color);
-        }
-        .browse-btn {
-            background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
-            border: none;
-            color: white;
-            padding: 12px 32px;
-            border-radius: 30px;
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            transition: transform 0.1s;
-        }
-        .browse-btn:hover {
-            transform: scale(1.02);
-        }
+        .upload-card { background-color: var(--card-bg); border: 2px dashed var(--border-color); border-radius: 16px; padding: 40px 20px; text-align: center; transition: all 0.3s ease; margin-bottom: 20px; }
+        .upload-card.highlight { border-color: var(--accent-end); background-color: rgba(139, 92, 246, 0.05); }
+        .cloud-icon { font-size: 3rem; color: var(--text-muted); margin-bottom: 15px; display: block; }
+        .upload-title { font-size: 1.25rem; font-weight: 500; margin-bottom: 8px; }
+        .upload-desc { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 20px; }
+        .badges { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .badge { background: #1f2336; padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; color: var(--text-muted); border: 1px solid var(--border-color); }
+        
+        .browse-btn { background: linear-gradient(135deg, var(--accent-start), var(--accent-end)); border: none; color: white; padding: 14px 35px; border-radius: 30px; font-size: 1rem; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+        .browse-btn:active { transform: scale(0.95); }
 
-        /* Uploaded Files List */
-        .files-card {
-            background-color: var(--card-bg);
-            border-radius: 16px;
-            padding: 20px;
-        }
-        .files-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 15px;
-            margin-bottom: 15px;
-        }
-        .files-header h4 {
-            margin: 0;
-            font-weight: 500;
-        }
-        .file-count {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
-        .file-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid #202435;
-        }
-        .file-item:last-child {
-            border-bottom: none;
-        }
-        .file-empty {
-            color: var(--text-muted);
-            text-align: center;
-            padding: 20px 0;
-        }
-        .file-empty-icon {
-            font-size: 3rem;
-            opacity: 0.3;
-            display: block;
-            margin-bottom: 10px;
-        }
+        .files-card { background-color: var(--card-bg); border-radius: 16px; padding: 20px; }
+        .files-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 15px; }
+        .files-header h4 { margin: 0; font-weight: 500; }
+        .file-count { color: var(--text-muted); font-size: 0.9rem; }
+        
+        .file-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #202435; }
+        .file-item:last-child { border-bottom: none; }
+        
+        /* Styles specifically for uploaded images on mobile */
+        .file-thumbnail { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; margin-right: 12px; border: 1px solid var(--border-color); }
+        .file-info { display: flex; align-items: center; gap: 10px; overflow: hidden; }
+        .file-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+        
+        .file-empty { color: var(--text-muted); text-align: center; padding: 20px 0; }
+        .file-empty-icon { font-size: 3rem; opacity: 0.3; display: block; margin-bottom: 10px; }
 
-        /* Toast Notification styling */
-        .toast-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 9999;
-        }
-        .toast {
-            background: #1f2336;
-            color: white;
-            padding: 15px 20px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-            border-left: 4px solid #8b5cf6;
-            min-width: 250px;
-            animation: slideIn 0.3s ease-out;
-        }
+        .toast-container { position: fixed; top: 20px; right: 20px; left: 20px; z-index: 9999; display: flex; flex-direction: column; align-items: flex-end; pointer-events: none; }
+        .toast { background: #1f2336; color: white; padding: 15px 20px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); border-left: 4px solid #8b5cf6; min-width: 250px; animation: slideIn 0.3s ease-out; pointer-events: all; max-width: 100%; }
         .toast.success { border-left-color: #10b981; }
         .toast.error { border-left-color: #ef4444; }
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
     </style>
 </head>
 <body>
 
     <div class="main-container">
-
-        <!-- Navbar -->
         <div class="header">
             <div class="logo-box">V</div>
             <div style="font-weight: 600; font-size: 1.1rem;">VisionTory.ai</div>
             <div class="nav-links">
                 <a href="#" class="nav-link">Dashboard</a>
                 <a href="#" class="nav-link active">Upload</a>
-                <a href="#" class="nav-link">Inventory</a>
-                <a href="#" class="nav-link">Categories</a>
-                <a href="#" class="nav-link">Analytics</a>
             </div>
         </div>
 
-        <!-- Page Title -->
-        <h1 class="page-title">Upload <span style="color: var(--text-muted); font-weight: 400;">· Import inventory data</span></h1>
+        <h1 class="page-title">Upload <span style="color: var(--text-muted); font-weight: 400;">· Import data & images</span></h1>
         <button class="back-btn" onclick="window.history.back()">← Back to Dashboard</button>
 
-        <!-- Drop Zone -->
         <div class="upload-card" id="dropZone">
             <span class="cloud-icon">☁️</span>
-            <div class="upload-title">Drop your files here</div>
-            <div class="upload-desc">Upload CSV, Excel, or JSON files to import inventory</div>
+            <div class="upload-title">Drop files or photos here</div>
+            <div class="upload-desc">Supports CSV, Excel, JSON, and Images (PNG/JPG)</div>
             
             <div class="badges">
                 <span class="badge">📄 .CSV</span>
                 <span class="badge">📊 .XLSX</span>
                 <span class="badge">📋 .JSON</span>
+                <span class="badge" style="color: #d946ef;">📸 Images</span>
             </div>
 
             <button class="browse-btn" id="browseBtn">
                 📂 Browse Files
             </button>
             
-            <!-- Hidden file input -->
-            <input type="file" id="fileInput" accept=".csv,.xlsx,.json" style="display: none;" multiple>
+            <!-- UPDATED: Supports Images + Data Files -->
+            <input type="file" id="fileInput" accept=".csv,.xlsx,.json,image/*" style="display: none;" multiple capture="environment">
         </div>
 
-        <!-- Uploaded Files List -->
         <div class="files-card">
             <div class="files-header">
                 <h4>Uploaded Files</h4>
@@ -281,12 +125,9 @@
                 </div>
             </div>
         </div>
-
     </div>
 
-    <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
-
 
     <script>
         // ==========================================================
@@ -315,7 +156,7 @@
         }
 
         // ==========================================================
-        // 3. DOM SETUP (Programmatic Events)
+        // 3. DOM SETUP
         // ==========================================================
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
@@ -323,20 +164,12 @@
         const fileListContainer = document.getElementById('fileListContainer');
         const fileCountSpan = document.getElementById('fileCount');
 
-        // Browse Button Click -> Trigger Input Click
-        browseBtn.addEventListener('click', function() {
-            fileInput.click();
-        });
-
-        // Input Change -> Start Process
+        browseBtn.addEventListener('click', function() { fileInput.click(); });
         fileInput.addEventListener('change', function(e) {
             processFiles(e.target.files);
-            fileInput.value = ''; // Reset so same file can be selected again
+            fileInput.value = ''; 
         });
 
-        // ==========================================================
-        // 4. DRAG & DROP EVENTS
-        // ==========================================================
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             dropZone.addEventListener(eventName, preventDefaults, false);
         });
@@ -346,17 +179,12 @@
         ['dragleave', 'drop'].forEach(eventName => {
             dropZone.addEventListener(eventName, () => dropZone.classList.remove('highlight'), false);
         });
-        dropZone.addEventListener('drop', (e) => {
-            processFiles(e.dataTransfer.files);
-        });
+        dropZone.addEventListener('drop', (e) => { processFiles(e.dataTransfer.files); });
 
-        function preventDefaults(e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
+        function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
 
         // ==========================================================
-        // 5. MAIN PROCESSING LOGIC
+        // 4. MAIN PROCESSING (IMAGES + DATA)
         // ==========================================================
         function processFiles(files) {
             if (!files || files.length === 0) return;
@@ -365,24 +193,26 @@
             Array.from(files).forEach(file => {
                 const fileName = file.name.toLowerCase();
 
-                // *** CRUCIAL FIX: BLOCK 0KB FILES ***
                 if (file.size === 0) {
-                    showToast('error', 'Empty File', `"${file.name}" is 0 KB. Please select a file with data.`);
+                    showToast('error', 'Empty File', `"${file.name}" is 0 KB.`);
                     return; 
                 }
 
+                // --- 1. IT IS AN IMAGE ---
+                if (file.type.startsWith('image/')) {
+                    // We don't parse images into inventory data (they are not CSV).
+                    // But we successfully uploaded the file to the list!
+                    showToast('success', 'Image Uploaded', `"${file.name}" saved successfully.`);
+                    return;
+                }
+
+                // --- 2. IT IS TEXT DATA (CSV, JSON, XLSX) ---
                 const reader = new FileReader();
+                reader.onerror = function(e) { showToast('error', 'Read Error', `Could not read ${file.name}.`); };
 
-                reader.onerror = function(e) {
-                    console.error("FileReader Error:", e.target.error);
-                    showToast('error', 'Read Error', `Could not read ${file.name}.`);
-                };
-
-                // CSV and JSON logic
                 reader.onload = function(e) {
                     try {
                         let importedData = [];
-
                         if (fileName.endsWith('.json')) {
                             importedData = JSON.parse(e.target.result);
                             if (!Array.isArray(importedData)) throw new Error("JSON must be an array.");
@@ -399,7 +229,6 @@
                     }
                 };
 
-                // Trigger Read
                 if (fileName.endsWith('.xlsx')) {
                     const xlsxReader = new FileReader();
                     xlsxReader.onload = function(e) {
@@ -415,6 +244,8 @@
                         }
                     };
                     xlsxReader.readAsArrayBuffer(file);
+                } else if (!fileName.endsWith('.json') && !fileName.endsWith('.csv')) {
+                    // Should not happen due to accept attribute, but just in case
                 } else {
                     reader.readAsText(file);
                 }
@@ -422,7 +253,7 @@
         }
 
         // ==========================================================
-        // 6. HELPERS
+        // 5. HELPERS
         // ==========================================================
         function parseCSV(text) {
             const lines = text.split('\n').filter(line => line.trim() !== '');
@@ -456,24 +287,42 @@
                 }
             });
             localStorage.setItem('visiontory-inventory', JSON.stringify(inventory));
-            console.log(`Merged ${addedCount} new items.`);
         }
 
+        // ==========================================================
+        // 6. RENDER IMAGE THUMBNAILS ON MOBILE
+        // ==========================================================
         function updateFileListUI(files) {
             fileListContainer.innerHTML = '';
             fileCountSpan.textContent = `${files.length} files`;
+
             Array.from(files).forEach(file => {
                 const div = document.createElement('div');
                 div.className = 'file-item';
+                
                 let sizeText = (file.size / 1024).toFixed(1) + ' KB';
                 if(file.size === 0) sizeText = '⚠️ EMPTY';
-                
-                div.innerHTML = `
-                    <span style="display:flex; gap:10px; align-items:center;">
-                        <span>📄</span> ${file.name}
-                    </span>
-                    <span style="color: var(--text-muted); font-size: 0.9rem;">${sizeText}</span>
-                `;
+
+                // If it's an image, show the thumbnail!
+                if (file.type.startsWith('image/')) {
+                    const url = URL.createObjectURL(file);
+                    div.innerHTML = `
+                        <div class="file-info">
+                            <img src="${url}" class="file-thumbnail" alt="thumbnail">
+                            <span class="file-name">${file.name}</span>
+                        </div>
+                        <span style="color: var(--text-muted); font-size: 0.9rem;">${sizeText}</span>
+                    `;
+                } else {
+                    // Data files just show an icon
+                    div.innerHTML = `
+                        <div class="file-info">
+                            <span style="font-size: 1.5rem; margin-right: 10px;">📄</span>
+                            <span class="file-name">${file.name}</span>
+                        </div>
+                        <span style="color: var(--text-muted); font-size: 0.9rem;">${sizeText}</span>
+                    `;
+                }
                 fileListContainer.appendChild(div);
             });
         }
