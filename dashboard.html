@@ -364,6 +364,15 @@
             color: var(--text-primary);
         }
 
+        .btn-danger {
+            background: rgba(255, 82, 82, 0.15);
+            color: var(--accent-red);
+        }
+
+        .btn-danger:hover {
+            background: rgba(255, 82, 82, 0.25);
+        }
+
         /* ----- Stats ----- */
         .stats {
             display: grid;
@@ -739,6 +748,61 @@
         }
 
         /* ============================================================
+           TOAST NOTIFICATION
+           ============================================================ */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: var(--shadow);
+            z-index: 200;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.4s ease;
+            max-width: 420px;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast .icon {
+            font-size: 20px;
+        }
+
+        .toast .icon.success {
+            color: var(--accent-green);
+        }
+        .toast .icon.error {
+            color: var(--accent-red);
+        }
+        .toast .icon.info {
+            color: var(--accent-blue);
+        }
+
+        .toast .msg {
+            flex: 1;
+        }
+
+        .toast .msg .title {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .toast .msg .desc {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* ============================================================
            RESPONSIVE
            ============================================================ */
         @media (max-width: 1024px) {
@@ -824,6 +888,12 @@
             .modal .form-row {
                 grid-template-columns: 1fr;
             }
+            .toast {
+                bottom: 16px;
+                right: 16px;
+                left: 16px;
+                max-width: unset;
+            }
         }
 
         @media (max-width: 480px) {
@@ -872,6 +942,10 @@
         <nav class="nav">
             <a href="#" class="active">
                 <i class="fas fa-th-large"></i> Dashboard
+            </a>
+            <a href="upload.html">
+                <i class="fas fa-cloud-upload-alt"></i> Upload
+                <span class="badge">+</span>
             </a>
             <a href="#">
                 <i class="fas fa-boxes"></i> Inventory
@@ -1065,6 +1139,17 @@
     </div>
 
     <!-- ============================================================
+    TOAST NOTIFICATION
+    ============================================================ -->
+    <div class="toast" id="toast">
+        <div class="icon" id="toastIcon"><i class="fas fa-check-circle"></i></div>
+        <div class="msg">
+            <div class="title" id="toastTitle">Success</div>
+            <div class="desc" id="toastDesc">Operation completed</div>
+        </div>
+    </div>
+
+    <!-- ============================================================
     JAVASCRIPT
     ============================================================ -->
     <script>
@@ -1080,6 +1165,20 @@
         //  INITIAL SEED DATA
         // ============================================================
         function seedData() {
+            // Check if we have data in localStorage
+            const saved = localStorage.getItem('visiontory-inventory');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    if (parsed.length > 0) {
+                        inventory = parsed;
+                        idCounter = Math.max(...inventory.map(i => i.id)) + 1;
+                        return;
+                    }
+                } catch (e) {}
+            }
+
+            // Default seed data
             inventory = [{
                 id: 1,
                 name: 'Paracetamol 500mg',
@@ -1089,90 +1188,3 @@
                 status: 'in-stock'
             }, {
                 id: 2,
-                name: 'Surgical Gloves (Box)',
-                category: 'Supplies',
-                qty: 8,
-                minStock: 15,
-                status: 'low'
-            }, {
-                id: 3,
-                name: 'Insulin Pens',
-                category: 'Medication',
-                qty: 3,
-                minStock: 10,
-                status: 'critical'
-            }, {
-                id: 4,
-                name: 'N95 Masks (Box)',
-                category: 'Supplies',
-                qty: 120,
-                minStock: 20,
-                status: 'overstock'
-            }, {
-                id: 5,
-                name: 'COVID-19 Rapid Test',
-                category: 'Diagnostics',
-                qty: 0,
-                minStock: 30,
-                status: 'out-of-stock'
-            }, {
-                id: 6,
-                name: 'Oxygen Concentrator',
-                category: 'Equipment',
-                qty: 6,
-                minStock: 2,
-                status: 'in-stock'
-            }, {
-                id: 7,
-                name: 'Vitamin C 1000mg',
-                category: 'Medication',
-                qty: 18,
-                minStock: 8,
-                status: 'in-stock'
-            }, {
-                id: 8,
-                name: 'Syringes (100pk)',
-                category: 'Supplies',
-                qty: 5,
-                minStock: 10,
-                status: 'low'
-            }];
-            idCounter = 9;
-        }
-
-        // ============================================================
-        //  THEME LOADING
-        // ============================================================
-        function loadTheme() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const theme = urlParams.get('theme') || localStorage.getItem('visiontory-theme') || 'industrial';
-            document.documentElement.setAttribute('data-theme', theme);
-            localStorage.setItem('visiontory-theme', theme);
-        }
-
-        // ============================================================
-        //  RENDER FUNCTIONS
-        // ============================================================
-        function getStatusClass(status) {
-            return status;
-        }
-
-        function renderStats() {
-            const total = inventory.length;
-            const lowCritical = inventory.filter(i => i.status === 'low' || i.status === 'critical');
-            const needRestock = inventory.filter(i =>
-                i.status === 'low' || i.status === 'critical' || i.status === 'out-of-stock'
-            );
-            const catSet = new Set(inventory.map(i => i.category));
-
-            document.getElementById('totalItems').textContent = total;
-            document.getElementById('lowStockCount').textContent = lowCritical.length;
-            document.getElementById('categoryCount').textContent = catSet.size;
-            document.getElementById('forecastCount').textContent = needRestock.length;
-
-            const sub = document.getElementById('forecastSub');
-            sub.textContent = needRestock.length === 1 ? 'Item needs restock' : 'Items need restock';
-        }
-
-        function renderTable(data) {
-            const tbody = document.getElementById('
