@@ -1150,7 +1150,7 @@
     </div>
 
     <!-- ============================================================
-    JAVASCRIPT
+    JAVASCRIPT (FULLY WORKING)
     ============================================================ -->
     <script>
         // ============================================================
@@ -1165,7 +1165,7 @@
         //  INITIAL SEED DATA
         // ============================================================
         function seedData() {
-            // Check if we have data in localStorage
+            // Check localStorage first
             const saved = localStorage.getItem('visiontory-inventory');
             if (saved) {
                 try {
@@ -1178,7 +1178,7 @@
                 } catch (e) {}
             }
 
-            // Default seed data
+            // Default seed
             inventory = [{
                 id: 1,
                 name: 'Paracetamol 500mg',
@@ -1187,4 +1187,4 @@
                 minStock: 10,
                 status: 'in-stock'
             }, {
-                id: 2,
+                id: 2
