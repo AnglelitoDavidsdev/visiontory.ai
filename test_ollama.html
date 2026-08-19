@@ -10,7 +10,6 @@ let editingId = null;
 //  INITIAL SEED DATA
 // ============================================================
 function seedData() {
-    // Check localStorage first
     const saved = localStorage.getItem('visiontory-inventory');
     if (saved) {
         try {
@@ -23,7 +22,6 @@ function seedData() {
         } catch (e) {}
     }
 
-    // Default seed data
     inventory = [
         { id: 1, name: 'Paracetamol 500mg', category: 'Medication', qty: 45, minStock: 10, status: 'in-stock' },
         { id: 2, name: 'Surgical Gloves (Box)', category: 'Supplies', qty: 8, minStock: 15, status: 'low' },
@@ -49,7 +47,7 @@ function loadTheme() {
 }
 
 // ============================================================
-//  MODAL FUNCTIONS (Add/Edit) - FIXED!
+//  MODAL FUNCTIONS (Add/Edit) - FULLY FIXED
 // ============================================================
 
 function openModal() {
@@ -75,7 +73,6 @@ function saveItem(event) {
     const status = document.getElementById('itemStatus').value;
     const editId = document.getElementById('editId').value;
 
-    // Validation
     if (!name || !category || isNaN(qty) || isNaN(minStock)) {
         showToast('error', 'Validation Error', 'Please fill in all fields correctly.');
         return;
@@ -86,10 +83,10 @@ function saveItem(event) {
         const index = inventory.findIndex(i => i.id === parseInt(editId));
         if (index !== -1) {
             inventory[index] = { ...inventory[index], name, category, qty, minStock, status };
-            showToast('success', 'Item Updated', `${name} has been updated.`);
+            showToast('success', 'Item Updated', name + ' has been updated.');
         }
     } else {
-        // Add new item - FIXED: idCounter should not use document.getElementById
+        // Add new item
         const newItem = {
             id: idCounter++,
             name: name,
@@ -99,12 +96,10 @@ function saveItem(event) {
             status: status
         };
         inventory.push(newItem);
-        showToast('success', 'Item Added', `${name} has been added to inventory.`);
+        showToast('success', 'Item Added', name + ' has been added to inventory.');
     }
 
-    // Save to localStorage
     localStorage.setItem('visiontory-inventory', JSON.stringify(inventory));
-
     closeModal();
     renderAll();
 }
@@ -129,11 +124,11 @@ function deleteItem(id) {
     const item = inventory.find(i => i.id === id);
     if (!item) return;
 
-    if (confirm(`Are you sure you want to delete "${item.name}"?`)) {
+    if (confirm('Are you sure you want to delete "' + item.name + '"?')) {
         inventory = inventory.filter(i => i.id !== id);
         localStorage.setItem('visiontory-inventory', JSON.stringify(inventory));
         renderAll();
-        showToast('info', 'Item Deleted', `${item.name} has been removed.`);
+        showToast('info', 'Item Deleted', item.name + ' has been removed.');
     }
 }
 
@@ -144,9 +139,7 @@ function deleteItem(id) {
 function renderStats() {
     const total = inventory.length;
     const lowCritical = inventory.filter(i => i.status === 'low' || i.status === 'critical');
-    const needRestock = inventory.filter(i =>
-        i.status === 'low' || i.status === 'critical' || i.status === 'out-of-stock'
-    );
+    const needRestock = inventory.filter(i => i.status === 'low' || i.status === 'critical' || i.status === 'out-of-stock');
     const catSet = new Set(inventory.map(i => i.category));
 
     document.getElementById('totalItems').textContent = total;
@@ -154,8 +147,8 @@ function renderStats() {
     document.getElementById('categoryCount').textContent = catSet.size;
     document.getElementById('forecastCount').textContent = needRestock.length;
 
-    const sub = document.getElementById('forecastSub');
-    sub.textContent = needRestock.length === 1 ? 'Item needs restock' : 'Items need restock';
+    document.getElementById('forecastSub').textContent = 
+        needRestock.length === 1 ? 'Item needs restock' : 'Items need restock';
 }
 
 function renderTable(data) {
@@ -174,51 +167,55 @@ function renderTable(data) {
         return;
     }
 
-    tbody.innerHTML = items.map(item => `
-        <tr>
-            <td>
-                <div class="name">${item.name}</div>
-            </td>
-            <td>${item.category}</td>
-            <td>${item.qty}</td>
-            <td>${item.minStock}</td>
-            <td>
-                <span class="status ${item.status}">
-                    <span class="dot"></span>
-                    ${item.status.replace('-', ' ').toUpperCase()}
-                </span>
-            </td>
-            <td>
-                <div class="actions-cell">
-                    <button class="edit" onclick="editItem(${item.id})" title="Edit">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="delete" onclick="deleteItem(${item.id})" title="Delete">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-            </td>
-        </tr>
-    `).join('');
+    tbody.innerHTML = items.map(function(item) {
+        return `
+            <tr>
+                <td><div class="name">${item.name}</div></td>
+                <td>${item.category}</td>
+                <td>${item.qty}</td>
+                <td>${item.minStock}</td>
+                <td>
+                    <span class="status ${item.status}">
+                        <span class="dot"></span>
+                        ${item.status.replace('-', ' ').toUpperCase()}
+                    </span>
+                </td>
+                <td>
+                    <div class="actions-cell">
+                        <button class="edit" onclick="editItem(${item.id})" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="delete" onclick="deleteItem(${item.id})" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
 }
 
 function renderAIInsight() {
-    const lowItems = inventory.filter(i => i.status === 'low' || i.status === 'critical');
-    const criticalItems = inventory.filter(i => i.status === 'critical');
-    const outOfStock = inventory.filter(i => i.status === 'out-of-stock');
-    const overstock = inventory.filter(i => i.status === 'overstock');
+    const lowItems = inventory.filter(function(i) { return i.status === 'low' || i.status === 'critical'; });
+    const criticalItems = inventory.filter(function(i) { return i.status === 'critical'; });
+    const outOfStock = inventory.filter(function(i) { return i.status === 'out-of-stock'; });
+    const overstock = inventory.filter(function(i) { return i.status === 'overstock'; });
 
     let msg = '';
     if (criticalItems.length > 0) {
-        msg = `⚠️ <strong>${criticalItems.length} critical item(s)</strong> need immediate attention: ${criticalItems.map(i => i.name).join(', ')}.`;
+        var names = criticalItems.map(function(i) { return i.name; }).join(', ');
+        msg = '⚠️ <strong>' + criticalItems.length + ' critical item(s)</strong> need immediate attention: ' + names + '.';
     } else if (outOfStock.length > 0) {
-        msg = `🚨 <strong>${outOfStock.length} item(s)</strong> are out of stock: ${outOfStock.map(i => i.name).join(', ')}.`;
+        var names = outOfStock.map(function(i) { return i.name; }).join(', ');
+        msg = '🚨 <strong>' + outOfStock.length + ' item(s)</strong> are out of stock: ' + names + '.';
     } else if (lowItems.length > 0) {
-        msg = `📊 <strong>${lowItems.length} item(s)</strong> are running low. Consider restocking: ${lowItems.map(i => i.name).join(', ')}.`;
+        var names = lowItems.map(function(i) { return i.name; }).join(', ');
+        msg = '📊 <strong>' + lowItems.length + ' item(s)</strong> are running low: ' + names + '.';
     } else if (overstock.length > 0) {
-        msg = `📦 <strong>${overstock.length} item(s)</strong> have excess stock: ${overstock.map(i => i.name).join(', ')}. Consider reducing orders.`;
+        var names = overstock.map(function(i) { return i.name; }).join(', ');
+        msg = '📦 <strong>' + overstock.length + ' item(s)</strong> have excess stock: ' + names + '.';
     } else {
-        msg = `✅ All inventory levels are healthy! No items need attention.`;
+        msg = '✅ All inventory levels are healthy! No items need attention.';
     }
 
     document.getElementById('aiMessage').innerHTML = msg;
@@ -236,28 +233,39 @@ function renderAll() {
 // ============================================================
 
 function updateCategoryFilter() {
-    const filter = document.getElementById('categoryFilter');
-    const currentValue = filter.value;
-    const catSet = new Set(inventory.map(i => i.category));
+    var filter = document.getElementById('categoryFilter');
+    var currentValue = filter.value;
+    var catSet = new Set();
+    
+    for (var i = 0; i < inventory.length; i++) {
+        catSet.add(inventory[i].category);
+    }
 
     filter.innerHTML = '<option value="all">All Categories</option>';
-    catSet.forEach(cat => {
-        filter.innerHTML += `<option value="${cat}">${cat}</option>`;
+    
+    catSet.forEach(function(cat) {
+        filter.innerHTML += '<option value="' + cat + '">' + cat + '</option>';
     });
+    
     filter.value = currentValue;
 }
 
 function filterTable() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-    const category = document.getElementById('categoryFilter').value;
-    const status = document.getElementById('statusFilter').value;
+    var searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    var category = document.getElementById('categoryFilter').value;
+    var status = document.getElementById('statusFilter').value;
 
-    let filtered = inventory.filter(item => {
-        const matchSearch = item.name.toLowerCase().includes(searchTerm);
-        const matchCategory = category === 'all' || item.category === category;
-        const matchStatus = status === 'all' || item.status === status;
-        return matchSearch && matchCategory && matchStatus;
-    });
+    var filtered = [];
+    for (var i = 0; i < inventory.length; i++) {
+        var item = inventory[i];
+        var matchSearch = item.name.toLowerCase().indexOf(searchTerm) !== -1;
+        var matchCategory = category === 'all' || item.category === category;
+        var matchStatus = status === 'all' || item.status === status;
+        
+        if (matchSearch && matchCategory && matchStatus) {
+            filtered.push(item);
+        }
+    }
 
     renderTable(filtered);
 }
@@ -272,23 +280,19 @@ function exportData() {
         return;
     }
 
-    // Create CSV
-    const headers = ['ID', 'Name', 'Category', 'Quantity', 'Min Stock', 'Status'];
-    const rows = inventory.map(item => [
-        item.id, item.name, item.category, item.qty, item.minStock, item.status
-    ]);
+    var headers = ['ID', 'Name', 'Category', 'Quantity', 'Min Stock', 'Status'];
+    var csv = headers.join(',') + '\n';
+    
+    for (var i = 0; i < inventory.length; i++) {
+        var item = inventory[i];
+        csv += item.id + ',' + item.name + ',' + item.category + ',' + item.qty + ',' + item.minStock + ',' + item.status + '\n';
+    }
 
-    const csv = [
-        headers.join(','),
-        ...rows.map(row => row.join(','))
-    ].join('\n');
-
-    // Download
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    var blob = new Blob([csv], { type: 'text/csv' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
     a.href = url;
-    a.download = `visiontory_inventory_${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = 'visiontory_inventory_' + new Date().toISOString().split('T')[0] + '.csv';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -301,30 +305,43 @@ function exportData() {
 //  TOAST NOTIFICATION
 // ============================================================
 
-let toastTimeout;
+var toastTimeout;
 
 function showToast(type, title, desc) {
-    const toast = document.getElementById('toast');
-    const icon = document.getElementById('toastIcon');
-    const titleEl = document.getElementById('toastTitle');
-    const descEl = document.getElementById('toastDesc');
+    var toast = document.getElementById('toast');
+    var icon = document.getElementById('toastIcon');
+    var titleEl = document.getElementById('toastTitle');
+    var descEl = document.getElementById('toastDesc');
 
-    const icons = {
+    var icons = {
         success: 'fas fa-check-circle',
         error: 'fas fa-times-circle',
         info: 'fas fa-info-circle'
     };
 
-    icon.className = `icon ${type}`;
-    icon.innerHTML = `<i class="${icons[type] || icons.info}"></i>`;
+    icon.className = 'icon ' + type;
+    icon.innerHTML = '<i class="' + (icons[type] || icons.info) + '"></i>';
     titleEl.textContent = title;
     descEl.textContent = desc;
 
     toast.classList.add('show');
     clearTimeout(toastTimeout);
-    toastTimeout = setTimeout(() => {
+    toastTimeout = setTimeout(function() {
         toast.classList.remove('show');
     }, 4000);
+}
+
+// ============================================================
+//  POPULATE CATEGORY DROPDOWN
+// ============================================================
+
+function populateCategories() {
+    var select = document.getElementById('itemCategory');
+    select.innerHTML = '<option value="">Select category...</option>';
+    
+    for (var i = 0; i < categories.length; i++) {
+        select.innerHTML += '<option value="' + categories[i] + '">' + categories[i] + '</option>';
+    }
 }
 
 // ============================================================
@@ -334,16 +351,10 @@ function showToast(type, title, desc) {
 function init() {
     loadTheme();
     seedData();
+    populateCategories();
     renderAll();
-
-    // Populate category dropdown in modal
-    const categorySelect = document.getElementById('itemCategory');
-    categories.forEach(cat => {
-        categorySelect.innerHTML += `<option value="${cat}">${cat}</option>`;
-    });
 }
 
-// Run when page loads
 document.addEventListener('DOMContentLoaded', init);
 
 // ============================================================
@@ -351,12 +362,10 @@ document.addEventListener('DOMContentLoaded', init);
 // ============================================================
 
 document.addEventListener('keydown', function(e) {
-    // Ctrl+N = Open Add Item Modal
     if (e.ctrlKey && e.key === 'n') {
         e.preventDefault();
         openModal();
     }
-    // Escape = Close Modal
     if (e.key === 'Escape') {
         closeModal();
     }
