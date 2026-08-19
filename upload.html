@@ -4,12 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VisionTory.ai - Upload Inventory</title>
-    
-    <!-- CRUCIAL: Library required to read Excel (.xlsx) files -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
     <style>
-        /* --- CSS TO MATCH YOUR SCREENSHOT DESIGN --- */
         :root {
             --bg-color: #11131f;
             --card-bg: #181b2a;
@@ -21,7 +18,7 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: system-ui, -apple-system, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-main);
             margin: 0;
@@ -35,207 +32,45 @@
             max-width: 900px;
         }
 
-        /* Header & Nav */
-        .header {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-        .logo-box {
-            background: linear-gradient(135deg, #d946ef, #8b5cf6);
-            width: 40px;
-            height: 40px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 20px;
-        }
-        .nav-links {
-            display: flex;
-            gap: 25px;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            margin-left: 40px;
-        }
-        .nav-link.active {
-            color: var(--text-main);
-            font-weight: 500;
-            background: rgba(217, 70, 239, 0.15);
-            padding: 6px 12px;
-            border-radius: 20px;
-        }
-        .nav-link {
-            cursor: pointer;
-            text-decoration: none;
-            color: inherit;
-        }
+        .header { display: flex; align-items: center; gap: 15px; margin-bottom: 30px; }
+        .logo-box { background: linear-gradient(135deg, #d946ef, #8b5cf6); width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; }
+        .nav-links { display: flex; gap: 25px; color: var(--text-muted); font-size: 0.9rem; margin-left: 40px; }
+        .nav-link.active { color: var(--text-main); font-weight: 500; background: rgba(217, 70, 239, 0.15); padding: 6px 12px; border-radius: 20px; }
+        .nav-link { cursor: pointer; text-decoration: none; color: inherit; }
+        
+        .page-title { font-size: 1.8rem; font-weight: 600; margin-bottom: 10px; }
+        .back-btn { background: transparent; border: 1px solid var(--border-color); color: var(--text-main); padding: 8px 16px; border-radius: 20px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-size: 0.9rem; margin-bottom: 30px; }
 
-        /* Page Title */
-        .page-title {
-            font-size: 1.8rem;
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-        .page-subtitle {
-            color: var(--text-muted);
-            margin-bottom: 25px;
-        }
-        .back-btn {
-            background: transparent;
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-            padding: 8px 16px;
-            border-radius: 20px;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.9rem;
-            margin-bottom: 30px;
-        }
-        .back-btn:hover {
-            background: var(--border-color);
-        }
+        .upload-card { background-color: var(--card-bg); border: 2px dashed var(--border-color); border-radius: 16px; padding: 60px 20px; text-align: center; transition: all 0.3s ease; margin-bottom: 30px; }
+        .upload-card.highlight { border-color: var(--accent-end); background-color: rgba(139, 92, 246, 0.05); }
+        .cloud-icon { font-size: 3rem; color: var(--text-muted); margin-bottom: 15px; display: block; }
+        .upload-title { font-size: 1.25rem; font-weight: 500; margin-bottom: 8px; }
+        .upload-desc { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 20px; }
+        .badges { display: flex; justify-content: center; gap: 12px; margin-bottom: 30px; }
+        .badge { background: #1f2336; padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; color: var(--text-muted); border: 1px solid var(--border-color); }
+        
+        .browse-btn { background: linear-gradient(135deg, var(--accent-start), var(--accent-end)); border: none; color: white; padding: 12px 32px; border-radius: 30px; font-size: 1rem; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: transform 0.1s; }
+        .browse-btn:hover { transform: scale(1.02); }
 
-        /* Upload Card (Drop Zone) */
-        .upload-card {
-            background-color: var(--card-bg);
-            border: 2px dashed var(--border-color);
-            border-radius: 16px;
-            padding: 60px 20px;
-            text-align: center;
-            transition: all 0.3s ease;
-            margin-bottom: 30px;
-        }
-        .upload-card.highlight {
-            border-color: var(--accent-end);
-            background-color: rgba(139, 92, 246, 0.05);
-        }
-        .cloud-icon {
-            font-size: 3rem;
-            color: var(--text-muted);
-            margin-bottom: 15px;
-            display: block;
-        }
-        .upload-title {
-            font-size: 1.25rem;
-            font-weight: 500;
-            margin-bottom: 8px;
-        }
-        .upload-desc {
-            color: var(--text-muted);
-            font-size: 0.95rem;
-            margin-bottom: 20px;
-        }
-        .badges {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            margin-bottom: 30px;
-        }
-        .badge {
-            background: #1f2336;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            border: 1px solid var(--border-color);
-        }
-        .browse-btn {
-            background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
-            border: none;
-            color: white;
-            padding: 12px 32px;
-            border-radius: 30px;
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            transition: transform 0.1s;
-        }
-        .browse-btn:hover {
-            transform: scale(1.02);
-        }
+        .files-card { background-color: var(--card-bg); border-radius: 16px; padding: 20px; }
+        .files-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 15px; }
+        .files-header h4 { margin: 0; font-weight: 500; }
+        .file-count { color: var(--text-muted); font-size: 0.9rem; }
+        .file-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #202435; }
+        .file-item:last-child { border-bottom: none; }
+        .file-empty { color: var(--text-muted); text-align: center; padding: 20px 0; }
+        .file-empty-icon { font-size: 3rem; opacity: 0.3; display: block; margin-bottom: 10px; }
 
-        /* Uploaded Files List */
-        .files-card {
-            background-color: var(--card-bg);
-            border-radius: 16px;
-            padding: 20px;
-        }
-        .files-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 15px;
-            margin-bottom: 15px;
-        }
-        .files-header h4 {
-            margin: 0;
-            font-weight: 500;
-        }
-        .file-count {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
-        .file-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid #202435;
-        }
-        .file-item:last-child {
-            border-bottom: none;
-        }
-        .file-empty {
-            color: var(--text-muted);
-            text-align: center;
-            padding: 20px 0;
-        }
-        .file-empty-icon {
-            font-size: 3rem;
-            opacity: 0.3;
-            display: block;
-            margin-bottom: 10px;
-        }
-
-        /* Toast Notification styling */
-        .toast-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 9999;
-        }
-        .toast {
-            background: #1f2336;
-            color: white;
-            padding: 15px 20px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-            border-left: 4px solid #8b5cf6;
-            min-width: 250px;
-            animation: slideIn 0.3s ease-out;
-        }
+        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; }
+        .toast { background: #1f2336; color: white; padding: 15px 20px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); border-left: 4px solid #8b5cf6; min-width: 250px; animation: slideIn 0.3s ease-out; }
         .toast.success { border-left-color: #10b981; }
         .toast.error { border-left-color: #ef4444; }
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
     </style>
 </head>
 <body>
 
     <div class="main-container">
-
-        <!-- Navbar -->
         <div class="header">
             <div class="logo-box">V</div>
             <div style="font-weight: 600; font-size: 1.1rem;">VisionTory.ai</div>
@@ -243,35 +78,25 @@
                 <a href="#" class="nav-link">Dashboard</a>
                 <a href="#" class="nav-link active">Upload</a>
                 <a href="#" class="nav-link">Inventory</a>
-                <a href="#" class="nav-link">Categories</a>
-                <a href="#" class="nav-link">Analytics</a>
             </div>
         </div>
 
-        <!-- Page Title -->
         <h1 class="page-title">Upload <span style="color: var(--text-muted); font-weight: 400;">· Import inventory data</span></h1>
         <button class="back-btn" onclick="window.history.back()">← Back to Dashboard</button>
 
-        <!-- Drop Zone -->
         <div class="upload-card" id="dropZone">
             <span class="cloud-icon">☁️</span>
             <div class="upload-title">Drop your files here</div>
             <div class="upload-desc">Upload CSV, Excel, or JSON files to import inventory</div>
-            
             <div class="badges">
                 <span class="badge">📄 .CSV</span>
                 <span class="badge">📊 .XLSX</span>
                 <span class="badge">📋 .JSON</span>
             </div>
-
-            <button class="browse-btn" onclick="document.getElementById('fileInput').click()">
-                📂 Browse Files
-            </button>
-            <!-- Hidden file input with 'multiple' to allow selecting many files at once -->
+            <button class="browse-btn" id="browseBtn">📂 Browse Files</button>
             <input type="file" id="fileInput" accept=".csv,.xlsx,.json" style="display: none;" multiple>
         </div>
 
-        <!-- Uploaded Files List -->
         <div class="files-card">
             <div class="files-header">
                 <h4>Uploaded Files</h4>
@@ -284,25 +109,23 @@
                 </div>
             </div>
         </div>
-
     </div>
 
-    <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
 
-
-    <!-- ============================================================ -->
-    <!-- FULL JAVASCRIPT SCRIPT -->
-    <!-- ============================================================ -->
     <script>
-        // 1. MOCK DATA (Replace this with your actual 'inventory' variable and 'idCounter' when integrating)
+        // ==========================================================
+        // 1. MOCK DATA
+        // ==========================================================
         let inventory = JSON.parse(localStorage.getItem('visiontory-inventory')) || [
             { id: 1, name: "Wireless Mouse", category: "Electronics", qty: 50, minStock: 5, status: "In Stock" },
             { id: 2, name: "Office Desk", category: "Furniture", qty: 10, minStock: 2, status: "In Stock" }
         ];
-        let idCounter = 3; // Set to next available ID
+        let idCounter = 3;
 
-        // 2. TOAST NOTIFICATION FUNCTION
+        // ==========================================================
+        // 2. TOAST FUNCTION
+        // ==========================================================
         function showToast(type, title, message) {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
@@ -316,18 +139,40 @@
             }, 4000);
         }
 
-        // 3. UPLOAD PAGE LOGIC
+        // ==========================================================
+        // 3. DOM SETUP (Programmatic Events)
+        // ==========================================================
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
+        const browseBtn = document.getElementById('browseBtn');
         const fileListContainer = document.getElementById('fileListContainer');
         const fileCountSpan = document.getElementById('fileCount');
 
-        // SECURE EVENT LISTENER (Replacing inline 'onchange')
-        fileInput.addEventListener('change', handleFileUpload);
+        // Browse Button Click -> Trigger Input Click
+        browseBtn.addEventListener('click', function() {
+            fileInput.click();
+        });
 
-        // A. Drag & Drop Event Listeners
+        // Input Change -> Start Process
+        fileInput.addEventListener('change', function(e) {
+            processFiles(e.target.files);
+            fileInput.value = ''; // Reset so same file can be selected again
+        });
+
+        // ==========================================================
+        // 4. DRAG & DROP EVENTS
+        // ==========================================================
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.add('highlight'), false);
+        });
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.remove('highlight'), false);
+        });
+        dropZone.addEventListener('drop', (e) => {
+            processFiles(e.dataTransfer.files);
         });
 
         function preventDefaults(e) {
@@ -335,98 +180,96 @@
             e.stopPropagation();
         }
 
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropZone.addEventListener(eventName, () => dropZone.classList.add('highlight'), false);
-        });
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, () => dropZone.classList.remove('highlight'), false);
-        });
+        // ==========================================================
+        // 5. MAIN PROCESSING LOGIC (EXACT FIX HERE)
+        // ==========================================================
+        function processFiles(files) {
+            if (!files || files.length === 0) return;
+            updateFileListUI(files); 
 
-        dropZone.addEventListener('drop', (e) => {
-            const dt = e.dataTransfer;
-            const files = dt.files;
-            handleFiles(files);
-        });
-
-        // B. Handle File Input (Browser File Picker)
-        function handleFileUpload(event) {
-            const files = event.target.files;
-            if (files.length > 0) {
-                handleFiles(files);
-                fileInput.value = ''; // Reset the input so the same file can be selected again later
-            } else {
-                console.log("No files selected (User likely clicked Cancel).");
-            }
-        }
-
-        // C. Main File Processing Loop
-        function handleFiles(files) {
-            if (files.length === 0) return;
-            updateFileListUI(files); // Update the bottom list UI
-
-            Array.from(files).forEach(file => {
+            // Loop through files
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
                 const reader = new FileReader();
                 const fileName = file.name.toLowerCase();
 
+                // FIX: Attach the logic BEFORE calling readAsText
                 reader.onload = function(e) {
                     try {
                         let importedData = [];
-                        let parsed = false;
+                        let fileType = '';
 
-                        // JSON Parser
-                        if (fileName.endsWith('.json')) {
-                            importedData = JSON.parse(e.target.result);
-                            if (!Array.isArray(importedData)) throw new Error("JSON must be an array.");
-                            parsed = true;
-                        } 
-                        // CSV Parser
-                        else if (fileName.endsWith('.csv')) {
-                            importedData = parseCSV(e.target.result);
-                            parsed = true;
-                        } 
-                        // XLSX Parser
-                        else if (fileName.endsWith('.xlsx')) {
-                            const data = new Uint8Array(e.target.result);
-                            const workbook = XLSX.read(data, {type: 'array'});
-                            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                            importedData = XLSX.utils.sheet_to_json(firstSheet);
-                            parsed = true;
-                        } 
+                        if (fileName.endsWith('.json')) { fileType = 'json'; }
+                        else if (fileName.endsWith('.csv')) { fileType = 'csv'; }
+                        else if (fileName.endsWith('.xlsx')) { fileType = 'xlsx'; }
 
-                        if (!parsed) {
+                        if (fileType === '') {
                             showToast('error', 'Invalid Format', `${file.name} type is not supported.`);
                             return;
                         }
 
-                        // Merge with existing DB
-                        mergeInventory(importedData);
-                        showToast('success', 'Import Complete', `Successfully merged ${importedData.length} items from ${file.name}`);
+                        // Parse based on type
+                        if (fileType === 'json') {
+                            importedData = JSON.parse(e.target.result);
+                            if (!Array.isArray(importedData)) throw new Error("JSON must be an array.");
+                        } 
+                        else if (fileType === 'csv') {
+                            importedData = parseCSV(e.target.result);
+                        } 
+                        else if (fileType === 'xlsx') {
+                            // XLSX needs raw data (ArrayBuffer), but we read as Text in this specific overflow block
+                            // This block will trigger if we somehow ended up here. 
+                            // But we fixed the read method below!
+                        }
+
+                        if (fileType !== 'xlsx') {
+                            mergeInventory(importedData);
+                            showToast('success', 'Import Complete', `Successfully imported ${importedData.length} items from ${file.name}`);
+                        }
 
                     } catch (error) {
-                        console.error(error);
+                        console.error("Error parsing content:", error);
                         showToast('error', 'Parse Error', `Failed to read ${file.name}: ${error.message}`);
                     }
                 };
 
-                // Handle FileReader Errors
-                reader.onerror = function() {
-                    showToast('error', 'Read Error', 'Could not read the file.');
-                }
+                // Force handle read errors explicitly
+                reader.onerror = function(e) {
+                    console.error("FileReader Error for:", file.name, e.target.error);
+                    showToast('error', 'Read Error', `Could not read ${file.name}. Check console for details.`);
+                };
 
-                // Read based on type (Excel requires ArrayBuffer, others Text)
+                // CORRECT READ METHOD:
+                // XLSX must be read as ArrayBuffer. JSON/CSV read as Text.
                 if (fileName.endsWith('.xlsx')) {
                     reader.readAsArrayBuffer(file);
+                    
+                    // Separate onload handler for XLSX (because it needs ArrayBuffer, not Text)
+                    // We overwrite the onload just for Excel files
+                    reader.onload = function(e) {
+                        try {
+                            const data = new Uint8Array(e.target.result);
+                            const workbook = XLSX.read(data, {type: 'array'});
+                            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                            const importedData = XLSX.utils.sheet_to_json(firstSheet);
+                            mergeInventory(importedData);
+                            showToast('success', 'Import Complete', `Successfully imported ${importedData.length} items from ${file.name}`);
+                        } catch (error) {
+                            showToast('error', 'XLSX Error', `Failed to parse Excel file: ${error.message}`);
+                        }
+                    };
                 } else {
                     reader.readAsText(file);
                 }
-            });
+            }
         }
 
-        // D. CSV Parser Helper
+        // ==========================================================
+        // 6. HELPERS
+        // ==========================================================
         function parseCSV(text) {
             const lines = text.split('\n').filter(line => line.trim() !== '');
             if (lines.length < 2) return [];
-            
             const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
             const result = [];
             for (let i = 1; i < lines.length; i++) {
@@ -435,10 +278,7 @@
                     let obj = {};
                     headers.forEach((header, index) => {
                         let val = values[index].trim();
-                        // Convert numeric strings to actual numbers
-                        if (['qty', 'minstock', 'id'].includes(header)) {
-                            val = parseInt(val) || 0;
-                        }
+                        if (['qty', 'minstock', 'id'].includes(header)) val = parseInt(val) || 0;
                         obj[header] = val;
                     });
                     result.push(obj);
@@ -447,38 +287,24 @@
             return result;
         }
 
-        // E. Merge Data & Save to LocalStorage
         function mergeInventory(newItems) {
             let addedCount = 0;
             newItems.forEach(item => {
-                // Prevent duplicates based on ID
                 const exists = inventory.some(existing => existing.id === item.id);
-                
                 if (!exists) {
-                    // If uploaded item has no ID, assign a new one
-                    if (!item.id) {
-                        item.id = idCounter++;
-                    } else {
-                        // Update global counter if imported ID is higher
-                        if (item.id >= idCounter) idCounter = item.id + 1;
-                    }
+                    if (!item.id) item.id = idCounter++;
+                    else if (item.id >= idCounter) idCounter = item.id + 1;
                     inventory.push(item);
                     addedCount++;
                 }
             });
-
-            // Save to LocalStorage
             localStorage.setItem('visiontory-inventory', JSON.stringify(inventory));
-            
-            // (Optional) If you are integrated with the dashboard, call renderAll() here.
-            // if (typeof renderAll === 'function') { renderAll(); }
+            console.log(`Uploaded ${addedCount} new items. Total inventory:`, inventory);
         }
 
-        // F. Update Bottom "Uploaded Files" List UI
         function updateFileListUI(files) {
             fileListContainer.innerHTML = '';
             fileCountSpan.textContent = `${files.length} files`;
-
             Array.from(files).forEach(file => {
                 const div = document.createElement('div');
                 div.className = 'file-item';
