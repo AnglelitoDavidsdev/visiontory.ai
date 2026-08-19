@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VisionTory.ai · Upload</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+    <style>
+        /* ============================================================
+           ROOT VARIABLES
+           ============================================================ */
+        :root {
+            --bg-primary: #0b0e1a;
+            --bg-secondary: #11152a;
+            --bg-card: #161b36;
+            --bg-card-hover: #1e2450;
+            --border-color: rgba(255, 255, 255, 0.06);
+            --text-primary: #f0f4ff;
+            --text-secondary: #8899cc;
+            --text-muted: #556688;
+            --accent-blue: #4a8cff;
+            --accent-cyan: #00d4ff;
+            --accent-green: #00e676;
+            --accent-orange: #ffab00;
+            --accent-red: #ff5252;
+            --accent-purple: #b388ff;
+            --accent-pink: #ff6b9d;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            --radius: 16px;
+            --radius-sm: 10px;
+            --transition: 0.25s ease;
+            --theme-accent: var(--accent-pink);
+            --theme-gradient: linear-gradient(135deg, var(--accent-pink), var(--accent-purple));
+            --theme-bg-glow: rgba(255, 107, 157, 0.08);
+        }
+
+        [data-theme="industrial"] {
+            --theme-accent: #ff8c00;
+            --theme-gradient: linear-gradient(135deg, #ff8c00, #ff5500);
+            --theme-bg-glow: rgba(255, 140, 0, 0.08);
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #111118;
+            --bg-card: #181825;
+            --bg-card-hover: #22223a;
+        }
+
+        [data-theme="medical"] {
+            --theme-accent: #00b8d4;
+            --theme-gradient: linear-gradient(135deg, #00b8d4, #0077b6);
+            --theme-bg-glow: rgba(0, 184, 212, 0.08);
+            --bg-primary: #080e1a;
+            --bg-secondary: #0d1a2e;
+            --bg-card: #12243f;
+            --bg-card-hover: #1a3055;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, system-ui, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--theme-accent);
+            border-radius: 10px;
+        }
+
+        /* ============================================================
+           SIDEBAR
+           ============================================================ */
+        .sidebar {
+            width: 260px;
+            min-height: 100vh;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            padding: 28px 20px;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 40px;
+            padding-left: 4px;
+        }
+
+        .sidebar .logo .icon {
+            font-size: 22px;
+            background: var(--theme-gradient);
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 800;
+        }
+
+        .sidebar .logo h1 {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+
+        .sidebar .logo h1 .ai {
+            background: var(--theme-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sidebar .logo h1 .tory {
+            color: #fff;
+            -webkit-text-fill-color: #fff;
+        }
+
+        .sidebar .logo h1 small {
+            display: block;
+            font-size: 10px;
+            font-weight: 400;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            -webkit-text-fill-color: var(--text-muted);
+        }
+
+        .sidebar .nav {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .sidebar .nav a {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all var(--transition);
+            cursor: pointer;
+        }
+
+        .sidebar .nav a:hover {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-primary);
+        }
+
+        .sidebar .nav a.active {
+            background: var(--theme-bg-glow);
+            color: var(--theme-accent);
+            box-shadow: inset 3px 0 0 var(--theme-accent);
+        }
+
+        .sidebar .nav a i {
+            width: 20px;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        .sidebar .nav a .badge {
+            margin-left: auto;
+            background: rgba(255, 255, 255, 0.06);
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .sidebar .nav a .badge.danger {
+            background: rgba(255, 82, 82, 0.15);
+            color: var(--accent-red);
+        }
+
+        .sidebar .user {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sidebar .user .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--theme-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+            color: #fff;
+        }
+
+        .sidebar .user .info {
+            flex: 1;
+        }
+
+        .sidebar .user .info .name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .sidebar .user .info .email {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .sidebar .user .signout {
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: color var(--transition);
+            background: none;
+            border: none;
+            font-size: 16px;
+        }
+
+        .sidebar .user .signout:hover {
+            color: var(--accent-red);
+        }
+
+        .sidebar .user .signout a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        /* ============================================================
+           MAIN CONTENT
+           ============================================================ */
+        .main {
+            flex: 1;
+            padding: 32px 40px;
+            overflow-y: auto;
+            height: 100vh;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .topbar h2 {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+
+        .topbar h2 span {
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        .topbar .actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 8px 20px;
+            border-radius: 30px;
+            border: none;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--theme-gradient);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .btn-outline:hover {
+            background: var(--bg-card);
+            color: var(--text-primary);
+        }
+
+        .btn-success {
+            background: rgba(0, 230, 118, 0.12);
+            color: var(--accent-green);
+        }
+
+        .btn-success:hover {
+            background: rgba(0, 230, 118, 0.2);
+        }
+
+        .btn-danger {
+            background: rgba(255, 82, 82, 0.12);
+            color: var(--accent-red);
+        }
+
+        .btn-danger:hover {
+            background: rgba(255, 82, 82, 0.2);
+        }
+
+        /* ============================================================
+           UPLOAD SECTION
+           ============================================================ */
+        .upload-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 1024px) {
+            .upload-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ----- Upload Area ----- */
+        .upload-area {
+            background: var(--bg-card);
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius);
+            padding: 48px 32px;
+            text-align: center;
+            transition: all var(--transition);
+            cursor: pointer;
+            min-height: 320px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .upload-area:hover {
+            border-color: var(--theme-accent);
+            background: var(--bg-card-hover);
+        }
+
+        .upload-area.dragover {
+            border-color: var(--theme-accent);
+            background: var(--theme-bg-glow);
+            transform: scale(1.01);
+        }
+
+        .upload-area .icon {
+            font-size: 56px;
+            color: var(--theme-accent);
+            opacity: 0.5;
+            margin-bottom: 16px;
+        }
+
+        .upload-area h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .upload-area p {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .upload-area .formats {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .upload-area .formats .tag {
+            background: var(--bg-primary);
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+        }
+
+        .upload-area input[type="file"] {
+            display: none;
+        }
+
+        /* ----- File List ----- */
+        .file-list {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            min-height: 320px;
+            max-height: 420px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .file-list .header {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .file-list .header h3 {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .file-list .header .count {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .file-list .items {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px 0;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 24px;
+            border-bottom: 1px solid var(--border-color);
+            transition: all var(--transition);
+        }
+
+        .file-item:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .file-item .icon {
+            font-size: 28px;
+            color: var(--theme-accent);
+            opacity: 0.6;
+            width: 40px;
+            text-align: center;
+        }
+
+        .file-item .info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .file-item .info .name {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .file-item .info .details {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .file-item .status {
+            font-size: 11px;
+            font-weight: 500;
+            padding: 2px 12px;
+            border-radius: 20px;
+        }
+
+        .file-item .status.uploaded {
+            background: rgba(0, 230, 118, 0.1);
+            color: var(--accent-green);
+        }
+
+        .file-item .status.pending {
+            background: rgba(255, 171, 0, 0.1);
+            color: var(--accent-orange);
+        }
+
+        .file-item .status.error {
+            background: rgba(255, 82, 82, 0.1);
+            color: var(--accent-red);
+        }
+
+        .file-item .remove {
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: all var(--transition);
+            background: none;
+            border: none;
+            font-size: 14px;
+        }
+
+        .file-item .remove:hover {
+            color: var(--accent-red);
+            background: rgba(255, 82, 82, 0.1);
+        }
+
+        .file-list .empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            color: var(--text-muted);
+            gap: 8px;
+        }
+
+        .file-list .empty i {
+            font-size: 32px;
+            opacity: 0.2;
+        }
+
+        .file-list .empty p {
+            font-size: 14px;
+        }
+
+        /* ----- Import Actions ----- */
+        .import-actions {
+            margin-top: 24px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .import-actions .left {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .import-actions .right {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: var(--border-color);
+            border-radius: 4px;
+            margin-top: 12px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .progress-bar .fill {
+            height: 100%;
+            background: var(--theme-gradient);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+
+        .progress-bar.active {
+            display: block;
+        }
+
+        /* ============================================================
+           TOAST NOTIFICATION
+           ============================================================ */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: var(--shadow);
+            z-index: 200;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.4s ease;
+            max-width: 420px;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast .icon {
+            font-size: 20px;
+        }
+
+        .toast .icon.success {
+            color: var(--accent-green);
+        }
+        .toast .icon.error {
+            color: var(--accent-red);
+        }
+        .toast .icon.info {
+            color: var(--accent-blue);
+        }
+
+        .toast .msg {
+            flex: 1;
+        }
+
+        .toast .msg .title {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .toast .msg .desc {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* ============================================================
+           RESPONSIVE
+           ============================================================ */
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+                overflow: auto;
+            }
+            .sidebar {
+                width: 100%;
+                min-height: auto;
+                height: auto;
+                position: relative;
+                padding: 16px 20px;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+            .sidebar .logo {
+                margin-bottom: 16px;
+            }
+            .sidebar .nav {
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 2px;
+            }
+            .sidebar .nav a {
+                padding: 8px 14px;
+                font-size: 12px;
+            }
+            .sidebar .nav a .badge {
+                display: none;
+            }
+            .sidebar .user {
+                display: none;
+            }
+            .main {
+                height: auto;
+                padding: 16px;
+            }
+            .topbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .upload-area {
+                padding: 32px 20px;
+                min-height: 220px;
+            }
+            .upload-area .icon {
+                font-size: 40px;
+            }
+            .file-list {
+                max-height: 280px;
+                min-height: 200px;
+            }
+            .import-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .import-actions .left,
+            .import-actions .right {
+                justify-content: center;
+            }
+            .toast {
+                bottom: 16px;
+                right: 16px;
+                left: 16px;
+                max-width: unset;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .upload-area h3 {
+                font-size: 16px;
+            }
+            .upload-area .formats .tag {
+                font-size: 10px;
+                padding: 2px 10px;
+            }
+            .file-item {
+                padding: 10px 16px;
+            }
+            .file-item .info .name {
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================================================
+    SIDEBAR
+    ============================================================ -->
+    <aside class="sidebar">
+        <div class="logo">
+            <div class="icon">V</div>
+            <h1>
+                <span class="ai">Vision</span><span class="tory">Tory</span><span class="ai">.ai</span>
+                <small>AI Inventory Control</small>
+            </h1>
+        </div>
+
+        <nav class="nav">
+            <a href="dashboard.html">
+                <i class="fas fa-th-large"></i> Dashboard
+            </a>
+            <a href="upload.html" class="active">
+                <i class="fas fa-cloud-upload-alt"></i> Upload
+                <span class="badge">+</span>
+            </a>
+            <a href="#">
+                <i class="fas fa-boxes"></i> Inventory
+                <span class="badge">8</span>
+            </a>
+            <a href="#">
+                <i class="fas fa-tags"></i> Categories
+                <span class="badge">5</span>
+            </a>
+            <a href="#">
+                <i class="fas fa-chart-line"></i> Analytics
+            </a>
+            <a href="#">
+                <i class="fas fa-truck"></i> Suppliers
+            </a>
+            <a href="#">
+                <i class="fas fa-bell"></i> Alerts
+                <span class="badge danger">3</span>
+            </a>
+            <a href="#">
+                <i class="fas fa-cog"></i> Settings
+            </a>
+        </nav>
+
+        <div class="user">
+            <div class="avatar">A</div>
+            <div class="info">
+                <div class="name">Angelito Davids</div>
+                <div class="email">angelitodavids7@gmail.com</div>
+            </div>
+            <button class="signout" title="Sign out">
+                <a href="index.html"><i class="fas fa-sign-out-alt"></i></a>
+            </button>
+        </div>
+    </aside>
+
+    <!-- ============================================================
+    MAIN CONTENT
+    ============================================================ -->
+    <main class="main">
+
+        <!-- Top Bar -->
+        <div class="topbar">
+            <h2>Upload <span>· Import inventory data</span></h2>
+            <div class="actions">
+                <button class="btn btn-outline" onclick="window.location.href='dashboard.html'">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </button>
+            </div>
+        </div>
+
+        <!-- Upload Grid -->
+        <div class="upload-grid">
+
+            <!-- Upload Area -->
+            <div class="upload-area" id="dropZone">
+                <div class="icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                <h3>Drop your files here</h3>
+                <p>Upload CSV, Excel, or JSON files to import inventory</p>
+                <div class="formats">
+                    <span class="tag"><i class="fas fa-file-csv"></i> .CSV</span>
+                    <span class="tag"><i class="fas fa-file-excel"></i> .XLSX</span>
+                    <span class="tag"><i class="fas fa-file-code"></i> .JSON</span>
+                </div>
+                <br />
+                <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                    <i class="fas fa-folder-open"></i> Browse Files
+                </button>
+                <input type="file" id="fileInput" accept=".csv,.xlsx,.json" multiple onchange="handleFiles(this.files)" />
+            </div>
+
+            <!-- File List -->
+            <div class="file-list" id="fileList">
+                <div class="header">
+                    <h3>Uploaded Files</h3>
+                    <span class="count" id="fileCount">0 files</span>
+                </div>
+                <div class="items" id="fileItems">
+                    <div class="empty">
+                        <i class="fas fa-inbox"></i>
+                        <p>No files uploaded yet</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Import Actions -->
+        <div class="import-actions">
+            <div class="left">
+                <button class="btn btn-outline" onclick="clearAllFiles()">
+                    <i class="fas fa-trash"></i> Clear All
+                </button>
+                <button class="btn btn-outline" onclick="downloadTemplate()">
+                    <i class="fas fa-download"></i> Download Template
+                </button>
+            </div>
+            <div class="right">
+                <button class="btn btn-primary" onclick="importFiles()" id="importBtn">
+                    <i class="fas fa-upload"></i> Import to Inventory
+                </button>
+            </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-bar" id="progressBar">
+            <div class="fill" id="progressFill"></div>
+        </div>
+
+    </main>
+
+    <!-- ============================================================
+    TOAST NOTIFICATION
+    ============================================================ -->
+    <div class="toast" id="toast">
+        <div class="icon" id="toastIcon"><i class="fas fa-check-circle"></i></div>
+        <div class="msg">
+            <div class="title" id="toastTitle">Success</div>
+            <div class="desc" id="toastDesc">Files imported successfully</div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+    JAVASCRIPT
+    ============================================================ -->
+    <script>
+        // ============================================================
+        //  STATE
+        // ============================================================
+        let uploadedFiles = [];
+        let fileIdCounter = 0;
+
+        // ============================================================
+        //  THEME LOADING
+        // ============================================================
+        function loadTheme() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const theme = urlParams.get('theme') || localStorage.getItem('visiontory-theme') || 'industrial';
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('visiontory-theme', theme);
+        }
+        loadTheme();
+
+        // ============================================================
+        //  DRAG & DROP
+        // ============================================================
+        const dropZone = document.getElementById('dropZone');
+
+        dropZone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        // ============================================================
+        //  FILE HANDLING
+        // ============================================================
+        function handleFiles(files) {
+            const validTypes = [
+                'text/csv',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'application/json'
+            ];
+
+            for (let file of files) {
+                // Check file type
+                const ext = file.name.split('.').pop().toLowerCase();
+                if (!['csv', 'xlsx', 'json'].includes(ext)) {
+                    showToast('error', 'Invalid File', `${file.name} is not supported. Use CSV, XLSX, or JSON.`);
+                    continue;
+                }
+
+                // Check size (max 10MB)
+                if (file.size > 10 * 1024 * 1024) {
+                    showToast('error', 'File Too Large', `${file.name} exceeds 10MB limit.`);
+                    continue;
+                }
+
+                // Add to list
+                uploadedFiles.push({
+                    id: ++fileIdCounter,
+                    name: file.name,
+                    size: file.size,
+                    type: ext.toUpperCase(),
+                    status: 'pending',
+                    file: file
+                });
+
+                showToast('info', 'File Added', `${file.name} ready for import.`);
+            }
+
+            renderFileList();
+        }
+
+        // ============================================================
+        //  RENDER FILE LIST
+        // ============================================================
+        function renderFileList() {
+            const container = document.getElementById('fileItems');
+            const count = document.getElementById('fileCount');
+
+            count.textContent = `${uploadedFiles.length} file${uploadedFiles.length !== 1 ? 's' : ''}`;
+
+            if (uploadedFiles.length === 0) {
+                container.innerHTML = `
+                            <div class="empty">
+                                <i class="fas fa-inbox"></i>
+                                <p>No files uploaded yet</p>
+                            </div>
+                        `;
+                return;
+            }
+
+            container.innerHTML = uploadedFiles.map(f => `
+                        <div class="file-item" data-id="${f.id}">
+                            <div class="icon">
+                                <i class="fas fa-file-${f.type === 'CSV' ? 'csv' : f.type === 'XLSX' ? 'excel' : 'code'}"></i>
+                            </div>
+                            <div class="info">
+                                <div class="name">${f.name}</div>
+                                <div class="details">${(f.size / 1024).toFixed(1)} KB · ${f.type}</div>
+                            </div>
+                            <span class="status ${f.status}">${f.status === 'pending' ? 'Pending' : f.status === 'uploaded' ? '✓ Uploaded' : '✗ Error'}</span>
+                            <button class="remove" onclick="removeFile(${f.id})" title="Remove">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    `).join('');
+        }
+
+        // ============================================================
+        //  REMOVE FILE
+        // ============================================================
+        function removeFile(id) {
+            uploadedFiles = uploadedFiles.filter(f => f.id !== id);
+            renderFileList();
+            showToast('info', 'File Removed', 'File has been removed from the list.');
+        }
+
+        // ============================================================
+        //  CLEAR ALL
+        // ============================================================
+        function clearAllFiles() {
+            if (uploadedFiles.length === 0) return;
+            if (confirm('Remove all files from the list?')) {
+                uploadedFiles = [];
+                renderFileList();
+                showToast('info', 'Cleared', 'All files have been removed.');
+            }
+        }
+
+        // ============================================================
+        //  DOWNLOAD TEMPLATE
+        // ============================================================
+        function downloadTemplate() {
+            const headers = ['Item Name', 'Category', 'Quantity', 'Min Stock', 'Status'];
+            const sample = [
+                ['Paracetamol 500mg', 'Medication', '50', '10', 'in-stock'],
+                ['Surgical Gloves', 'Supplies', '100', '20', 'in-stock'],
+                ['Insulin Pens', 'Medication', '5', '10', 'critical']
+            ];
+
+            const content = [
+                headers.join(','),
+                ...sample.map(row => row.join(','))
+            ].join('\n');
+
+            const blob = new Blob([content], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'visiontory_template.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showToast('success', 'Template Downloaded', 'Use this CSV template to bulk import inventory.');
+        }
+
+        // ============================================================
+        //  IMPORT FILES
+        // ============================================================
+        function importFiles() {
+            if (uploadedFiles.length === 0) {
+                showToast('error', 'No Files', 'Please upload at least one file to import.');
+                return;
+            }
+
+            const progressBar = document.getElementById('progressBar');
+            const progressFill = document.getElementById('progressFill');
+            progressBar.classList.add('active');
+            progressFill.style.width = '0%';
+
+            const totalFiles = uploadedFiles.length;
+            let completed = 0;
+
+            uploadedFiles.forEach((f, index) => {
+                // Simulate import with progress
+                setTimeout(() => {
+                    // Parse the file (simplified — in production, use PapaParse or similar)
+                    if (f.type === 'CSV' || f.type === 'XLSX' || f.type === 'JSON') {
+                        // Simulate successful import
+                        f.status = 'uploaded';
+
+                        // Update progress
+                        completed++;
+                        const progress = (completed / totalFiles) * 100;
+                        progressFill.style.width = `${progress}%`;
+
+                        renderFileList();
+
+                        if (completed === totalFiles) {
+                            setTimeout(() => {
+                                progressBar.classList.remove('active');
+                                progressFill.style.width = '0%';
+                                showToast('success', 'Import Complete',
+                                    `Successfully imported ${totalFiles} file${totalFiles !== 1 ? 's' : ''} to inventory.`
+                                );
+
+                                // Add sample items to localStorage for demo
+                                const existing = JSON.parse(localStorage.getItem('visiontory-inventory') || '[]');
+                                const newItems = [
+                                    { name: 'Imported Item 1', category: 'Medication', qty: 25, minStock: 5,
+                                        status: 'in-stock' },
+                                    { name: 'Imported Item 2', category: 'Supplies', qty: 60, minStock: 10,
+                                        status: 'in-stock' },
+                                    { name: 'Imported Item 3', category: 'Equipment', qty: 3, minStock: 2,
+                                        status: 'low' },
+                                ];
+                                const combined = [...existing, ...newItems];
+                                localStorage.setItem('visiontory-inventory', JSON.stringify(combined));
+
+                                // Clear files after successful import
+                                setTimeout(() => {
+                                    uploadedFiles = [];
+                                    renderFileList();
+                                }, 1500);
+                            }, 500);
+                        }
+                    } else {
+                        f.status = 'error';
+                        renderFileList();
+                        showToast('error', 'Import Failed', `Could not parse ${f.name}. Check file format.`);
+                    }
+                }, 800 + (index * 400));
+            });
+        }
+
+        // ============================================================
+        //  TOAST NOTIFICATION
+        // ============================================================
+        let toastTimeout;
+
+        function showToast(type, title, desc) {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toastIcon');
+            const titleEl = document.getElementById('toastTitle');
+            const descEl = document.getElementById('toastDesc');
+
+            const icons = {
+                success: 'fas fa-check-circle',
+                error: 'fas fa-times-circle',
+                info: 'fas fa-info-circle'
+            };
+
+            icon.className = `icon ${type}`;
+            icon.innerHTML = `<i class="${icons[type] || icons.info}"></i>`;
+            titleEl.textContent = title;
+            descEl.textContent = desc;
+
+            toast.classList.add('show');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 4000);
+        }
+
+        // ============================================================
+        //  LOG
+        // ============================================================
+        console.log('📁 VisionTory.ai Upload Page
