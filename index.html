@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ScanTrak · AI Inventory Control</title>
+    <title>VisionTory.ai · AI Inventory Control</title>
 
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -29,6 +29,7 @@
             --accent-orange: #ffab00;
             --accent-red: #ff5252;
             --accent-purple: #b388ff;
+            --accent-pink: #ff6b9d;
             --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
             --radius: 16px;
             --radius-sm: 10px;
@@ -91,8 +92,8 @@
         }
 
         .sidebar .logo .icon {
-            font-size: 28px;
-            background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+            font-size: 22px;
+            background: linear-gradient(135deg, var(--accent-pink), var(--accent-purple));
             width: 44px;
             height: 44px;
             border-radius: 12px;
@@ -107,18 +108,27 @@
             font-size: 20px;
             font-weight: 700;
             letter-spacing: -0.3px;
-            background: linear-gradient(135deg, #fff, var(--text-secondary));
+        }
+
+        .sidebar .logo h1 .ai {
+            background: linear-gradient(135deg, var(--accent-pink), var(--accent-purple));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+        }
+
+        .sidebar .logo h1 .tory {
+            color: #fff;
+            -webkit-text-fill-color: #fff;
         }
 
         .sidebar .logo h1 small {
             display: block;
             font-size: 10px;
             font-weight: 400;
-            -webkit-text-fill-color: var(--text-muted);
+            color: var(--text-muted);
             letter-spacing: 0.5px;
             text-transform: uppercase;
+            -webkit-text-fill-color: var(--text-muted);
         }
 
         .sidebar .nav {
@@ -148,9 +158,9 @@
         }
 
         .sidebar .nav a.active {
-            background: rgba(74, 140, 255, 0.12);
-            color: var(--accent-blue);
-            box-shadow: inset 3px 0 0 var(--accent-blue);
+            background: rgba(255, 107, 157, 0.12);
+            color: var(--accent-pink);
+            box-shadow: inset 3px 0 0 var(--accent-pink);
         }
 
         .sidebar .nav a i {
@@ -187,7 +197,7 @@
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+            background: linear-gradient(135deg, var(--accent-pink), var(--accent-purple));
             display: flex;
             align-items: center;
             justify-content: center;
@@ -273,8 +283,8 @@
         }
 
         .topbar .actions .search:focus-within {
-            border-color: var(--accent-blue);
-            box-shadow: 0 0 0 3px rgba(74, 140, 255, 0.1);
+            border-color: var(--accent-pink);
+            box-shadow: 0 0 0 3px rgba(255, 107, 157, 0.1);
         }
 
         .topbar .actions .search input {
@@ -311,13 +321,13 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+            background: linear-gradient(135deg, var(--accent-pink), var(--accent-purple));
             color: #fff;
         }
 
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(74, 140, 255, 0.25);
+            box-shadow: 0 8px 24px rgba(255, 107, 157, 0.3);
         }
 
         .btn-outline {
@@ -408,13 +418,13 @@
             float: right;
             font-size: 32px;
             opacity: 0.1;
-            color: var(--accent-blue);
+            color: var(--accent-pink);
         }
 
         /* ----- AI Insights Banner ----- */
         .ai-insight {
-            background: linear-gradient(135deg, rgba(74, 140, 255, 0.08), rgba(0, 212, 255, 0.05));
-            border: 1px solid rgba(74, 140, 255, 0.15);
+            background: linear-gradient(135deg, rgba(255, 107, 157, 0.08), rgba(179, 136, 255, 0.05));
+            border: 1px solid rgba(255, 107, 157, 0.15);
             border-radius: var(--radius);
             padding: 16px 24px;
             margin-bottom: 28px;
@@ -426,14 +436,14 @@
 
         .ai-insight .icon {
             font-size: 24px;
-            background: rgba(74, 140, 255, 0.15);
+            background: rgba(255, 107, 157, 0.15);
             width: 48px;
             height: 48px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--accent-cyan);
+            color: var(--accent-pink);
             flex-shrink: 0;
         }
 
@@ -444,7 +454,7 @@
         .ai-insight .content .title {
             font-size: 13px;
             font-weight: 600;
-            color: var(--accent-cyan);
+            color: var(--accent-pink);
         }
 
         .ai-insight .content .desc {
@@ -459,10 +469,10 @@
 
         .ai-insight .tag {
             font-size: 11px;
-            background: rgba(74, 140, 255, 0.1);
+            background: rgba(255, 107, 157, 0.1);
             padding: 4px 14px;
             border-radius: 20px;
-            color: var(--accent-blue);
+            color: var(--accent-pink);
             font-weight: 500;
         }
 
@@ -513,7 +523,7 @@
         }
 
         .table-header .filters select:focus {
-            border-color: var(--accent-blue);
+            border-color: var(--accent-pink);
         }
 
         .table-wrap {
@@ -638,7 +648,7 @@
             color: var(--text-primary);
         }
         .actions-cell button.edit:hover {
-            color: var(--accent-blue);
+            color: var(--accent-pink);
         }
         .actions-cell button.delete:hover {
             color: var(--accent-red);
@@ -723,8 +733,8 @@
 
         .modal .form-group input:focus,
         .modal .form-group select:focus {
-            border-color: var(--accent-blue);
-            box-shadow: 0 0 0 3px rgba(74, 140, 255, 0.1);
+            border-color: var(--accent-pink);
+            box-shadow: 0 0 0 3px rgba(255, 107, 157, 0.1);
         }
 
         .modal .form-group input::placeholder {
@@ -868,10 +878,10 @@
     ============================================================ -->
     <aside class="sidebar">
         <div class="logo">
-            <div class="icon">ST</div>
+            <div class="icon">V</div>
             <h1>
-                ScanTrak
-                <small>Inventory Control</small>
+                <span class="ai">Vision</span><span class="tory">Tory</span><span class="ai">.ai</span>
+                <small>AI Inventory Control</small>
             </h1>
         </div>
 
@@ -968,7 +978,7 @@
         <div class="ai-insight" id="aiInsight">
             <div class="icon"><i class="fas fa-robot"></i></div>
             <div class="content">
-                <div class="title">🧠 AI Inventory Analysis</div>
+                <div class="title">🧠 VisionTory.ai Analysis</div>
                 <div class="desc" id="aiMessage">
                     Analyzing your stock data...
                 </div>
@@ -1078,7 +1088,7 @@
         //  DATA STORE
         // ============================================================
         let inventory = [];
-        let categories = ['Medication', 'Supplies', 'Equipment', 'Vaccines'];
+        let categories = ['Medication', 'Supplies', 'Equipment', 'Vaccines', 'Diagnostics'];
         let idCounter = 1;
         let editingId = null;
 
@@ -1117,7 +1127,7 @@
             }, {
                 id: 5,
                 name: 'COVID-19 Rapid Test',
-                category: 'Vaccines',
+                category: 'Diagnostics',
                 qty: 0,
                 minStock: 30,
                 status: 'out-of-stock'
@@ -1147,19 +1157,15 @@
         }
 
         // ============================================================
-        //  AI FUNCTIONS (Simple Intelligence)
+        //  AI FUNCTIONS
         // ============================================================
         function runAIAnalysis() {
             const total = inventory.length;
             const lowItems = inventory.filter(i => i.status === 'low' || i.status === 'critical');
             const criticalItems = inventory.filter(i => i.status === 'critical');
             const outOfStock = inventory.filter(i => i.status === 'out-of-stock');
-            const overstock = inventory.filter(i => i.status === 'overstock');
 
-            // Count categories
-            const catSet = new Set(inventory.map(i => i.category));
-
-            // AI prediction: items that need restock soon (low + critical + out of stock)
+            // Items that need restock
             const needRestock = inventory.filter(i =>
                 i.status === 'low' || i.status === 'critical' || i.status === 'out-of-stock'
             );
@@ -1171,4 +1177,7 @@
                     `⚠️ <strong>${criticalItems.length} critical item(s)</strong> need immediate attention: ${criticalItems.map(i => i.name).join(', ')}.`;
             } else if (lowItems.length > 0) {
                 msg =
-                    `📊 <strong>${lowItems.length} item(s
+                    `📊 <strong>${lowItems.length} item(s)</strong> are running low. Consider restocking: ${lowItems.map(i => i.name).join(', ')}.`;
+            } else if (outOfStock.length > 0) {
+                msg =
+                   
