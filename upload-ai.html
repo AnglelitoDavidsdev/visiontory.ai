@@ -4,10 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>VisionTory.ai - Upload & AI Analysis</title>
-    
-    <!-- Library required to read Excel (.xlsx) files -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    
     <style>
         :root {
             --bg-color: #11131f;
@@ -30,8 +27,6 @@
         }
 
         .main-container { width: 100%; max-width: 900px; }
-
-        /* Header & Nav */
         .header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
         .logo-box { background: linear-gradient(135deg, #d946ef, #8b5cf6); width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; }
         .nav-links { display: flex; gap: 15px; color: var(--text-muted); font-size: 0.9rem; margin-left: auto; }
@@ -52,14 +47,12 @@
         .badge { background: #1f2336; padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; color: var(--text-muted); border: 1px solid var(--border-color); }
         .badge.ai { color: #d946ef; border-color: #d946ef; }
 
-        /* Spinner for AI loading */
         .spinner { border: 4px solid rgba(255, 255, 255, 0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: var(--accent-end); animation: spin 1s linear infinite; display: inline-block; margin: 10px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         .browse-btn { background: linear-gradient(135deg, var(--accent-start), var(--accent-end)); border: none; color: white; padding: 14px 35px; border-radius: 30px; font-size: 1rem; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
         .browse-btn:active { transform: scale(0.95); }
 
-        /* Files List */
         .files-card { background-color: var(--card-bg); border-radius: 16px; padding: 20px; }
         .files-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 15px; }
         .files-header h4 { margin: 0; font-weight: 500; }
@@ -67,7 +60,6 @@
         
         .file-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #202435; }
         .file-item:last-child { border-bottom: none; }
-        
         .file-thumbnail { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; margin-right: 12px; border: 1px solid var(--border-color); }
         .file-info { display: flex; align-items: center; gap: 10px; overflow: hidden; }
         .file-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
@@ -75,7 +67,6 @@
         .file-empty { color: var(--text-muted); text-align: center; padding: 20px 0; }
         .file-empty-icon { font-size: 3rem; opacity: 0.3; display: block; margin-bottom: 10px; }
 
-        /* Toast */
         .toast-container { position: fixed; top: 20px; right: 20px; left: 20px; z-index: 9999; display: flex; flex-direction: column; align-items: flex-end; pointer-events: none; }
         .toast { background: #1f2336; color: white; padding: 15px 20px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); border-left: 4px solid #8b5cf6; min-width: 250px; animation: slideIn 0.3s ease-out; pointer-events: all; max-width: 100%; }
         .toast.success { border-left-color: #10b981; }
@@ -84,7 +75,6 @@
     </style>
 </head>
 <body>
-
     <div class="main-container">
         <div class="header">
             <div class="logo-box">V</div>
@@ -102,22 +92,14 @@
             <span class="cloud-icon">☁️</span>
             <div class="upload-title">Drop files or photos here</div>
             <div class="upload-desc">CSV, Excel, JSON files, or Images to analyze with VisionTory AI</div>
-            
             <div class="badges">
                 <span class="badge">📄 .CSV</span>
                 <span class="badge">📊 .XLSX</span>
                 <span class="badge">📋 .JSON</span>
                 <span class="badge ai">🤖 AI Analysis</span>
             </div>
-
-            <button class="browse-btn" id="browseBtn">
-                📂 Browse Files
-            </button>
-            
-            <!-- Supports Images + Data Files -->
+            <button class="browse-btn" id="browseBtn">📂 Browse Files</button>
             <input type="file" id="fileInput" accept=".csv,.xlsx,.json,image/*" style="display: none;" multiple capture="environment">
-            
-            <!-- Hidden loading state -->
             <div id="loadingIndicator" style="display: none; margin-top: 20px;">
                 <div class="spinner"></div>
                 <p style="color: var(--text-muted); margin-top: 10px;">VisionTory AI is analyzing your images...</p>
@@ -140,7 +122,6 @@
 
     <div class="toast-container" id="toastContainer"></div>
 
-
     <script>
         // ==========================================================
         // 1. MOCK DATA & VARIABLES
@@ -150,12 +131,9 @@
         ];
         let idCounter = 2;
 
-        // ** CONFIGURATION FOR YOUR LOCAL AI SERVER **
-        const AI_SERVER_URL = "http://localhost:5000/analyze"; // CHANGE THIS TO YOUR ENDPOINT
+        // ** CHANGE THIS TO YOUR LOCAL ENDPOINT **
+        const AI_SERVER_URL = "http://localhost:5000/analyze"; 
 
-        // ==========================================================
-        // 2. TOAST FUNCTION
-        // ==========================================================
         function showToast(type, title, message) {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
@@ -169,9 +147,6 @@
             }, 5000);
         }
 
-        // ==========================================================
-        // 3. DOM SETUP
-        // ==========================================================
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
         const browseBtn = document.getElementById('browseBtn');
@@ -198,28 +173,22 @@
 
         function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
 
-        // ==========================================================
-        // 4. MAIN PROCESSING
-        // ==========================================================
         function processFiles(files) {
             if (!files || files.length === 0) return;
             updateFileListUI(files); 
 
             Array.from(files).forEach(file => {
                 const fileName = file.name.toLowerCase();
-
                 if (file.size === 0) {
                     showToast('error', 'Empty File', `"${file.name}" is 0 KB.`);
                     return; 
                 }
 
-                // --- 1. IT IS AN IMAGE ---
                 if (file.type.startsWith('image/')) {
                     sendToLocalAI(file);
                     return;
                 }
 
-                // --- 2. IT IS TEXT DATA (CSV, JSON, XLSX) ---
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     try {
@@ -263,23 +232,19 @@
             });
         }
 
-        // ==========================================================
-        // 5. THE FIX: SENDING IMAGE AS BINARY (FormData)
-        // ==========================================================
+        // This sends the RAW image file to your local server
         function sendToLocalAI(file) {
             loadingIndicator.style.display = 'block';
             dropZone.classList.add('loading');
             showToast('info', 'AI Processing', 'Sending image to VisionTory AI local server...');
 
-            // Instead of converting to string, we append the RAW file
             const formData = new FormData();
-            formData.append('image', file); // This sends the binary file
+            formData.append('image', file); 
             formData.append('filename', file.name);
 
-            // Sending to local server
             fetch(AI_SERVER_URL, {
                 method: 'POST',
-                body: formData // We do NOT set 'Content-Type': 'application/json' here. The browser automatically sets it to 'multipart/form-data' which is perfect for local Python servers!
+                body: formData
             })
             .then(async response => {
                 if (!response.ok) {
@@ -300,9 +265,7 @@
                 };
                 inventory.push(newItem);
                 localStorage.setItem('visiontory-inventory', JSON.stringify(inventory));
-                
                 showToast('success', 'AI Analysis Complete', `Added "${newItem.name}" to inventory!`);
-                
                 loadingIndicator.style.display = 'none';
                 dropZone.classList.remove('loading');
             })
@@ -314,9 +277,6 @@
             });
         }
 
-        // ==========================================================
-        // 6. HELPERS
-        // ==========================================================
         function parseCSV(text) {
             const lines = text.split('\n').filter(line => line.trim() !== '');
             if (lines.length < 2) return [];
@@ -349,17 +309,12 @@
             localStorage.setItem('visiontory-inventory', JSON.stringify(inventory));
         }
 
-        // ==========================================================
-        // 7. RENDER IMAGE THUMBNAILS
-        // ==========================================================
         function updateFileListUI(files) {
             fileListContainer.innerHTML = '';
             fileCountSpan.textContent = `${files.length} files`;
-
             Array.from(files).forEach(file => {
                 const div = document.createElement('div');
                 div.className = 'file-item';
-                
                 let sizeText = (file.size / 1024).toFixed(1) + ' KB';
                 if(file.size === 0) sizeText = '⚠️ EMPTY';
 
