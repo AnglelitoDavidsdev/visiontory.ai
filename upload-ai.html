@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>VisionTory.ai - Upload & AI Analysis</title>
+    
+    <!-- Library required to read Excel (.xlsx) files -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <style>
+        :root {
+            --bg-color: #11131f;
+            --card-bg: #181b2a;
+            --text-main: #ffffff;
+            --text-muted: #9ca3af;
+            --accent-start: #d946ef;
+            --accent-end: #8b5cf6;
+            --border-color: #2d3142;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px 15px; 
+            display: flex;
+            justify-content: center;
+        }
+
+        .main-container { width: 100%; max-width: 900px; }
+
+        /* Header & Nav */
+        .header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
+        .logo-box { background: linear-gradient(135deg, #d946ef, #8b5cf6); width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; }
+        .nav-links { display: flex; gap: 15px; color: var(--text-muted); font-size: 0.9rem; margin-left: auto; }
+        .nav-link.active { color: var(--text-main); font-weight: 500; background: rgba(217, 70, 239, 0.15); padding: 6px 12px; border-radius: 20px; }
+        .nav-link { cursor: pointer; text-decoration: none; color: inherit; }
+
+        .page-title { font-size: 1.8rem; font-weight: 600; margin-bottom: 10px; }
+        .back-btn { background: transparent; border: 1px solid var(--border-color); color: var(--text-main); padding: 8px 16px; border-radius: 20px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-size: 0.9rem; margin-bottom: 20px; }
+        .back-btn:hover { background: var(--border-color); }
+
+        .upload-card { background-color: var(--card-bg); border: 2px dashed var(--border-color); border-radius: 16px; padding: 40px 20px; text-align: center; transition: all 0.3s ease; margin-bottom: 20px; position: relative; }
+        .upload-card.highlight { border-color: var(--accent-end); background-color: rgba(139, 92, 246, 0.05); }
+        .upload-card.loading { opacity: 0.5; pointer-events: none; }
+        .cloud-icon { font-size: 3rem; color: var(--text-muted); margin-bottom: 15px; display: block; }
+        .upload-title { font-size: 1.25rem; font-weight: 500; margin-bottom: 8px; }
+        .upload-desc { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 20px; }
+        .badges { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .badge { background: #1f2336; padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; color: var(--text-muted); border: 1px solid var(--border-color); }
+        .badge.ai { color: #d946ef; border-color: #d946ef; }
+
+        /* Spinner for AI loading */
+        .spinner { border: 4px solid rgba(255, 255, 255, 0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: var(--accent-end); animation: spin 1s linear infinite; display: inline-block; margin: 10px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .browse-btn { background: linear-gradient(135deg, var(--accent-start), var(--accent-end)); border: none; color: white; padding: 14px 35px; border-radius: 30px; font-size: 1rem; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+        .browse-btn:active { transform: scale(0.95); }
+
+        /* Files List */
+        .files-card { background-color: var(--card-bg); border-radius: 16px; padding: 20px; }
+        .files-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 15px; }
+        .files-header h4 { margin: 0; font-weight: 500; }
+        .file-count { color: var(--text-muted); font-size: 0.9rem; }
+        
+        .file-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #202435; }
+        .file-item:last-child { border-bottom: none; }
+        
+        .file-thumbnail { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; margin-right: 12px; border: 1px solid var(--border-color); }
+        .file-info { display: flex; align-items: center; gap: 10px; overflow: hidden; }
+        .file-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+        
+        .file-empty { color: var(--text-muted); text-align: center; padding: 20px 0; }
+        .file-empty-icon { font-size: 3rem; opacity: 0.3; display: block; margin-bottom: 10px; }
+
+        /* Toast */
+        .toast-container { position: fixed; top: 20px; right: 20px; left: 20px; z-index: 9999; display: flex; flex-direction: column; align-items: flex-end; pointer-events: none; }
+        .toast { background: #1f2336; color: white; padding: 15px 20px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); border-left: 4px solid #8b5cf6; min-width: 250px; animation: slideIn 0.3s ease-out; pointer-events: all; max-width: 100%; }
+        .toast.success { border-left-color: #10b981; }
+        .toast.error { border-left-color: #ef4444; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <div class="header">
+            <div class="logo-box">V</div>
+            <div style="font-weight: 600; font-size: 1.1rem;">VisionTory.ai</div>
+            <div class="nav-links">
+                <a href="#" class="nav-link">Dashboard</a>
+                <a href="#" class="nav-link active">Upload</a>
+            </div>
+        </div>
+
+        <h1 class="page-title">Upload <span style="color: var(--text-muted); font-weight: 400;">· Import data & images</span></h1>
+        <button class="back-btn" onclick="window.history.back()">← Back to Dashboard</button>
+
+        <div class="upload-card" id="dropZone">
+            <span class="cloud-icon">☁️</span>
+            <div class="upload-title">Drop files or photos here</div>
+            <div class="upload-desc">CSV, Excel, JSON files, or Images to analyze with VisionTory AI</div>
+            
+            <div class="badges">
+                <span class="badge">📄 .CSV</span>
+                <span class="badge">📊 .XLSX</span>
+                <span class="badge">📋 .JSON</span>
+                <span class="badge ai">🤖 AI Analysis</span>
+            </div>
+
+            <button class="browse-btn" id="browseBtn">
+                📂 Browse Files
+            </button>
+            
+            <!-- Supports Images + Data Files -->
+            <input type="file" id="fileInput" accept=".csv,.xlsx,.json,image/*" style="display: none;" multiple capture="environment">
+            
+            <!-- Hidden loading state -->
+            <div id="loadingIndicator" style="display: none; margin-top: 20px;">
+                <div class="spinner"></div>
+                <p style="color: var(--text-muted); margin-top: 10px;">VisionTory AI is analyzing your images...</p>
+            </div>
+        </div>
+
+        <div class="files-card">
+            <div class="files-header">
+                <h4>Uploaded Files</h4>
+                <span class="file-count" id="fileCount">0 files</span>
+            </div>
+            <div id="fileListContainer">
+                <div class="file-empty">
+                    <span class="file-empty-icon">🗂️</span>
+                    No files uploaded yet
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+
+    <script>
+        // ==========================================================
+        // 1. MOCK DATA & VARIABLES
+        // ==========================================================
+        let inventory = JSON.parse(localStorage.getItem('visiontory-inventory')) || [
+            { id: 1, name: "Wireless Mouse", category: "Electronics", qty: 50, minStock: 5, status: "In Stock" }
+        ];
+        let idCounter = 2;
+
+        // ** CONFIGURATION FOR YOUR LOCAL AI SERVER **
+        const AI_SERVER_URL = "http://localhost:5000/analyze"; // CHANGE THIS TO YOUR ENDPOINT
+
+        // ==========================================================
+        // 2. TOAST FUNCTION
+        // ==========================================================
+        function showToast(type, title, message) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<strong>${title}</strong><br><span style="opacity: 0.8; font-size: 0.9rem;">${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => toast.remove(), 300);
+            }, 5000);
+        }
+
+        // ==========================================================
+        // 3. DOM SETUP
+        // ==========================================================
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const browseBtn = document.getElementById('browseBtn');
+        const fileListContainer = document.getElementById('fileListContainer');
+        const fileCountSpan = document.getElementById('fileCount');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+
+        browseBtn.addEventListener('click', function() { fileInput.click(); });
+        fileInput.addEventListener('change', function(e) {
+            processFiles(e.target.files);
+            fileInput.value = ''; 
+        });
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.add('highlight'), false);
+        });
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.remove('highlight'), false);
+        });
+        dropZone.addEventListener('drop', (e) => { processFiles(e.dataTransfer.files); });
+
+        function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+
+        // ==========================================================
+        // 4. MAIN PROCESSING
+        // ==========================================================
+        function processFiles(files) {
+            if (!files || files.length === 0) return;
+            updateFileListUI(files); 
+
+            Array.from(files).forEach(file => {
+                const fileName = file.name.toLowerCase();
+
+                if (file.size === 0) {
+                    showToast('error', 'Empty File', `"${file.name}" is 0 KB.`);
+                    return; 
+                }
+
+                // --- 1. IT IS AN IMAGE ---
+                if (file.type.startsWith('image/')) {
+                    sendToLocalAI(file);
+                    return;
+                }
+
+                // --- 2. IT IS TEXT DATA (CSV, JSON, XLSX) ---
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        let importedData = [];
+                        if (fileName.endsWith('.json')) {
+                            importedData = JSON.parse(e.target.result);
+                            if (!Array.isArray(importedData)) throw new Error("JSON must be an array.");
+                            mergeInventory(importedData);
+                            showToast('success', 'JSON Imported', `Added ${importedData.length} items.`);
+                        } 
+                        else if (fileName.endsWith('.csv')) {
+                            importedData = parseCSV(e.target.result);
+                            mergeInventory(importedData);
+                            showToast('success', 'CSV Imported', `Added ${importedData.length} items.`);
+                        }
+                    } catch (error) {
+                        showToast('error', 'Parse Error', `Failed to read ${file.name}: ${error.message}`);
+                    }
+                };
+
+                if (fileName.endsWith('.xlsx')) {
+                    const xlsxReader = new FileReader();
+                    xlsxReader.onload = function(e) {
+                        try {
+                            const data = new Uint8Array(e.target.result);
+                            const workbook = XLSX.read(data, {type: 'array'});
+                            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                            const importedData = XLSX.utils.sheet_to_json(firstSheet);
+                            mergeInventory(importedData);
+                            showToast('success', 'Excel Imported', `Added ${importedData.length} items.`);
+                        } catch (error) {
+                            showToast('error', 'XLSX Error', `Failed to parse Excel: ${error.message}`);
+                        }
+                    };
+                    xlsxReader.readAsArrayBuffer(file);
+                } else if (!fileName.endsWith('.json') && !fileName.endsWith('.csv')) {
+                    // skip
+                } else {
+                    reader.readAsText(file);
+                }
+            });
+        }
+
+        // ==========================================================
+        // 5. THE FIX: SENDING IMAGE AS BINARY (FormData)
+        // ==========================================================
+        function sendToLocalAI(file) {
+            loadingIndicator.style.display = 'block';
+            dropZone.classList.add('loading');
+            showToast('info', 'AI Processing', 'Sending image to VisionTory AI local server...');
+
+            // Instead of converting to string, we append the RAW file
+            const formData = new FormData();
+            formData.append('image', file); // This sends the binary file
+            formData.append('filename', file.name);
+
+            // Sending to local server
+            fetch(AI_SERVER_URL, {
+                method: 'POST',
+                body: formData // We do NOT set 'Content-Type': 'application/json' here. The browser automatically sets it to 'multipart/form-data' which is perfect for local Python servers!
+            })
+            .then(async response => {
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Server ${response.status}: ${errorText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log("AI Server Success:", data);
+                const newItem = {
+                    id: idCounter++,
+                    name: data.name || "AI Detected Item",
+                    category: data.category || "Uncategorized",
+                    qty: data.qty || 1,
+                    minStock: data.minStock || 0,
+                    status: data.status || "In Stock"
+                };
+                inventory.push(newItem);
+                localStorage.setItem('visiontory-inventory', JSON.stringify(inventory));
+                
+                showToast('success', 'AI Analysis Complete', `Added "${newItem.name}" to inventory!`);
+                
+                loadingIndicator.style.display = 'none';
+                dropZone.classList.remove('loading');
+            })
+            .catch(error => {
+                console.error("Local AI Error:", error);
+                showToast('error', 'AI Server Error', `Failed: ${error.message}`);
+                loadingIndicator.style.display = 'none';
+                dropZone.classList.remove('loading');
+            });
+        }
+
+        // ==========================================================
+        // 6. HELPERS
+        // ==========================================================
+        function parseCSV(text) {
+            const lines = text.split('\n').filter(line => line.trim() !== '');
+            if (lines.length < 2) return [];
+            const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+            const result = [];
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i].split(',');
+                if (values.length === headers.length) {
+                    let obj = {};
+                    headers.forEach((header, index) => {
+                        let val = values[index].trim();
+                        if (['qty', 'minstock', 'id'].includes(header)) val = parseInt(val) || 0;
+                        obj[header] = val;
+                    });
+                    result.push(obj);
+                }
+            }
+            return result;
+        }
+
+        function mergeInventory(newItems) {
+            newItems.forEach(item => {
+                const exists = inventory.some(existing => existing.id === item.id);
+                if (!exists) {
+                    if (!item.id) item.id = idCounter++;
+                    else if (item.id >= idCounter) idCounter = item.id + 1;
+                    inventory.push(item);
+                }
+            });
+            localStorage.setItem('visiontory-inventory', JSON.stringify(inventory));
+        }
+
+        // ==========================================================
+        // 7. RENDER IMAGE THUMBNAILS
+        // ==========================================================
+        function updateFileListUI(files) {
+            fileListContainer.innerHTML = '';
+            fileCountSpan.textContent = `${files.length} files`;
+
+            Array.from(files).forEach(file => {
+                const div = document.createElement('div');
+                div.className = 'file-item';
+                
+                let sizeText = (file.size / 1024).toFixed(1) + ' KB';
+                if(file.size === 0) sizeText = '⚠️ EMPTY';
+
+                if (file.type.startsWith('image/')) {
+                    const url = URL.createObjectURL(file);
+                    div.innerHTML = `
+                        <div class="file-info">
+                            <img src="${url}" class="file-thumbnail" alt="thumbnail">
+                            <span class="file-name">${file.name}</span>
+                        </div>
+                        <span style="color: var(--text-muted); font-size: 0.9rem;">${sizeText}</span>
+                    `;
+                } else {
+                    div.innerHTML = `
+                        <div class="file-info">
+                            <span style="font-size: 1.5rem; margin-right: 10px;">📄</span>
+                            <span class="file-name">${file.name}</span>
+                        </div>
+                        <span style="color: var(--text-muted); font-size: 0.9rem;">${sizeText}</span>
+                    `;
+                }
+                fileListContainer.appendChild(div);
+            });
+        }
+    </script>
+</body>
+</html>
