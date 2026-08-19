@@ -1,87 +1,1158 @@
-// ============================================================
-//  MODAL FUNCTIONS (Add/Edit)
-// ============================================================
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VisionTory.ai · Dashboard</title>
 
-function openModal() {
-    document.getElementById('itemModal').classList.add('active');
-    document.getElementById('modalTitle').textContent = 'Add New Item';
-    document.getElementById('modalSub').textContent = 'Fill in the details below';
-    document.getElementById('editId').value = '';
-    document.getElementById('itemForm').reset();
-    editingId = null;
-}
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
-function closeModal() {
-    document.getElementById('itemModal').classList.remove('active');
-}
-
-function saveItem(event) {
-    event.preventDefault();
-
-    const name = document.getElementById('itemName').value.trim();
-    const category = document.getElementById('itemCategory').value;
-    const qty = parseInt(document.getElementById('itemQty').value);
-    const minStock = parseInt(document.getElementById('itemMin').value);
-    const status = document.getElementById('itemStatus').value;
-    const editId = document.getElementById('editId').value;
-
-    if (!name || !category || isNaN(qty) || isNaN(minStock)) {
-        showToast('error', 'Validation Error', 'Please fill in all fields correctly.');
-        return;
-    }
-
-    if (editId) {
-        // Edit existing item
-        const index = inventory.findIndex(i => i.id === parseInt(editId));
-        if (index !== -1) {
-            inventory[index] = { ...inventory[index], name, category, qty, minStock, status };
-            showToast('success', 'Item Updated', `${name} has been updated.`);
+    <style>
+        :root {
+            --bg-primary: #0b0e1a;
+            --bg-secondary: #11152a;
+            --bg-card: #161b36;
+            --bg-card-hover: #1e2450;
+            --border-color: rgba(255, 255, 255, 0.06);
+            --text-primary: #f0f4ff;
+            --text-secondary: #8899cc;
+            --text-muted: #556688;
+            --accent-blue: #4a8cff;
+            --accent-cyan: #00d4ff;
+            --accent-green: #00e676;
+            --accent-orange: #ffab00;
+            --accent-red: #ff5252;
+            --accent-purple: #b388ff;
+            --accent-pink: #ff6b9d;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            --radius: 16px;
+            --radius-sm: 10px;
+            --transition: 0.25s ease;
+            --theme-accent: var(--accent-pink);
+            --theme-gradient: linear-gradient(135deg, var(--accent-pink), var(--accent-purple));
+            --theme-bg-glow: rgba(255, 107, 157, 0.08);
         }
-    } else {
-        // Add new item
-        const newItem = {
-            id: idCounter++,
-            name,
-            category,
-            qty,
-            minStock,
-            status
-        };
-        inventory.push(newItem);
-        showToast('success', 'Item Added', `${name} has been added to inventory.`);
-    }
 
-    // Save to localStorage
-    localStorage.setItem('visiontory-inventory', JSON.stringify(inventory));
+        [data-theme="industrial"] {
+            --theme-accent: #ff8c00;
+            --theme-gradient: linear-gradient(135deg, #ff8c00, #ff5500);
+            --theme-bg-glow: rgba(255, 140, 0, 0.08);
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #111118;
+            --bg-card: #181825;
+            --bg-card-hover: #22223a;
+        }
 
-    closeModal();
-    renderAll();
-}
+        [data-theme="medical"] {
+            --theme-accent: #00b8d4;
+            --theme-gradient: linear-gradient(135deg, #00b8d4, #0077b6);
+            --theme-bg-glow: rgba(0, 184, 212, 0.08);
+            --bg-primary: #080e1a;
+            --bg-secondary: #0d1a2e;
+            --bg-card: #12243f;
+            --bg-card-hover: #1a3055;
+        }
 
-function editItem(id) {
-    const item = inventory.find(i => i.id === id);
-    if (!item) return;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    document.getElementById('itemModal').classList.add('active');
-    document.getElementById('modalTitle').textContent = 'Edit Item';
-    document.getElementById('modalSub').textContent = 'Update the item details below';
-    document.getElementById('editId').value = item.id;
-    document.getElementById('itemName').value = item.name;
-    document.getElementById('itemCategory').value = item.category;
-    document.getElementById('itemQty').value = item.qty;
-    document.getElementById('itemMin').value = item.minStock;
-    document.getElementById('itemStatus').value = item.status;
-    editingId = item.id;
-}
+        body {
+            font-family: 'Inter', -apple-system, system-ui, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
 
-function deleteItem(id) {
-    const item = inventory.find(i => i.id === id);
-    if (!item) return;
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--theme-accent);
+            border-radius: 10px;
+        }
 
-    if (confirm(`Are you sure you want to delete "${item.name}"?`)) {
-        inventory = inventory.filter(i => i.id !== id);
-        localStorage.setItem('visiontory-inventory', JSON.stringify(inventory));
-        renderAll();
-        showToast('info', 'Item Deleted', `${item.name} has been removed.`);
-    }
-}
+        .sidebar {
+            width: 260px;
+            min-height: 100vh;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            padding: 28px 20px;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 40px;
+            padding-left: 4px;
+        }
+
+        .sidebar .logo .icon {
+            font-size: 22px;
+            background: var(--theme-gradient);
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 800;
+        }
+
+        .sidebar .logo h1 {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+
+        .sidebar .logo h1 .ai {
+            background: var(--theme-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sidebar .logo h1 .tory {
+            color: #fff;
+            -webkit-text-fill-color: #fff;
+        }
+
+        .sidebar .logo h1 small {
+            display: block;
+            font-size: 10px;
+            font-weight: 400;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            -webkit-text-fill-color: var(--text-muted);
+        }
+
+        .sidebar .nav {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .sidebar .nav a {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all var(--transition);
+            cursor: pointer;
+        }
+
+        .sidebar .nav a:hover {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-primary);
+        }
+
+        .sidebar .nav a.active {
+            background: var(--theme-bg-glow);
+            color: var(--theme-accent);
+            box-shadow: inset 3px 0 0 var(--theme-accent);
+        }
+
+        .sidebar .nav a i {
+            width: 20px;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        .sidebar .nav a .badge {
+            margin-left: auto;
+            background: rgba(255, 255, 255, 0.06);
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .sidebar .nav a .badge.danger {
+            background: rgba(255, 82, 82, 0.15);
+            color: var(--accent-red);
+        }
+
+        .sidebar .user {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sidebar .user .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--theme-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+            color: #fff;
+        }
+
+        .sidebar .user .info {
+            flex: 1;
+        }
+
+        .sidebar .user .info .name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .sidebar .user .info .email {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .sidebar .user .signout {
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: color var(--transition);
+            background: none;
+            border: none;
+            font-size: 16px;
+        }
+
+        .sidebar .user .signout:hover {
+            color: var(--accent-red);
+        }
+
+        .sidebar .user .signout a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .main {
+            flex: 1;
+            padding: 32px 40px;
+            overflow-y: auto;
+            height: 100vh;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .topbar h2 {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+
+        .topbar h2 span {
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        .topbar .actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .topbar .actions .search {
+            display: flex;
+            align-items: center;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 30px;
+            padding: 8px 18px;
+            gap: 10px;
+            transition: all var(--transition);
+        }
+
+        .topbar .actions .search:focus-within {
+            border-color: var(--theme-accent);
+            box-shadow: 0 0 0 3px var(--theme-bg-glow);
+        }
+
+        .topbar .actions .search input {
+            background: none;
+            border: none;
+            outline: none;
+            color: var(--text-primary);
+            font-size: 13px;
+            font-family: inherit;
+            width: 160px;
+        }
+
+        .topbar .actions .search input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .topbar .actions .search i {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .btn {
+            padding: 8px 20px;
+            border-radius: 30px;
+            border: none;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--theme-gradient);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .btn-outline:hover {
+            background: var(--bg-card);
+            color: var(--text-primary);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 20px 24px;
+            transition: all var(--transition);
+        }
+
+        .stat-card:hover {
+            background: var(--bg-card-hover);
+            transform: translateY(-2px);
+        }
+
+        .stat-card .label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .stat-card .value {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .stat-card .sub {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .stat-card .icon-bg {
+            float: right;
+            font-size: 32px;
+            opacity: 0.1;
+            color: var(--theme-accent);
+        }
+
+        .ai-insight {
+            background: var(--theme-bg-glow);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-left: 3px solid var(--theme-accent);
+            border-radius: var(--radius);
+            padding: 16px 24px;
+            margin-bottom: 28px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .ai-insight .icon {
+            font-size: 24px;
+            background: var(--theme-bg-glow);
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--theme-accent);
+            flex-shrink: 0;
+        }
+
+        .ai-insight .content {
+            flex: 1;
+        }
+
+        .ai-insight .content .title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--theme-accent);
+        }
+
+        .ai-insight .content .desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .ai-insight .content .desc strong {
+            color: var(--text-primary);
+        }
+
+        .ai-insight .tag {
+            font-size: 11px;
+            background: var(--theme-bg-glow);
+            padding: 4px 14px;
+            border-radius: 20px;
+            color: var(--theme-accent);
+            font-weight: 500;
+        }
+
+        .table-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+
+        .table-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-color);
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .table-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .table-header h3 span {
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .table-header .filters {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .table-header .filters select {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 6px 14px;
+            color: var(--text-secondary);
+            font-family: inherit;
+            font-size: 12px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .table-header .filters select:focus {
+            border-color: var(--theme-accent);
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        table thead {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        table th {
+            text-align: left;
+            padding: 12px 20px;
+            font-weight: 600;
+            color: var(--text-muted);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        table td {
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        table tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        table td .name {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .status.in-stock {
+            background: rgba(0, 230, 118, 0.1);
+            color: var(--accent-green);
+        }
+        .status.in-stock .dot {
+            background: var(--accent-green);
+        }
+
+        .status.low {
+            background: rgba(255, 171, 0, 0.1);
+            color: var(--accent-orange);
+        }
+        .status.low .dot {
+            background: var(--accent-orange);
+        }
+
+        .status.critical {
+            background: rgba(255, 82, 82, 0.1);
+            color: var(--accent-red);
+        }
+        .status.critical .dot {
+            background: var(--accent-red);
+        }
+
+        .status.out-of-stock {
+            background: rgba(255, 82, 82, 0.08);
+            color: var(--text-muted);
+        }
+        .status.out-of-stock .dot {
+            background: var(--text-muted);
+        }
+
+        .status.overstock {
+            background: rgba(179, 136, 255, 0.1);
+            color: var(--accent-purple);
+        }
+        .status.overstock .dot {
+            background: var(--accent-purple);
+        }
+
+        .actions-cell {
+            display: flex;
+            gap: 6px;
+        }
+
+        .actions-cell button {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: all var(--transition);
+            font-size: 13px;
+        }
+
+        .actions-cell button:hover {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-primary);
+        }
+        .actions-cell button.edit:hover {
+            color: var(--theme-accent);
+        }
+        .actions-cell button.delete:hover {
+            color: var(--accent-red);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 32px;
+            width: 100%;
+            max-width: 480px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalIn 0.3s ease;
+        }
+
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .modal h3 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .modal .sub {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .modal .form-group {
+            margin-bottom: 16px;
+        }
+
+        .modal .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .modal .form-group input,
+        .modal .form-group select {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 14px;
+            outline: none;
+            transition: all var(--transition);
+        }
+
+        .modal .form-group input:focus,
+        .modal .form-group select:focus {
+            border-color: var(--theme-accent);
+            box-shadow: 0 0 0 3px var(--theme-bg-glow);
+        }
+
+        .modal .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .modal .actions-modal {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: flex-end;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: var(--shadow);
+            z-index: 200;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.4s ease;
+            max-width: 420px;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast .icon {
+            font-size: 20px;
+        }
+
+        .toast .icon.success {
+            color: var(--accent-green);
+        }
+        .toast .icon.error {
+            color: var(--accent-red);
+        }
+        .toast .icon.info {
+            color: var(--accent-blue);
+        }
+
+        .toast .msg {
+            flex: 1;
+        }
+
+        .toast .msg .title {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .toast .msg .desc {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        @media (max-width: 1024px) {
+            .main {
+                padding: 24px 20px;
+            }
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+                overflow: auto;
+            }
+            .sidebar {
+                width: 100%;
+                min-height: auto;
+                height: auto;
+                position: relative;
+                padding: 16px 20px;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+            .sidebar .logo {
+                margin-bottom: 16px;
+            }
+            .sidebar .nav {
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 2px;
+            }
+            .sidebar .nav a {
+                padding: 8px 14px;
+                font-size: 12px;
+            }
+            .sidebar .nav a .badge {
+                display: none;
+            }
+            .sidebar .user {
+                display: none;
+            }
+            .main {
+                height: auto;
+                padding: 16px;
+            }
+            .topbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .topbar .actions {
+                flex-wrap: wrap;
+            }
+            .topbar .actions .search {
+                flex: 1;
+            }
+            .topbar .actions .search input {
+                width: 100%;
+            }
+            .stats {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+            .stat-card {
+                padding: 14px 16px;
+            }
+            .stat-card .value {
+                font-size: 22px;
+            }
+            .ai-insight {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .table-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .modal {
+                margin: 16px;
+                padding: 20px;
+            }
+            .modal .form-row {
+                grid-template-columns: 1fr;
+            }
+            .toast {
+                bottom: 16px;
+                right: 16px;
+                left: 16px;
+                max-width: unset;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+            .stat-card .value {
+                font-size: 18px;
+            }
+            .stat-card .label {
+                font-size: 10px;
+            }
+            table {
+                font-size: 11px;
+            }
+            table th,
+            table td {
+                padding: 8px 12px;
+            }
+            .status {
+                font-size: 10px;
+                padding: 1px 8px;
+            }
+            .btn {
+                font-size: 11px;
+                padding: 6px 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================================================
+    SIDEBAR
+    ============================================================ -->
+    <aside class="sidebar">
+        <div class="logo">
+            <div class="icon">V</div>
+            <h1>
+                <span class="ai">Vision</span><span class="tory">Tory</span><span class="ai">.ai</span>
+                <small>AI Inventory Control</small>
+            </h1>
+        </div>
+
+        <nav class="nav">
+            <a href="#" class="active">
+                <i class="fas fa-th-large"></i> Dashboard
+            </a>
+            <a href="upload.html">
+                <i class="fas fa-cloud-upload-alt"></i> Upload
+                <span class="badge">+</span>
+            </a>
+            <a href="#">
+                <i class="fas fa-boxes"></i> Inventory
+                <span class="badge" id="inventoryBadge">0</span>
+            </a>
+            <a href="#">
+                <i class="fas fa-tags"></i> Categories
+                <span class="badge" id="categoryBadge">0</span>
+            </a>
+            <a href="#">
+                <i class="fas fa-chart-line"></i> Analytics
+            </a>
+            <a href="#">
+                <i class="fas fa-truck"></i> Suppliers
+            </a>
+            <a href="#">
+                <i class="fas fa-bell"></i> Alerts
+                <span class="badge danger" id="alertBadge">0</span>
+            </a>
+            <a href="#">
+                <i class="fas fa-cog"></i> Settings
+            </a>
+        </nav>
+
+        <div class="user">
+            <div class="avatar">A</div>
+            <div class="info">
+                <div class="name">Angelito Davids</div>
+                <div class="email">angelitodavids7@gmail.com</div>
+            </div>
+            <button class="signout" title="Sign out">
+                <a href="index.html"><i class="fas fa-sign-out-alt"></i></a>
+            </button>
+        </div>
+    </aside>
+
+    <!-- ============================================================
+    MAIN CONTENT
+    ============================================================ -->
+    <main class="main">
+
+        <!-- Top Bar -->
+        <div class="topbar">
+            <h2>Dashboard <span>· Overview</span></h2>
+            <div class="actions">
+                <div class="search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search inventory..." id="searchInput" onkeyup="filterTable()" />
+                </div>
+                <button class="btn btn-primary" onclick="openModal()">
+                    <i class="fas fa-plus"></i> Add Item
+                </button>
+                <button class="btn btn-outline" onclick="exportData()">
+                    <i class="fas fa-download"></i> Export
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats">
+            <div class="stat-card">
+                <div class="icon-bg"><i class="fas fa-box"></i></div>
+                <div class="label">Total Items</div>
+                <div class="value" id="totalItems">0</div>
+                <div class="sub">Across all categories</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon-bg"><i class="fas fa-exclamation-triangle"></i></div>
+                <div class="label">Low / Critical</div>
+                <div class="value" id="lowStockCount">0</div>
+                <div class="sub">Need reorder soon</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon-bg"><i class="fas fa-tags"></i></div>
+                <div class="label">Categories</div>
+                <div class="value" id="categoryCount">0</div>
+                <div class="sub">Active categories</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon-bg"><i class="fas fa-robot"></i></div>
+                <div class="label">AI Forecast</div>
+                <div class="value" id="forecastCount">0</div>
+                <div class="sub" id="forecastSub">Items need restock</div>
+            </div>
+        </div>
+
+        <!-- AI Insight -->
+        <div class="ai-insight">
+            <div class="icon"><i class="fas fa-robot"></i></div>
+            <div class="content">
+                <div class="title">🧠 VisionTory.ai Analysis</div>
+                <div class="desc" id="aiMessage">Loading inventory data...</div>
+            </div>
+            <span class="tag">Auto-updated</span>
+        </div>
+
+        <!-- Inventory Table -->
+        <div class="table-section">
+            <div class="table-header">
+                <h3>Inventory <span>· Manage parts, assets, and stock levels</span></h3>
+                <div class="filters">
+                    <select id="categoryFilter" onchange="filterTable()">
+                        <option value="all">All Categories</option>
+                    </select>
+                    <select id="statusFilter" onchange="filterTable()">
+                        <option value="all">All Status</option>
+                        <option value="in-stock">In Stock</option>
+                        <option value="low">Low</option>
+                        <option value="critical">Critical</option>
+                        <option value="out-of-stock">Out of Stock</option>
+                        <option value="overstock">Overstock</option>
+                    </select>
+                </div>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Category</th>
+                            <th>Qty</th>
+                            <th>Min Stock</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventoryTableBody">
+                        <!-- Rows rendered by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ============================================================
+    MODAL (Add / Edit Item)
+    ============================================================ -->
+    <div class="modal-overlay" id="itemModal">
+        <div class="modal">
+            <h3 id="modalTitle">Add New Item</h3>
+            <div class="sub" id="modalSub">Fill in the details below</div>
+
+            <form id="itemForm" onsubmit="saveItem(event)">
+                <input type="hidden" id="editId" value="" />
+
+                <div class="form-group">
+                    <label for="itemName">Item Name</label>
+                    <input type="text" id="itemName" placeholder="e.g. Paracetamol 500mg" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="itemCategory">Category</label>
+                    <select id="itemCategory" required>
+                        <option value="">Select category...</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="itemQty">Quantity</label>
+                        <input type="number" id="itemQty" placeholder="0" min="0" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="itemMin">Min Stock Level</label>
+                        <input type="number" id="itemMin" placeholder="5" min="0" required />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="itemStatus">Status</label>
+                    <select id="itemStatus">
+                        <option value="in-stock">In Stock</option>
+                        <option value="low">Low</option>
+                        <option value="critical">Critical</option>
+                        <option value="out-of-stock">Out of Stock</option>
+                        <option value="overstock">Overstock</option>
+                    </select>
+                </div>
+
+                <div class="actions-modal">
+                    <button type="button" class="btn btn-outline" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Item
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ============================================================
+    TOAST NOTIFICATION
+    ============================================================ -->
+    <div class="toast" id="toast">
+        <div class="icon" id="toastIcon"><i class="fas fa-check-circle"></i></div>
+        <div class="msg">
+            <div class="title" id="toastTitle">Success</div>
+            <div class="desc" id="toastDesc">Operation completed</div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+    JAVASCRIPT
+    ============================================================ -->
+    <script>
+        // ============================================================
+        //  DATA STORE
+        // ============================================================
+        var inventory = [];
+        var categories = ['Medication', 'Supplies', 'Equipment', 'Vaccines', 'Diagnostics'];
+        var idCounter = 1;
+        var editingId = null;
+
+        // ============================================================
+        //  INITIAL SEED DATA
+        // ============================================================
+        function seedData() {
+            var saved = localStorage.getItem('visiontory-inventory');
+            if (saved) {
+                try {
+                    var parsed = JSON.parse(saved);
+                    if (parsed.length > 0) {
+                        inventory = parsed;
+                        var maxId = 0;
+                        for (var i = 0; i < inventory.length; i++) {
+                            if (inventory[i].id > maxId) maxId = inventory[i].id;
+                        }
+                        idCounter = maxId + 1;
+                        return;
+                    }
+                } catch (e) {}
+            }
+
+            inventory = [
+                { id: 1, name: 'Paracetamol 500mg', category: 'Medication', qty: 45, minStock: 10, status: 'in-stock' },
+                { id: 2, name: 'Surgical Gloves (Box)', category: 'Supplies', qty: 8, minStock: 15, status: 'low' },
+                { id: 3, name: 'Insulin Pens', category: 'Medication', qty: 3, minStock: 10, status: 'critical' },
+                { id: 4, name: 'N95 Masks (Box)', category: 'Supplies', qty: 120, minStock: 
