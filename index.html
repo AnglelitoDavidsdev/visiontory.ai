@@ -363,24 +363,6 @@
             color: var(--text-primary);
         }
 
-        .btn-danger {
-            background: rgba(255, 82, 82, 0.15);
-            color: var(--accent-red);
-        }
-
-        .btn-danger:hover {
-            background: rgba(255, 82, 82, 0.25);
-        }
-
-        .btn-success {
-            background: rgba(0, 230, 118, 0.12);
-            color: var(--accent-green);
-        }
-
-        .btn-success:hover {
-            background: rgba(0, 230, 118, 0.2);
-        }
-
         /* ----- Stats ----- */
         .stats {
             display: grid;
@@ -525,4 +507,37 @@
             border: 1px solid var(--border-color);
             border-radius: 20px;
             padding: 6px 14px;
-            color
+            color: var(--text-secondary);
+            font-family: inherit;
+            font-size: 12px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .table-header .filters select:focus {
+            border-color: var(--theme-accent);
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        table thead {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        table th {
+            text-align: left;
+            padding: 12px 20px;
+            font-weight: 600;
+            color: var(--text-muted);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border-color
