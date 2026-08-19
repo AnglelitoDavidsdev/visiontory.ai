@@ -1,224 +1,370 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Ollama Test · VisionTory.ai</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background: #0b0e1a;
-            color: #f0f4ff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            background: #11152a;
-            border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 16px;
-            padding: 40px;
-            max-width: 600px;
-            width: 100%;
-        }
-        h1 {
-            font-size: 24px;
-            margin-bottom: 8px;
-        }
-        .sub {
-            color: #8899cc;
-            margin-bottom: 24px;
-        }
-        .model-badge {
-            display: inline-block;
-            background: rgba(255, 107, 157, 0.12);
-            color: #ff6b9d;
-            padding: 4px 14px;
-            border-radius: 20px;
-            font-size: 12px;
-            margin-bottom: 20px;
-        }
-        textarea {
-            width: 100%;
-            padding: 12px 16px;
-            background: #0b0e1a;
-            border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 10px;
-            color: #f0f4ff;
-            font-family: inherit;
-            font-size: 14px;
-            resize: vertical;
-            min-height: 80px;
-            outline: none;
-        }
-        textarea:focus {
-            border-color: #ff6b9d;
-            box-shadow: 0 0 0 3px rgba(255, 107, 157, 0.1);
-        }
-        .btn {
-            padding: 10px 24px;
-            border: none;
-            border-radius: 30px;
-            font-family: inherit;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.25s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 12px;
-        }
-        .btn-primary {
-            background: linear-gradient(135deg, #ff6b9d, #b388ff);
-            color: #fff;
-        }
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(255, 107, 157, 0.3);
-        }
-        .btn-primary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-        #response {
-            margin-top: 20px;
-            padding: 16px 20px;
-            background: #0b0e1a;
-            border-radius: 10px;
-            border: 1px solid rgba(255,255,255,0.04);
-            min-height: 60px;
-            white-space: pre-wrap;
-            line-height: 1.6;
-            color: #8899cc;
-        }
-        #response .thinking {
-            color: #556688;
-            font-style: italic;
-        }
-        #response .error {
-            color: #ff5252;
-        }
-        .status {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 12px;
-            color: #556688;
-            margin-top: 12px;
-        }
-        .status .dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #00e676;
-            animation: pulse 2s ease-in-out infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.4; transform: scale(0.85); }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>🧠 VisionTory.ai AI Test</h1>
-        <div class="sub">Testing your Ollama integration</div>
-        <div class="model-badge">🤖 Model: Qwen2.5-VL-3B-Instruct</div>
+// ============================================================
+//  DATA STORE
+// ============================================================
+let inventory = [];
+let categories = ['Medication', 'Supplies', 'Equipment', 'Vaccines', 'Diagnostics'];
+let idCounter = 1;
+let editingId = null;
 
-        <textarea id="prompt" placeholder="Ask me anything about inventory management...">What are the best practices for managing medication inventory in a clinic?</textarea>
-
-        <button class="btn btn-primary" id="askBtn">
-            <i class="fas fa-paper-plane"></i> Ask AI
-        </button>
-
-        <div id="response">
-            <span class="thinking">💡 Ask a question above to test the AI...</span>
-        </div>
-
-        <div class="status">
-            <span class="dot"></span>
-            Ollama running on port 11434
-        </div>
-    </div>
-
-    <script type="importmap">
-        {
-            "imports": {
-                "ollama": "https://cdn.jsdelivr.net/npm/ollama/browser.js"
-            }
-        }
-    </script>
-
-    <script type="module">
-        import ollama from 'ollama';
-
-        const promptInput = document.getElementById('prompt');
-        const askBtn = document.getElementById('askBtn');
-        const responseDiv = document.getElementById('response');
-
-        async function askAI() {
-            const prompt = promptInput.value.trim();
-            if (!prompt) {
-                responseDiv.innerHTML = `<span class="error">⚠️ Please enter a question.</span>`;
+// ============================================================
+//  INITIAL SEED DATA
+// ============================================================
+function seedData() {
+    // Check localStorage first
+    const saved = localStorage.getItem('visiontory-inventory');
+    if (saved) {
+        try {
+            const parsed = JSON.parse(saved);
+            if (parsed.length > 0) {
+                inventory = parsed;
+                idCounter = Math.max(...inventory.map(i => i.id)) + 1;
                 return;
             }
+        } catch (e) {}
+    }
 
-            askBtn.disabled = true;
-            askBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Thinking...';
-            responseDiv.innerHTML = `<span class="thinking">🧠 Thinking...</span>`;
+    // Default seed data
+    inventory = [
+        { id: 1, name: 'Paracetamol 500mg', category: 'Medication', qty: 45, minStock: 10, status: 'in-stock' },
+        { id: 2, name: 'Surgical Gloves (Box)', category: 'Supplies', qty: 8, minStock: 15, status: 'low' },
+        { id: 3, name: 'Insulin Pens', category: 'Medication', qty: 3, minStock: 10, status: 'critical' },
+        { id: 4, name: 'N95 Masks (Box)', category: 'Supplies', qty: 120, minStock: 20, status: 'overstock' },
+        { id: 5, name: 'COVID-19 Rapid Test', category: 'Diagnostics', qty: 0, minStock: 30, status: 'out-of-stock' },
+        { id: 6, name: 'Oxygen Concentrator', category: 'Equipment', qty: 6, minStock: 2, status: 'in-stock' },
+        { id: 7, name: 'Vitamin C 1000mg', category: 'Medication', qty: 18, minStock: 8, status: 'in-stock' },
+        { id: 8, name: 'Syringes (100pk)', category: 'Supplies', qty: 5, minStock: 10, status: 'low' }
+    ];
+    idCounter = 9;
+    localStorage.setItem('visiontory-inventory', JSON.stringify(inventory));
+}
 
-            try {
-                const response = await ollama.chat({
-                    model: 'hf.co/ggml-org/Qwen2.5-VL-3B-Instruct-GGUF:Q4_K_M',
-                    messages: [
-                        {
-                            role: 'system',
-                            content: 'You are VisionTory.ai, an AI inventory management assistant. You help with stock management, supply chain optimization, and inventory best practices. Keep responses concise and practical.'
-                        },
-                        {
-                            role: 'user',
-                            content: prompt
-                        }
-                    ],
-                    options: {
-                        temperature: 0.7,
-                        max_tokens: 500
-                    }
-                });
+// ============================================================
+//  THEME LOADING
+// ============================================================
+function loadTheme() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const theme = urlParams.get('theme') || localStorage.getItem('visiontory-theme') || 'industrial';
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('visiontory-theme', theme);
+}
 
-                responseDiv.innerHTML = response.message.content;
-            } catch (error) {
-                console.error('Error:', error);
-                responseDiv.innerHTML = `
-                    <span class="error">❌ Error connecting to Ollama.<br />
-                    Make sure Ollama is running (it is! Port 11434 is active).<br />
-                    Error: ${error.message}</span>
-                `;
-            } finally {
-                askBtn.disabled = false;
-                askBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Ask AI';
-            }
+// ============================================================
+//  MODAL FUNCTIONS (Add/Edit) - FIXED!
+// ============================================================
+
+function openModal() {
+    document.getElementById('itemModal').classList.add('active');
+    document.getElementById('modalTitle').textContent = 'Add New Item';
+    document.getElementById('modalSub').textContent = 'Fill in the details below';
+    document.getElementById('editId').value = '';
+    document.getElementById('itemForm').reset();
+    editingId = null;
+}
+
+function closeModal() {
+    document.getElementById('itemModal').classList.remove('active');
+}
+
+function saveItem(event) {
+    event.preventDefault();
+
+    const name = document.getElementById('itemName').value.trim();
+    const category = document.getElementById('itemCategory').value;
+    const qty = parseInt(document.getElementById('itemQty').value);
+    const minStock = parseInt(document.getElementById('itemMin').value);
+    const status = document.getElementById('itemStatus').value;
+    const editId = document.getElementById('editId').value;
+
+    // Validation
+    if (!name || !category || isNaN(qty) || isNaN(minStock)) {
+        showToast('error', 'Validation Error', 'Please fill in all fields correctly.');
+        return;
+    }
+
+    if (editId) {
+        // Edit existing item
+        const index = inventory.findIndex(i => i.id === parseInt(editId));
+        if (index !== -1) {
+            inventory[index] = { ...inventory[index], name, category, qty, minStock, status };
+            showToast('success', 'Item Updated', `${name} has been updated.`);
         }
+    } else {
+        // Add new item - FIXED: idCounter should not use document.getElementById
+        const newItem = {
+            id: idCounter++,
+            name: name,
+            category: category,
+            qty: qty,
+            minStock: minStock,
+            status: status
+        };
+        inventory.push(newItem);
+        showToast('success', 'Item Added', `${name} has been added to inventory.`);
+    }
 
-        // Event listeners
-        askBtn.addEventListener('click', askAI);
+    // Save to localStorage
+    localStorage.setItem('visiontory-inventory', JSON.stringify(inventory));
 
-        // Ctrl+Enter to submit
-        promptInput.addEventListener('keydown', (e) => {
-            if (e.ctrlKey && e.key === 'Enter') {
-                e.preventDefault();
-                askAI();
-            }
-        });
+    closeModal();
+    renderAll();
+}
 
-        console.log('🧠 VisionTory.ai AI Test Ready');
-        console.log('📡 Ollama Model: Qwen2.5-VL-3B-Instruct');
-        console.log('💡 Ask a question or press Ctrl+Enter');
-    </script>
-</body>
-</html>
+function editItem(id) {
+    const item = inventory.find(i => i.id === id);
+    if (!item) return;
+
+    document.getElementById('itemModal').classList.add('active');
+    document.getElementById('modalTitle').textContent = 'Edit Item';
+    document.getElementById('modalSub').textContent = 'Update the item details below';
+    document.getElementById('editId').value = item.id;
+    document.getElementById('itemName').value = item.name;
+    document.getElementById('itemCategory').value = item.category;
+    document.getElementById('itemQty').value = item.qty;
+    document.getElementById('itemMin').value = item.minStock;
+    document.getElementById('itemStatus').value = item.status;
+    editingId = item.id;
+}
+
+function deleteItem(id) {
+    const item = inventory.find(i => i.id === id);
+    if (!item) return;
+
+    if (confirm(`Are you sure you want to delete "${item.name}"?`)) {
+        inventory = inventory.filter(i => i.id !== id);
+        localStorage.setItem('visiontory-inventory', JSON.stringify(inventory));
+        renderAll();
+        showToast('info', 'Item Deleted', `${item.name} has been removed.`);
+    }
+}
+
+// ============================================================
+//  RENDER FUNCTIONS
+// ============================================================
+
+function renderStats() {
+    const total = inventory.length;
+    const lowCritical = inventory.filter(i => i.status === 'low' || i.status === 'critical');
+    const needRestock = inventory.filter(i =>
+        i.status === 'low' || i.status === 'critical' || i.status === 'out-of-stock'
+    );
+    const catSet = new Set(inventory.map(i => i.category));
+
+    document.getElementById('totalItems').textContent = total;
+    document.getElementById('lowStockCount').textContent = lowCritical.length;
+    document.getElementById('categoryCount').textContent = catSet.size;
+    document.getElementById('forecastCount').textContent = needRestock.length;
+
+    const sub = document.getElementById('forecastSub');
+    sub.textContent = needRestock.length === 1 ? 'Item needs restock' : 'Items need restock';
+}
+
+function renderTable(data) {
+    const tbody = document.getElementById('inventoryTableBody');
+    const items = data || inventory;
+
+    if (items.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" style="text-align:center; padding:40px; color: #556688;">
+                    <i class="fas fa-box-open" style="font-size:32px; display:block; margin-bottom:12px;"></i>
+                    No items found. Click "Add Item" to get started.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tbody.innerHTML = items.map(item => `
+        <tr>
+            <td>
+                <div class="name">${item.name}</div>
+            </td>
+            <td>${item.category}</td>
+            <td>${item.qty}</td>
+            <td>${item.minStock}</td>
+            <td>
+                <span class="status ${item.status}">
+                    <span class="dot"></span>
+                    ${item.status.replace('-', ' ').toUpperCase()}
+                </span>
+            </td>
+            <td>
+                <div class="actions-cell">
+                    <button class="edit" onclick="editItem(${item.id})" title="Edit">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="delete" onclick="deleteItem(${item.id})" title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function renderAIInsight() {
+    const lowItems = inventory.filter(i => i.status === 'low' || i.status === 'critical');
+    const criticalItems = inventory.filter(i => i.status === 'critical');
+    const outOfStock = inventory.filter(i => i.status === 'out-of-stock');
+    const overstock = inventory.filter(i => i.status === 'overstock');
+
+    let msg = '';
+    if (criticalItems.length > 0) {
+        msg = `⚠️ <strong>${criticalItems.length} critical item(s)</strong> need immediate attention: ${criticalItems.map(i => i.name).join(', ')}.`;
+    } else if (outOfStock.length > 0) {
+        msg = `🚨 <strong>${outOfStock.length} item(s)</strong> are out of stock: ${outOfStock.map(i => i.name).join(', ')}.`;
+    } else if (lowItems.length > 0) {
+        msg = `📊 <strong>${lowItems.length} item(s)</strong> are running low. Consider restocking: ${lowItems.map(i => i.name).join(', ')}.`;
+    } else if (overstock.length > 0) {
+        msg = `📦 <strong>${overstock.length} item(s)</strong> have excess stock: ${overstock.map(i => i.name).join(', ')}. Consider reducing orders.`;
+    } else {
+        msg = `✅ All inventory levels are healthy! No items need attention.`;
+    }
+
+    document.getElementById('aiMessage').innerHTML = msg;
+}
+
+function renderAll() {
+    renderStats();
+    renderTable();
+    renderAIInsight();
+    updateCategoryFilter();
+}
+
+// ============================================================
+//  FILTER FUNCTIONS
+// ============================================================
+
+function updateCategoryFilter() {
+    const filter = document.getElementById('categoryFilter');
+    const currentValue = filter.value;
+    const catSet = new Set(inventory.map(i => i.category));
+
+    filter.innerHTML = '<option value="all">All Categories</option>';
+    catSet.forEach(cat => {
+        filter.innerHTML += `<option value="${cat}">${cat}</option>`;
+    });
+    filter.value = currentValue;
+}
+
+function filterTable() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const category = document.getElementById('categoryFilter').value;
+    const status = document.getElementById('statusFilter').value;
+
+    let filtered = inventory.filter(item => {
+        const matchSearch = item.name.toLowerCase().includes(searchTerm);
+        const matchCategory = category === 'all' || item.category === category;
+        const matchStatus = status === 'all' || item.status === status;
+        return matchSearch && matchCategory && matchStatus;
+    });
+
+    renderTable(filtered);
+}
+
+// ============================================================
+//  EXPORT DATA
+// ============================================================
+
+function exportData() {
+    if (inventory.length === 0) {
+        showToast('error', 'No Data', 'No inventory items to export.');
+        return;
+    }
+
+    // Create CSV
+    const headers = ['ID', 'Name', 'Category', 'Quantity', 'Min Stock', 'Status'];
+    const rows = inventory.map(item => [
+        item.id, item.name, item.category, item.qty, item.minStock, item.status
+    ]);
+
+    const csv = [
+        headers.join(','),
+        ...rows.map(row => row.join(','))
+    ].join('\n');
+
+    // Download
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `visiontory_inventory_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    showToast('success', 'Exported', 'Inventory data exported successfully!');
+}
+
+// ============================================================
+//  TOAST NOTIFICATION
+// ============================================================
+
+let toastTimeout;
+
+function showToast(type, title, desc) {
+    const toast = document.getElementById('toast');
+    const icon = document.getElementById('toastIcon');
+    const titleEl = document.getElementById('toastTitle');
+    const descEl = document.getElementById('toastDesc');
+
+    const icons = {
+        success: 'fas fa-check-circle',
+        error: 'fas fa-times-circle',
+        info: 'fas fa-info-circle'
+    };
+
+    icon.className = `icon ${type}`;
+    icon.innerHTML = `<i class="${icons[type] || icons.info}"></i>`;
+    titleEl.textContent = title;
+    descEl.textContent = desc;
+
+    toast.classList.add('show');
+    clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => {
+        toast.classList.remove('show');
+    }, 4000);
+}
+
+// ============================================================
+//  INITIALIZATION
+// ============================================================
+
+function init() {
+    loadTheme();
+    seedData();
+    renderAll();
+
+    // Populate category dropdown in modal
+    const categorySelect = document.getElementById('itemCategory');
+    categories.forEach(cat => {
+        categorySelect.innerHTML += `<option value="${cat}">${cat}</option>`;
+    });
+}
+
+// Run when page loads
+document.addEventListener('DOMContentLoaded', init);
+
+// ============================================================
+//  KEYBOARD SHORTCUTS
+// ============================================================
+
+document.addEventListener('keydown', function(e) {
+    // Ctrl+N = Open Add Item Modal
+    if (e.ctrlKey && e.key === 'n') {
+        e.preventDefault();
+        openModal();
+    }
+    // Escape = Close Modal
+    if (e.key === 'Escape') {
+        closeModal();
+    }
+});
+
+// ============================================================
+//  LOG
+// ============================================================
+console.log('🏭 VisionTory.ai Dashboard v2.0');
+console.log('📌 Ctrl+N = Add New Item | Escape = Close Modal');
+console.log('📦 Total items loaded:', inventory.length);
