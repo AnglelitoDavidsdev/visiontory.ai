@@ -205,7 +205,7 @@
             margin-bottom: 10px;
         }
 
-        /* Toast Notification styling (Matches your screenshot) */
+        /* Toast Notification styling */
         .toast-container {
             position: fixed;
             top: 20px;
@@ -267,8 +267,8 @@
             <button class="browse-btn" onclick="document.getElementById('fileInput').click()">
                 📂 Browse Files
             </button>
-            <!-- Hidden file input -->
-            <input type="file" id="fileInput" accept=".csv,.xlsx,.json" style="display: none;" onchange="handleFileUpload(event)" multiple>
+            <!-- Hidden file input with 'multiple' to allow selecting many files at once -->
+            <input type="file" id="fileInput" accept=".csv,.xlsx,.json" style="display: none;" multiple>
         </div>
 
         <!-- Uploaded Files List -->
@@ -291,19 +291,18 @@
     <div class="toast-container" id="toastContainer"></div>
 
 
+    <!-- ============================================================ -->
+    <!-- FULL JAVASCRIPT SCRIPT -->
+    <!-- ============================================================ -->
     <script>
-        // ============================================================
-        // 1. MOCK DATA (Use this so you can test immediately without your dashboard)
-        // ============================================================
+        // 1. MOCK DATA (Replace this with your actual 'inventory' variable and 'idCounter' when integrating)
         let inventory = JSON.parse(localStorage.getItem('visiontory-inventory')) || [
             { id: 1, name: "Wireless Mouse", category: "Electronics", qty: 50, minStock: 5, status: "In Stock" },
             { id: 2, name: "Office Desk", category: "Furniture", qty: 10, minStock: 2, status: "In Stock" }
         ];
         let idCounter = 3; // Set to next available ID
 
-        // ============================================================
         // 2. TOAST NOTIFICATION FUNCTION
-        // ============================================================
         function showToast(type, title, message) {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
@@ -317,13 +316,14 @@
             }, 4000);
         }
 
-        // ============================================================
-        // 3. UPLOAD PAGE LOGIC (Drag & Drop + Parsing)
-        // ============================================================
+        // 3. UPLOAD PAGE LOGIC
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
         const fileListContainer = document.getElementById('fileListContainer');
         const fileCountSpan = document.getElementById('fileCount');
+
+        // SECURE EVENT LISTENER (Replacing inline 'onchange')
+        fileInput.addEventListener('change', handleFileUpload);
 
         // A. Drag & Drop Event Listeners
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -348,17 +348,21 @@
             handleFiles(files);
         });
 
-        // B. Handle File Input
+        // B. Handle File Input (Browser File Picker)
         function handleFileUpload(event) {
             const files = event.target.files;
-            handleFiles(files);
-            fileInput.value = ''; 
+            if (files.length > 0) {
+                handleFiles(files);
+                fileInput.value = ''; // Reset the input so the same file can be selected again later
+            } else {
+                console.log("No files selected (User likely clicked Cancel).");
+            }
         }
 
-        // C. Main Process
+        // C. Main File Processing Loop
         function handleFiles(files) {
             if (files.length === 0) return;
-            updateFileListUI(files); 
+            updateFileListUI(files); // Update the bottom list UI
 
             Array.from(files).forEach(file => {
                 const reader = new FileReader();
@@ -380,7 +384,7 @@
                             importedData = parseCSV(e.target.result);
                             parsed = true;
                         } 
-                        // XLSX Parser (Requires library loaded in head)
+                        // XLSX Parser
                         else if (fileName.endsWith('.xlsx')) {
                             const data = new Uint8Array(e.target.result);
                             const workbook = XLSX.read(data, {type: 'array'});
@@ -404,7 +408,12 @@
                     }
                 };
 
-                // Read based on type
+                // Handle FileReader Errors
+                reader.onerror = function() {
+                    showToast('error', 'Read Error', 'Could not read the file.');
+                }
+
+                // Read based on type (Excel requires ArrayBuffer, others Text)
                 if (fileName.endsWith('.xlsx')) {
                     reader.readAsArrayBuffer(file);
                 } else {
@@ -426,6 +435,7 @@
                     let obj = {};
                     headers.forEach((header, index) => {
                         let val = values[index].trim();
+                        // Convert numeric strings to actual numbers
                         if (['qty', 'minstock', 'id'].includes(header)) {
                             val = parseInt(val) || 0;
                         }
@@ -437,7 +447,7 @@
             return result;
         }
 
-        // E. Merge Data & Save
+        // E. Merge Data & Save to LocalStorage
         function mergeInventory(newItems) {
             let addedCount = 0;
             newItems.forEach(item => {
@@ -449,6 +459,7 @@
                     if (!item.id) {
                         item.id = idCounter++;
                     } else {
+                        // Update global counter if imported ID is higher
                         if (item.id >= idCounter) idCounter = item.id + 1;
                     }
                     inventory.push(item);
@@ -456,15 +467,14 @@
                 }
             });
 
-            // Save to your storage
+            // Save to LocalStorage
             localStorage.setItem('visiontory-inventory', JSON.stringify(inventory));
             
-            // NOTE: If you are actually on the Dashboard, call renderAll(); here.
-            // Since this is a standalone page, we just show the toast.
-            console.log("Updated Inventory:", inventory); 
+            // (Optional) If you are integrated with the dashboard, call renderAll() here.
+            // if (typeof renderAll === 'function') { renderAll(); }
         }
 
-        // F. Update Bottom List UI
+        // F. Update Bottom "Uploaded Files" List UI
         function updateFileListUI(files) {
             fileListContainer.innerHTML = '';
             fileCountSpan.textContent = `${files.length} files`;
