@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ollama Test · VisionTory.ai</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #0b0e1a;
+            color: #f0f4ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background: #11152a;
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        .sub {
+            color: #8899cc;
+            margin-bottom: 24px;
+        }
+        .model-badge {
+            display: inline-block;
+            background: rgba(255, 107, 157, 0.12);
+            color: #ff6b9d;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-bottom: 20px;
+        }
+        textarea {
+            width: 100%;
+            padding: 12px 16px;
+            background: #0b0e1a;
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 10px;
+            color: #f0f4ff;
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 80px;
+            outline: none;
+        }
+        textarea:focus {
+            border-color: #ff6b9d;
+            box-shadow: 0 0 0 3px rgba(255, 107, 157, 0.1);
+        }
+        .btn {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 30px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #ff6b9d, #b388ff);
+            color: #fff;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(255, 107, 157, 0.3);
+        }
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        #response {
+            margin-top: 20px;
+            padding: 16px 20px;
+            background: #0b0e1a;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.04);
+            min-height: 60px;
+            white-space: pre-wrap;
+            line-height: 1.6;
+            color: #8899cc;
+        }
+        #response .thinking {
+            color: #556688;
+            font-style: italic;
+        }
+        #response .error {
+            color: #ff5252;
+        }
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #556688;
+            margin-top: 12px;
+        }
+        .status .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #00e676;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.85); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧠 VisionTory.ai AI Test</h1>
+        <div class="sub">Testing your Ollama integration</div>
+        <div class="model-badge">🤖 Model: Qwen2.5-VL-3B-Instruct</div>
+
+        <textarea id="prompt" placeholder="Ask me anything about inventory management...">What are the best practices for managing medication inventory in a clinic?</textarea>
+
+        <button class="btn btn-primary" id="askBtn">
+            <i class="fas fa-paper-plane"></i> Ask AI
+        </button>
+
+        <div id="response">
+            <span class="thinking">💡 Ask a question above to test the AI...</span>
+        </div>
+
+        <div class="status">
+            <span class="dot"></span>
+            Ollama running on port 11434
+        </div>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "ollama": "https://cdn.jsdelivr.net/npm/ollama/browser.js"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import ollama from 'ollama';
+
+        const promptInput = document.getElementById('prompt');
+        const askBtn = document.getElementById('askBtn');
+        const responseDiv = document.getElementById('response');
+
+        async function askAI() {
+            const prompt = promptInput.value.trim();
+            if (!prompt) {
+                responseDiv.innerHTML = `<span class="error">⚠️ Please enter a question.</span>`;
+                return;
+            }
+
+            askBtn.disabled = true;
+            askBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Thinking...';
+            responseDiv.innerHTML = `<span class="thinking">🧠 Thinking...</span>`;
+
+            try {
+                const response = await ollama.chat({
+                    model: 'hf.co/ggml-org/Qwen2.5-VL-3B-Instruct-GGUF:Q4_K_M',
+                    messages: [
+                        {
+                            role: 'system',
+                            content: 'You are VisionTory.ai, an AI inventory management assistant. You help with stock management, supply chain optimization, and inventory best practices. Keep responses concise and practical.'
+                        },
+                        {
+                            role: 'user',
+                            content: prompt
+                        }
+                    ],
+                    options: {
+                        temperature: 0.7,
+                        max_tokens: 500
+                    }
+                });
+
+                responseDiv.innerHTML = response.message.content;
+            } catch (error) {
+                console.error('Error:', error);
+                responseDiv.innerHTML = `
+                    <span class="error">❌ Error connecting to Ollama.<br />
+                    Make sure Ollama is running (it is! Port 11434 is active).<br />
+                    Error: ${error.message}</span>
+                `;
+            } finally {
+                askBtn.disabled = false;
+                askBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Ask AI';
+            }
+        }
+
+        // Event listeners
+        askBtn.addEventListener('click', askAI);
+
+        // Ctrl+Enter to submit
+        promptInput.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'Enter') {
+                e.preventDefault();
+                askAI();
+            }
+        });
+
+        console.log('🧠 VisionTory.ai AI Test Ready');
+        console.log('📡 Ollama Model: Qwen2.5-VL-3B-Instruct');
+        console.log('💡 Ask a question or press Ctrl+Enter');
+    </script>
+</body>
+</html>
