@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>VisionTory.ai - AI Inventory Control</title>
+    <title>VisionTory.ai - AI Inspector</title>
     
     <!-- Load Puter.js (Handles Auth + AI) -->
     <script src="https://js.puter.com/v2/"></script>
@@ -17,6 +17,9 @@
             --accent-start: #d946ef;
             --accent-end: #8b5cf6;
             --border-color: #2d3142;
+            --critical-color: #ef4444;
+            --repair-color: #f59e0b;
+            --good-color: #10b981;
         }
 
         body {
@@ -29,34 +32,30 @@
             justify-content: center;
         }
 
-        .main-container { width: 100%; max-width: 900px; }
+        .main-container { width: 100%; max-width: 1000px; }
 
-        /* Header */
         .header { display: flex; align-items: center; gap: 15px; margin-bottom: 30px; flex-wrap: wrap; }
         .logo-box { background: linear-gradient(135deg, var(--accent-start), var(--accent-end)); width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; }
         .title { font-size: 1.5rem; font-weight: 600; }
 
-        /* Tabs */
         .tabs { display: flex; gap: 20px; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
         .tab { cursor: pointer; padding: 5px 10px; color: var(--text-muted); }
         .tab.active { color: var(--text-main); border-bottom: 2px solid var(--accent-end); }
 
-        /* Dashboard Stats */
         .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
         .stat-card { background-color: var(--card-bg); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); }
         .stat-number { font-size: 2rem; font-weight: bold; margin: 5px 0; }
         .stat-label { color: var(--text-muted); font-size: 0.9rem; }
 
-        /* Inventory Table */
-        .inventory-container { background-color: var(--card-bg); border-radius: 12px; padding: 20px; border: 1px solid var(--border-color); }
+        .inventory-container { background-color: var(--card-bg); border-radius: 12px; padding: 20px; border: 1px solid var(--border-color); overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { text-align: left; padding: 12px 0; border-bottom: 1px solid var(--border-color); }
+        th, td { text-align: left; padding: 12px 8px; border-bottom: 1px solid var(--border-color); font-size: 0.9rem; }
         th { color: var(--text-muted); font-weight: normal; }
-        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; display: inline-block; }
+        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; display: inline-block; }
         .status-instock { background: rgba(16, 185, 129, 0.2); color: #10b981; }
         .status-low { background: rgba(251, 191, 36, 0.2); color: #fbbf24; }
+        .status-critical { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
 
-        /* Delete Button */
         .delete-btn {
             background: #ef4444;
             border: none;
@@ -69,7 +68,6 @@
         }
         .delete-btn:hover { background: #dc2626; transform: scale(1.05); }
 
-        /* Upload Page Styling (Hidden by default) */
         .page-section { display: none; }
         .page-section.active { display: block; }
 
@@ -88,79 +86,40 @@
         .toast.error { border-left-color: #ef4444; }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-        /* ================= LOGIN PAGE STYLES ================= */
-        .login-screen {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            width: 100%;
-        }
-        .login-card {
-            background: var(--card-bg);
-            padding: 40px;
-            border-radius: 16px;
-            border: 1px solid var(--border-color);
-            width: 100%;
-            max-width: 350px;
-            text-align: center;
-        }
+        .login-screen { display: flex; justify-content: center; align-items: center; height: 100vh; width: 100%; }
+        .login-card { background: var(--card-bg); padding: 40px; border-radius: 16px; border: 1px solid var(--border-color); width: 100%; max-width: 350px; text-align: center; }
         .login-logo { font-size: 4rem; margin-bottom: 20px; }
         .login-title { font-size: 1.5rem; margin-bottom: 5px; }
         .login-sub { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 30px; }
-        .login-btn {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
-            border: none;
-            color: white;
-            border-radius: 8px;
-            font-size: 1rem;
-            cursor: pointer;
-            font-weight: 500;
-        }
+        .login-btn { width: 100%; padding: 12px; background: linear-gradient(135deg, var(--accent-start), var(--accent-end)); border: none; color: white; border-radius: 8px; font-size: 1rem; cursor: pointer; font-weight: 500; }
         .login-btn:hover { opacity: 0.9; }
-        .logout-btn {
-            background: transparent;
-            border: 1px solid var(--text-muted);
-            color: var(--text-muted);
-            padding: 8px 16px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            margin-left: auto;
-        }
+        .logout-btn { background: transparent; border: 1px solid var(--text-muted); color: var(--text-muted); padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.9rem; margin-left: auto; }
         .logout-btn:hover { color: var(--text-main); border-color: var(--text-main); }
     </style>
 </head>
 <body>
 
-    <!-- ================= LOGIN SCREEN ================= -->
     <div id="loginScreen" class="login-screen">
         <div class="login-card">
             <div class="login-logo">👤</div>
             <div class="login-title">VisionTory.ai</div>
-            <div class="login-sub">Sign in to access your inventory<br>New user? Just click below to create an account</div>
+            <div class="login-sub">Sign in to access inventory<br>New user? Just click below</div>
             <button class="login-btn" onclick="handleLogin()">Login / Sign Up</button>
         </div>
     </div>
 
-    <!-- ================= APP SCREEN (HIDDEN BY DEFAULT) ================= -->
     <div id="appScreen" class="main-container" style="display: none;">
-        <!-- Header -->
         <div class="header">
             <div class="logo-box">V</div>
             <div class="title">VisionTory.ai</div>
             <button class="logout-btn" onclick="handleLogout()">Logout</button>
         </div>
 
-        <!-- Navigation Tabs -->
         <div class="tabs">
             <div class="tab active" onclick="switchTab('dashboard')">Dashboard</div>
-            <div class="tab" onclick="switchTab('upload')">Upload & AI Scan</div>
+            <div class="tab" onclick="switchTab('upload')">Upload & AI Inspect</div>
         </div>
 
-        <!-- ================= DASHBOARD SECTION ================= -->
         <div id="dashboard" class="page-section active">
             <div class="stats">
                 <div class="stat-card">
@@ -168,8 +127,8 @@
                     <div class="stat-number" id="totalItems">0</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">Low Stock</div>
-                    <div class="stat-number" id="lowStock">0</div>
+                    <div class="stat-label">Critical / Repair</div>
+                    <div class="stat-number" id="lowStock" style="color: var(--critical-color);">0</div>
                 </div>
             </div>
 
@@ -181,31 +140,27 @@
                             <th>Item</th>
                             <th>Category</th>
                             <th>Qty</th>
-                            <th>Min Stock</th>
                             <th>Status</th>
+                            <th>Condition Report</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="inventoryTableBody">
-                        <!-- Inventory items will appear here -->
-                    </tbody>
+                    <tbody id="inventoryTableBody"></tbody>
                 </table>
             </div>
         </div>
 
-        <!-- ================= UPLOAD SECTION ================= -->
         <div id="upload" class="page-section">
-            <h2>Upload <span style="color: var(--text-muted); font-weight: 400;">· Import & AI Scan</span></h2>
-            
+            <h2>Upload <span style="color: var(--text-muted); font-weight: 400;">· AI Inspect</span></h2>
             <div class="upload-card" id="dropZone">
                 <span class="cloud-icon">☁️</span>
                 <h3>Drop files or photos here</h3>
-                <p style="color: var(--text-muted);">Upload images to scan with AI, or CSV, Excel, JSON files</p>
+                <p style="color: var(--text-muted);">Upload an image, and the AI will inspect it for damage</p>
                 <button class="browse-btn" id="browseBtn">📂 Browse Files</button>
                 <input type="file" id="fileInput" accept=".csv,.xlsx,.json,image/*" style="display: none;" multiple>
                 <div id="loadingIndicator" style="display: none; margin-top: 20px;">
                     <div class="spinner"></div>
-                    <p style="color: var(--text-muted);">AI is analyzing your images...</p>
+                    <p style="color: var(--text-muted);">AI is inspecting your equipment...</p>
                 </div>
             </div>
         </div>
@@ -214,23 +169,14 @@
     <div class="toast-container" id="toastContainer"></div>
 
     <script>
-        // ==========================================================
-        // 0. LOGIN & AUTHENTICATION (PUTER.JS)
-        // ==========================================================
-        
         async function handleLogin() {
             try {
                 await puter.auth.signIn();
-                
                 document.getElementById('loginScreen').style.display = 'none';
                 document.getElementById('appScreen').style.display = 'block';
-                
                 await loadInventory();
                 showToast('Welcome, ' + puter.auth.getUser().username + '!');
-            } catch (error) {
-                console.error(error);
-                showToast('Sign in failed or was cancelled.', 'error');
-            }
+            } catch (error) { showToast('Sign in failed.', 'error'); }
         }
 
         async function handleLogout() {
@@ -250,35 +196,23 @@
             }
         }
 
-        // ==========================================================
-        // 1. DATA STORAGE (PUTER CLOUD)
-        // ==========================================================
-        
+        let inventory = [];
+        let idCounter = 1;
+
         async function loadInventory() {
             try {
                 const stored = await puter.localStorage.getItem('visiontory-inventory');
-                if (stored) {
-                    inventory = JSON.parse(stored);
-                } else {
-                    inventory = [{ id: 1, name: "Wireless Mouse", category: "Electronics", qty: 50, minStock: 5, status: "In Stock" }];
-                }
-            } catch (e) {
-                console.log("No existing data, using defaults.");
-                inventory = [{ id: 1, name: "Wireless Mouse", category: "Electronics", qty: 50, minStock: 5, status: "In Stock" }];
-            }
+                if (stored) { inventory = JSON.parse(stored); }
+                else { inventory = []; }
+            } catch (e) { inventory = []; }
             
-            idCounter = 1;
-            if (inventory.length > 0) { idCounter = Math.max(...inventory.map(item => item.id)) + 1; }
-            
+            idCounter = inventory.length > 0 ? Math.max(...inventory.map(item => item.id)) + 1 : 1;
             renderDashboard();
         }
 
         async function saveInventory() {
-            try {
-                await puter.localStorage.setItem('visiontory-inventory', JSON.stringify(inventory));
-            } catch (e) {
-                console.error("Error saving to cloud", e);
-            }
+            try { await puter.localStorage.setItem('visiontory-inventory', JSON.stringify(inventory)); }
+            catch (e) { console.error(e); }
         }
 
         function showToast(message, type='success') {
@@ -297,42 +231,34 @@
             if(tabId === 'dashboard') renderDashboard();
         }
 
-        // ==========================================================
-        // 2. DASHBOARD RENDER (WITH DELETE BUTTON)
-        // ==========================================================
         function renderDashboard() {
             const tbody = document.getElementById('inventoryTableBody');
             tbody.innerHTML = '';
-            let total = 0, lowStock = 0;
+            let total = 0, critical = 0;
             
             inventory.forEach(item => {
                 total += item.qty || 0;
-                if (item.qty <= item.minStock) lowStock++;
+                if (item.status === 'Critical' || item.repair_needed === 'true') critical++;
                 
                 const tr = document.createElement('tr');
-                let statusClass = item.qty <= item.minStock ? 'status-low' : 'status-instock';
+                let statusClass = item.status === 'Critical' ? 'status-critical' : (item.qty <= item.minStock ? 'status-low' : 'status-instock');
                 
                 tr.innerHTML = `
                     <td><strong>${item.name}</strong></td>
                     <td style="color: var(--text-muted);">${item.category}</td>
                     <td>${item.qty}</td>
-                    <td style="color: var(--text-muted);">${item.minStock}</td>
                     <td><span class="status-badge ${statusClass}">${item.status}</span></td>
-                    <td>
-                        <button class="delete-btn" onclick="deleteItem(${item.id})">Delete</button>
-                    </td>
+                    <td style="color: var(--text-muted); font-size: 0.85rem; max-width: 300px;">${item.report || "No report"}</td>
+                    <td><button class="delete-btn" onclick="deleteItem(${item.id})">Delete</button></td>
                 `;
                 tbody.appendChild(tr);
             });
 
             document.getElementById('totalItems').innerText = total;
-            document.getElementById('lowStock').innerText = lowStock;
+            document.getElementById('lowStock').innerText = critical;
             saveInventory();
         }
 
-        // ==========================================================
-        // 3. DELETE ITEM FUNCTION
-        // ==========================================================
         function deleteItem(id) {
             if (confirm('Are you sure you want to delete this item?')) {
                 inventory = inventory.filter(item => item.id !== id);
@@ -342,9 +268,6 @@
             }
         }
 
-        // ==========================================================
-        // 4. UPLOAD & AI LOGIC (Puter.js)
-        // ==========================================================
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
         const browseBtn = document.getElementById('browseBtn');
@@ -360,11 +283,7 @@
         function processFiles(files) {
             if (!files.length) return;
             Array.from(files).forEach(file => {
-                if (file.type.startsWith('image/')) {
-                    sendToPuterAI(file);
-                } else {
-                    showToast('Unsupported file type for AI. Please upload an image.', 'error');
-                }
+                if (file.type.startsWith('image/')) { sendToPuterAI(file); }
             });
         }
 
@@ -379,32 +298,30 @@
                     reader.readAsDataURL(file);
                 });
 
-                // FINAL PROMPT: NO PLACEHOLDERS. FORCED SPECIFIC BRANDS!
                 const response = await puter.ai.chat(
-                    "You are a world-class asset identification expert. Look at this image. " +
-                    "Identify the exact brand and model. Example: Instead of 'Car', say 'Porsche 911 GT3'. Instead of 'Machine', say 'Caterpillar Excavator'. " +
-                    "Respond with ONLY a specific JSON object: " +
-                    "{\"name\": \"EXACT SPECIFIC NAME\", \"category\": \"CATEGORY\", \"qty\": 1, \"minStock\": 1, \"status\": \"In Stock\"}" +
-                    "CRITICAL: Do not write any words outside of this JSON. Do not use the word 'Car' if you know the specific model.",
+                    "You are a professional industrial asset inspector. Look at this image and inspect it. " +
+                    "Identify the exact brand and model. Example: 'Caterpillar Excavator', 'Porsche 911 GT3'. " +
+                    "2. Check the condition. Look for damage, cracks, rust, dirt, missing parts, or wear-and-tear. " +
+                    "Respond with ONLY this exact JSON format: " +
+                    "{\"name\": \"EXACT SPECIFIC NAME\", \"category\": \"CATEGORY\", \"qty\": 1, \"minStock\": 1, \"status\": \"In Stock\", \"condition\": \"Excellent | Good | Fair | Poor | Critical\", \"repair_needed\": \"true or false\", \"report\": \"A brief 1-sentence professional inspection report based on what you see.\"}" +
+                    "CRITICAL RULES: " +
+                    "1. If you see obvious damage, scratches, cracks, or rust, set status to 'Critical' and repair_needed to 'true'. " +
+                    "2. If the item is clean and looks new, set status to 'In Stock' and repair_needed to 'false'. " +
+                    "3. Provide a brief professional report. " +
+                    "4. Do not write any words outside of this JSON.",
                     imageDataUrl,
                     { model: "gpt-4o" }
                 );
 
                 let ai_text = response.message.content.toString();
-                
-                // Convert HTML entities and clean it
                 let txt = document.createElement("textarea");
                 txt.innerHTML = ai_text;
                 ai_text = txt.value.trim();
 
-                // Bulletproof JSON-like extractor (Finds the {} and ignores everything else)
                 const start = ai_text.indexOf('{');
                 const end = ai_text.lastIndexOf('}');
-                if (start !== -1 && end !== -1) {
-                    ai_text = ai_text.substring(start, end + 1);
-                }
+                if (start !== -1 && end !== -1) { ai_text = ai_text.substring(start, end + 1); }
 
-                // Parse using JSON
                 const data = JSON.parse(ai_text);
 
                 const newItem = {
@@ -413,24 +330,26 @@
                     category: data.category || "Unknown",
                     qty: data.qty || 1,
                     minStock: data.minStock || 1,
-                    status: data.status || "In Stock"
+                    status: data.status || "In Stock",
+                    condition: data.condition || "Good",
+                    repair_needed: data.repair_needed || "false",
+                    report: data.report || "No inspection report provided."
                 };
                 inventory.push(newItem);
                 saveInventory();
 
                 loadingIndicator.style.display = 'none';
                 dropZone.classList.remove('loading');
-                showToast('AI Scanned: ' + newItem.name);
+                showToast('Inspected: ' + newItem.name);
                 switchTab('dashboard');
                 
             } catch (error) {
                 loadingIndicator.style.display = 'none';
                 dropZone.classList.remove('loading');
-                showToast('Connection error. Please try again in a moment.', 'error');
+                showToast('Connection error. Please try again.', 'error');
             }
         }
 
-        // Initial Load
         checkAuth();
     </script>
 </body>
