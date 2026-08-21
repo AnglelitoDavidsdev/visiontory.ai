@@ -87,7 +87,7 @@
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
         .login-screen { display: flex; justify-content: center; align-items: center; height: 100vh; width: 100%; }
-        .login-card { background: var(--card-bg); padding: 40px; border-radius: 16px; border: 1px solid var(--border-color); width: 100%; max-width: 350px; text-align: center; }
+        .login-card { background: var(--card-bg); padding: 40px; border-radius: 16px; border: 1px solid var(--border-color); width: 100%; max-width: 400px; text-align: center; }
         .login-logo { font-size: 4rem; margin-bottom: 20px; }
         .login-title { font-size: 1.5rem; margin-bottom: 5px; }
         .login-sub { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 30px; }
@@ -95,6 +95,26 @@
         .login-btn:hover { opacity: 0.9; }
         .logout-btn { background: transparent; border: 1px solid var(--text-muted); color: var(--text-muted); padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.9rem; margin-left: auto; }
         .logout-btn:hover { color: var(--text-main); border-color: var(--text-main); }
+
+        /* Theme / Industry Selector */
+        .theme-selector { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        .theme-btn {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .theme-btn:hover { border-color: var(--accent-end); }
+        .theme-btn.selected { border-color: var(--accent-end); background: rgba(217, 70, 239, 0.15); }
+        .theme-icon { font-size: 1.8rem; }
     </style>
 </head>
 <body>
@@ -103,7 +123,33 @@
         <div class="login-card">
             <div class="login-logo">👤</div>
             <div class="login-title">VisionTory.ai</div>
-            <div class="login-sub">Sign in to access inventory<br>New user? Just click below</div>
+            <div class="login-sub">Select your industry to begin <br> Sign in to access inventory</div>
+            
+            <!-- Industry Selector -->
+            <div class="theme-selector">
+                <button class="theme-btn" onclick="selectTheme('industrial', this)">
+                    <span class="theme-icon">🏭</span>
+                    <div>
+                        <strong>Industrial</strong><br>
+                        <small style="color: var(--text-muted);">Heavy machinery, equipment, tools</small>
+                    </div>
+                </button>
+                <button class="theme-btn" onclick="selectTheme('medical', this)">
+                    <span class="theme-icon">🏥</span>
+                    <div>
+                        <strong>Medical</strong><br>
+                        <small style="color: var(--text-muted);">Devices, instruments, supplies</small>
+                    </div>
+                </button>
+                <button class="theme-btn" onclick="selectTheme('aviation', this)">
+                    <span class="theme-icon">✈️</span>
+                    <div>
+                        <strong>Aviation</strong><br>
+                        <small style="color: var(--text-muted);">Aircraft parts, tools, components</small>
+                    </div>
+                </button>
+            </div>
+
             <button class="login-btn" onclick="handleLogin()">Login / Sign Up</button>
         </div>
     </div>
@@ -112,6 +158,7 @@
         <div class="header">
             <div class="logo-box">V</div>
             <div class="title">VisionTory.ai</div>
+            <span id="industryBadge" style="background: var(--border-color); padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; color: var(--text-muted); margin-left: 10px;"></span>
             <button class="logout-btn" onclick="handleLogout()">Logout</button>
         </div>
 
@@ -169,11 +216,39 @@
     <div class="toast-container" id="toastContainer"></div>
 
     <script>
+        // Theme / Industry Selection
+        let currentIndustry = localStorage.getItem('visiontory_industry') || 'industrial';
+
+        function selectTheme(industry, btn) {
+            currentIndustry = industry;
+            localStorage.setItem('visiontory_industry', industry);
+            
+            // Highlight selected button
+            document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            
+            showToast('Industry set to: ' + industry.charAt(0).toUpperCase() + industry.slice(1));
+        }
+
+        // On page load, set the default selected industry
+        window.onload = function() {
+            const buttons = document.querySelectorAll('.theme-btn');
+            buttons.forEach(btn => {
+                if (btn.onclick.toString().includes(currentIndustry)) {
+                    btn.classList.add('selected');
+                }
+            });
+        };
+
         async function handleLogin() {
             try {
                 await puter.auth.signIn();
                 document.getElementById('loginScreen').style.display = 'none';
                 document.getElementById('appScreen').style.display = 'block';
+                
+                const badge = document.getElementById('industryBadge');
+                badge.innerText = currentIndustry.charAt(0).toUpperCase() + currentIndustry.slice(1);
+                
                 await loadInventory();
                 showToast('Welcome, ' + puter.auth.getUser().username + '!');
             } catch (error) { showToast('Sign in failed.', 'error'); }
@@ -291,6 +366,16 @@
             loadingIndicator.style.display = 'block';
             dropZone.classList.add('loading');
 
+            // Build the prompt based on the selected industry
+            let industryInstruction = "";
+            if (currentIndustry === 'industrial') {
+                industryInstruction = "You are inspecting industrial machinery. Look for scratches, rust, hydraulic leaks, and structural damage.";
+            } else if (currentIndustry === 'medical') {
+                industryInstruction = "You are inspecting medical equipment. Look for cleanliness, sterilized packaging, expiry dates, and clinical wear.";
+            } else if (currentIndustry === 'aviation') {
+                industryInstruction = "You are inspecting aviation parts. Look for strict compliance, part numbers, safety labels, and structural integrity.";
+            }
+
             try {
                 const reader = new FileReader();
                 const imageDataUrl = await new Promise((resolve) => {
@@ -299,9 +384,8 @@
                 });
 
                 const response = await puter.ai.chat(
-                    "You are a professional industrial asset inspector. Look at this image and inspect it. " +
+                    "You are a professional asset inspector. " + industryInstruction + " " +
                     "Identify the exact brand and model. Example: 'Caterpillar Excavator', 'Porsche 911 GT3'. " +
-                    "2. Check the condition. Look for damage, cracks, rust, dirt, missing parts, or wear-and-tear. " +
                     "Respond with ONLY this exact JSON format: " +
                     "{\"name\": \"EXACT SPECIFIC NAME\", \"category\": \"CATEGORY\", \"qty\": 1, \"minStock\": 1, \"status\": \"In Stock\", \"condition\": \"Excellent | Good | Fair | Poor | Critical\", \"repair_needed\": \"true or false\", \"report\": \"A brief 1-sentence professional inspection report based on what you see.\"}" +
                     "CRITICAL RULES: " +
