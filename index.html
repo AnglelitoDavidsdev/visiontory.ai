@@ -339,19 +339,20 @@
                 const reader = new FileReader();
                 const imageDataUrl = await new Promise((resolve) => { reader.onload = (e) => resolve(e.target.result); reader.readAsDataURL(file); });
 
-                // THE "BRAND DETECTIVE" PROMPT
+                // THE "ULTRA BRAND DETECTIVE" PROMPT (Aggressive)
                 const response = await puter.ai.chat(
-                    "You are an expert forensic asset identifier. " + industryInstruction + " " +
-                    "Your goal is to identify the MANUFACTURER and MODEL. " +
-                    "Look at the image pixel by pixel. Look for logos, brand names, serial numbers, engraved text, or any typography. " +
-                    "If you see a Rolex logo, say 'Rolex'. If you see a Caterpillar logo, say 'Caterpillar'. If you see a Porsche logo, say 'Porsche'. " +
+                    "You are a forensic asset identifier. " + industryInstruction + " " +
+                    "Your mission is to find the BRAND NAME. " +
+                    "Look at the image and search for logos, stickers, serial numbers, engraved text, and fonts. " +
+                    "If you see ANY text or logo, use it as the manufacturer. " +
+                    "Examples: 'Rolex', 'Tag Heuer', 'Boeing', 'Airbus', 'Caterpillar', 'Komatsu', 'Sony', 'Apple', 'Porsche'. " +
+                    "If you do not see a clear logo, try your best to guess the most likely brand based on the item design. If you truly cannot tell, use 'Generic'. " +
                     "Respond with ONLY this exact JSON format: " +
-                    "{\"manufacturer\": \"EXACT_MANUFACTURER\", \"name\": \"BRAND_AND_MODEL\", \"category\": \"CATEGORY\", \"qty\": 1, \"minStock\": 1, \"status\": \"In Stock\", \"condition\": \"Excellent | Good | Fair | Poor | Critical\", \"repair_needed\": \"true or false\", \"report\": \"A brief 1-sentence professional inspection report\"}" +
+                    "{\"manufacturer\": \"BRAND_NAME\", \"name\": \"ITEM_DESCRIPTION\", \"category\": \"CATEGORY\", \"qty\": 1, \"minStock\": 1, \"status\": \"In Stock\", \"condition\": \"Excellent | Good | Fair | Poor | Critical\", \"repair_needed\": \"true or false\", \"report\": \"A brief 1-sentence professional inspection report\"}" +
                     "CRITICAL RULES: " +
-                    "1. If you see a logo, brand, or serial number, use it. If you don't see any branding, set manufacturer to 'Generic' or 'Unbranded'. " +
-                    "2. 'name' should always include the manufacturer and model (e.g., 'Caterpillar Excavator', 'Rolex Submariner'). " +
-                    "3. If the item is damaged, set status to 'Critical'. " +
-                    "4. Do not write any words outside of this JSON.",
+                    "1. 'manufacturer' MUST be a specific brand name or 'Generic'. " +
+                    "2. If the item is damaged, set status to 'Critical' and repair_needed to 'true'. " +
+                    "3. Do not write any words outside of this JSON.",
                     imageDataUrl,
                     { model: "gpt-4o" }
                 );
@@ -365,7 +366,7 @@
 
                 const newItem = {
                     id: idCounter++,
-                    manufacturer: data.manufacturer || "Unknown Manufacturer",
+                    manufacturer: data.manufacturer || "Generic",
                     name: data.name || "Unknown Item",
                     category: data.category || "Unknown",
                     qty: data.qty || 1,
@@ -377,7 +378,7 @@
                 };
                 inventory.push(newItem); saveInventory();
                 loadingIndicator.style.display = 'none'; dropZone.classList.remove('loading');
-                showToast('Inspected: ' + newItem.manufacturer + ' ' + newItem.name);
+                showToast('Inspected: ' + newItem.manufacturer);
                 switchTab('dashboard');
             } catch (error) {
                 loadingIndicator.style.display = 'none'; dropZone.classList.remove('loading');
