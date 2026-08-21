@@ -379,16 +379,13 @@
                     reader.readAsDataURL(file);
                 });
 
-                // ULTIMATE EXPERT PROMPT FOR ALL INDUSTRIES
+                // FINAL PROMPT: NO PLACEHOLDERS. FORCED SPECIFIC BRANDS!
                 const response = await puter.ai.chat(
-                    "You are a world-class asset identification expert. Look at this image. Identify the exact model, brand, and type of object shown. " +
-                    "Examples of great answers: 'Porsche 911 GT3', 'Caterpillar Excavator', 'Forklift', 'MacBook Pro'. " +
-                    "Respond using ONLY this exact text format with pipes: " +
-                    "\nName: THE_EXACT_NAME_AND_MODEL | Category: THE_MAIN_CATEGORY | Qty: 1 | MinStock: 1 | Status: In Stock\n" +
-                    "CRITICAL RULES: " +
-                    "1. Do NOT use the square brackets [ or ] in your response. " +
-                    "2. If you see a car, DO NOT just say 'Car'. You MUST identify the brand and model (e.g., Porsche, Ferrari, Ford). " +
-                    "3. Use the exact text I provided. Do not add any extra words.",
+                    "You are a world-class asset identification expert. Look at this image. " +
+                    "Identify the exact brand and model. Example: Instead of 'Car', say 'Porsche 911 GT3'. Instead of 'Machine', say 'Caterpillar Excavator'. " +
+                    "Respond with ONLY a specific JSON object: " +
+                    "{\"name\": \"EXACT SPECIFIC NAME\", \"category\": \"CATEGORY\", \"qty\": 1, \"minStock\": 1, \"status\": \"In Stock\"}" +
+                    "CRITICAL: Do not write any words outside of this JSON. Do not use the word 'Car' if you know the specific model.",
                     imageDataUrl,
                     { model: "gpt-4o" }
                 );
@@ -407,29 +404,16 @@
                     ai_text = ai_text.substring(start, end + 1);
                 }
 
-                // Parse the format (Split by pipes)
-                const parts = ai_text.split('|');
-                const getVal = (str, index) => {
-                    if (!str) return '';
-                    const parts = str.split(':');
-                    return parts.length > 1 ? parts.slice(1).join(':').trim() : str.trim();
-                };
-
-                const data = {
-                    name: getVal(parts[0], 0) || "AI Detected",
-                    category: getVal(parts[1], 1) || "Unknown",
-                    qty: parseInt(getVal(parts[2], 2)) || 1,
-                    minStock: parseInt(getVal(parts[3], 3)) || 1,
-                    status: getVal(parts[4], 4) || "In Stock"
-                };
+                // Parse using JSON
+                const data = JSON.parse(ai_text);
 
                 const newItem = {
                     id: idCounter++,
-                    name: data.name,
-                    category: data.category,
-                    qty: data.qty,
-                    minStock: data.minStock,
-                    status: data.status
+                    name: data.name || "Unknown Item",
+                    category: data.category || "Unknown",
+                    qty: data.qty || 1,
+                    minStock: data.minStock || 1,
+                    status: data.status || "In Stock"
                 };
                 inventory.push(newItem);
                 saveInventory();
