@@ -5,10 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>VisionTory.ai - AI Inspector</title>
     
-    <!-- Load Puter.js (Handles Auth + AI) -->
+    <!-- Load Puter.js -->
     <script src="https://js.puter.com/v2/"></script>
 
-    <!-- CARBON FIBER + THEME STYLES -->
     <style>
         * { box-sizing: border-box; }
 
@@ -125,32 +124,36 @@
         .toast.error { background: var(--critical-color); color: white; }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-        .login-screen { display: flex; justify-content: center; align-items: center; height: 100vh; width: 100%; }
-        .login-card { background-color: var(--card-bg); padding: 40px; border-radius: 16px; border: 1px solid var(--border-color); width: 100%; max-width: 400px; text-align: center; }
-        .login-logo { font-size: 4rem; margin-bottom: 20px; }
-        .login-title { font-size: 1.5rem; margin-bottom: 5px; color: var(--text-main); }
-        .login-sub { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 30px; }
-        .login-btn { width: 100%; padding: 12px; background: linear-gradient(135deg, var(--accent-start), var(--accent-end)); border: none; color: white; border-radius: 8px; font-size: 1rem; cursor: pointer; font-weight: 500; }
-        .login-btn:hover { opacity: 0.9; }
+        /* ================= AUTH SCREENS ================= */
+        .auth-screen { display: flex; justify-content: center; align-items: center; min-height: 100vh; width: 100%; }
+        .auth-card { background-color: var(--card-bg); padding: 40px; border-radius: 16px; border: 1px solid var(--border-color); width: 100%; max-width: 400px; text-align: center; }
+        .auth-logo { font-size: 4rem; margin-bottom: 20px; }
+        .auth-title { font-size: 1.5rem; margin-bottom: 5px; color: var(--text-main); }
+        .auth-sub { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 30px; }
+        
+        .auth-input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-main);
+            font-size: 1rem;
+        }
+        
+        .auth-btn { width: 100%; padding: 12px; background: linear-gradient(135deg, var(--accent-start), var(--accent-end)); border: none; color: white; border-radius: 8px; font-size: 1rem; cursor: pointer; font-weight: 500; margin-bottom: 10px; }
+        .auth-btn:hover { opacity: 0.9; }
+        
+        .switch-auth { color: var(--text-muted); font-size: 0.9rem; margin-top: 15px; }
+        .switch-auth a { color: var(--accent-end); cursor: pointer; text-decoration: underline; font-weight: bold; }
+
         .logout-btn { background: transparent; border: 1px solid var(--text-muted); color: var(--text-muted); padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.9rem; margin-left: auto; }
         .logout-btn:hover { color: var(--text-main); border-color: var(--text-main); }
-
-        /* Theme / Industry Selector */
+        
+        /* Theme Selector */
         .theme-selector { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
-        .theme-btn {
-            background: transparent;
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-            padding: 15px;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-align: left;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
+        .theme-btn { background: transparent; border: 1px solid var(--border-color); color: var(--text-main); padding: 15px; border-radius: 8px; font-size: 1.1rem; cursor: pointer; transition: all 0.2s; text-align: left; display: flex; align-items: center; gap: 15px; }
         .theme-btn:hover { border-color: var(--accent-end); }
         .theme-btn.selected { border-color: var(--accent-end); background: rgba(217, 70, 239, 0.1); }
         .theme-icon { font-size: 1.8rem; }
@@ -158,41 +161,53 @@
 </head>
 <body data-theme="industrial">
 
-    <div id="loginScreen" class="login-screen">
-        <div class="login-card">
-            <div class="login-logo">👤</div>
-            <div class="login-title">VisionTory.ai</div>
-            <div class="login-sub">Select your industry to begin <br> Sign in to access inventory</div>
+    <!-- ================= LOGIN SCREEN ================= -->
+    <div id="loginScreen" class="auth-screen">
+        <div class="auth-card">
+            <div class="auth-logo">👤</div>
+            <div class="auth-title">VisionTory.ai</div>
+            <div class="auth-sub">Select your industry below</div>
             
-            <!-- Industry Selector -->
             <div class="theme-selector">
                 <button class="theme-btn" onclick="selectTheme('industrial')">
-                    <span class="theme-icon">🏭</span>
-                    <div>
-                        <strong>Industrial</strong><br>
-                        <small style="color: var(--text-muted);">Carbon Fiber</small>
-                    </div>
+                    <span class="theme-icon">🏭</span><div><strong>Industrial</strong><br><small style="color: var(--text-muted);">Carbon Fiber</small></div>
                 </button>
                 <button class="theme-btn" onclick="selectTheme('medical')">
-                    <span class="theme-icon">🏥</span>
-                    <div>
-                        <strong>Medical</strong><br>
-                        <small style="color: var(--text-muted);">Blue & White</small>
-                    </div>
+                    <span class="theme-icon">🏥</span><div><strong>Medical</strong><br><small style="color: var(--text-muted);">Blue & White</small></div>
                 </button>
                 <button class="theme-btn" onclick="selectTheme('aviation')">
-                    <span class="theme-icon">✈️</span>
-                    <div>
-                        <strong>Aviation</strong><br>
-                        <small style="color: var(--text-muted);">White / Red / Orange</small>
-                    </div>
+                    <span class="theme-icon">✈️</span><div><strong>Aviation</strong><br><small style="color: var(--text-muted);">White / Red / Orange</small></div>
                 </button>
             </div>
 
-            <button class="login-btn" onclick="handleLogin()">Login / Sign Up</button>
+            <input type="email" id="loginEmail" class="auth-input" placeholder="Email address">
+            <input type="password" id="loginPassword" class="auth-input" placeholder="Password">
+            <button class="auth-btn" onclick="handleLogin()">Login</button>
+            
+            <div class="switch-auth">
+                Don't have an account? <a onclick="showSignUp()">Sign Up</a>
+            </div>
         </div>
     </div>
 
+    <!-- ================= SIGN UP SCREEN ================= -->
+    <div id="signUpScreen" class="auth-screen" style="display: none;">
+        <div class="auth-card">
+            <div class="auth-logo">✍️</div>
+            <div class="auth-title">Create Account</div>
+            <div class="auth-sub">Join VisionTory.ai</div>
+
+            <input type="email" id="signUpEmail" class="auth-input" placeholder="Email address">
+            <input type="password" id="signUpPassword" class="auth-input" placeholder="Password">
+            <button class="auth-btn" onclick="handleSignUp()">Sign Up</button>
+            
+            <div class="switch-auth">
+                Already have an account? <a onclick="showLogin()">Login</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= APP SCREEN ================= -->
     <div id="appScreen" class="main-container" style="display: none;">
         <div class="header">
             <div class="logo-box">V</div>
@@ -208,29 +223,14 @@
 
         <div id="dashboard" class="page-section active">
             <div class="stats">
-                <div class="stat-card">
-                    <div class="stat-label">Total Items</div>
-                    <div class="stat-number" id="totalItems">0</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Critical / Repair</div>
-                    <div class="stat-number" id="lowStock" style="color: var(--critical-color);">0</div>
-                </div>
+                <div class="stat-card"><div class="stat-label">Total Items</div><div class="stat-number" id="totalItems">0</div></div>
+                <div class="stat-card"><div class="stat-label">Critical / Repair</div><div class="stat-number" id="lowStock" style="color: var(--critical-color);">0</div></div>
             </div>
 
             <div class="inventory-container">
                 <h3>Inventory List</h3>
                 <table>
-                    <thead>
-                        <tr>
-                            <th>Item</th>
-                            <th>Category</th>
-                            <th>Qty</th>
-                            <th>Status</th>
-                            <th>Condition Report</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>Item</th><th>Category</th><th>Qty</th><th>Status</th><th>Condition Report</th><th>Actions</th></tr></thead>
                     <tbody id="inventoryTableBody"></tbody>
                 </table>
             </div>
@@ -255,39 +255,67 @@
     <div class="toast-container" id="toastContainer"></div>
 
     <script>
-        // Theme / Industry Selection
+        // ==========================================================
+        // THEME SELECTION
+        // ==========================================================
         let currentIndustry = localStorage.getItem('visiontory_industry') || 'industrial';
 
-        // Apply Theme on selection
         function selectTheme(industry) {
             currentIndustry = industry;
             localStorage.setItem('visiontory_industry', industry);
-            
-            // Change body theme
             document.body.setAttribute('data-theme', industry);
-
-            // Highlight selected button
             document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('selected'));
             event.currentTarget.classList.add('selected');
-            
-            showToast('Theme set to: ' + industry.charAt(0).toUpperCase() + industry.slice(1));
+        }
+
+        // ==========================================================
+        // AUTH SCREENS (LOGIN / SIGN UP)
+        // ==========================================================
+        function showSignUp() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('signUpScreen').style.display = 'flex';
+        }
+
+        function showLogin() {
+            document.getElementById('signUpScreen').style.display = 'none';
+            document.getElementById('loginScreen').style.display = 'flex';
         }
 
         async function handleLogin() {
             try {
-                await puter.auth.signIn();
-                document.getElementById('loginScreen').style.display = 'none';
-                document.getElementById('appScreen').style.display = 'block';
-                
-                // Apply saved theme to app
-                document.body.setAttribute('data-theme', currentIndustry);
-                
-                const badge = document.getElementById('industryBadge');
-                badge.innerText = currentIndustry.charAt(0).toUpperCase() + currentIndustry.slice(1);
-                
-                await loadInventory();
-                showToast('Welcome, ' + puter.auth.getUser().username + '!');
-            } catch (error) { showToast('Sign in failed.', 'error'); }
+                await puter.auth.signIn({
+                    email: document.getElementById('loginEmail').value,
+                    password: document.getElementById('loginPassword').value
+                });
+                onAuthSuccess();
+            } catch (error) {
+                showToast('Login failed. Please check credentials.', 'error');
+            }
+        }
+
+        async function handleSignUp() {
+            try {
+                await puter.auth.signUp({
+                    email: document.getElementById('signUpEmail').value,
+                    password: document.getElementById('signUpPassword').value
+                });
+                onAuthSuccess();
+            } catch (error) {
+                showToast('Sign up failed. Please try again.', 'error');
+            }
+        }
+
+        function onAuthSuccess() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('signUpScreen').style.display = 'none';
+            document.getElementById('appScreen').style.display = 'block';
+            
+            document.body.setAttribute('data-theme', currentIndustry);
+            const badge = document.getElementById('industryBadge');
+            badge.innerText = currentIndustry.charAt(0).toUpperCase() + currentIndustry.slice(1);
+            
+            loadInventory();
+            showToast('Welcome, ' + puter.auth.getUser().username + '!');
         }
 
         async function handleLogout() {
@@ -298,15 +326,16 @@
 
         async function checkAuth() {
             if (puter.auth.isSignedIn()) {
-                document.getElementById('loginScreen').style.display = 'none';
-                document.getElementById('appScreen').style.display = 'block';
-                await loadInventory();
+                onAuthSuccess();
             } else {
                 document.getElementById('loginScreen').style.display = 'flex';
                 document.getElementById('appScreen').style.display = 'none';
             }
         }
 
+        // ==========================================================
+        // INVENTORY DATA
+        // ==========================================================
         let inventory = [];
         let idCounter = 1;
 
@@ -379,6 +408,9 @@
             }
         }
 
+        // ==========================================================
+        // UPLOAD & AI
+        // ==========================================================
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
         const browseBtn = document.getElementById('browseBtn');
