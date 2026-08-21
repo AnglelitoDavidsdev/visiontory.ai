@@ -379,25 +379,16 @@
                     reader.readAsDataURL(file);
                 });
 
-                // REVISED PROMPT: Forces the AI to TRIAL and ERROR if it can't identify
+                // ULTIMATE EXPERT PROMPT FOR ALL INDUSTRIES
                 const response = await puter.ai.chat(
-                    "You are a highly specific heavy machinery identification AI. Look at this image. " +
-                    "If it is an excavator, write 'Excavator'. " +
-                    "If it is a forklift, write 'Forklift'. " +
-                    "If it is a bulldozer, write 'Bulldozer'. " +
-                    "If it is a crane, write 'Crane'. " +
-                    "If it is a truck, write 'Truck'. " +
-                    "If it is a car, write 'Car'. " +
-                    "If it is a train, write 'Train'. " +
-                    "If it is an airplane, write 'Airplane'. " +
-                    "If it is a helicopter, write 'Helicopter'. " +
-                    "If it is a boat, write 'Boat'. " +
+                    "You are a world-class asset identification expert. Look at this image. Identify the exact model, brand, and type of object shown. " +
+                    "Examples of great answers: 'Porsche 911 GT3', 'Caterpillar Excavator', 'Forklift', 'MacBook Pro'. " +
                     "Respond using ONLY this exact text format with pipes: " +
-                    "\nName: EXACT_TYPE | Category: OBJECT_CATEGORY | Qty: 1 | MinStock: 1 | Status: In Stock\n" +
+                    "\nName: THE_EXACT_NAME_AND_MODEL | Category: THE_MAIN_CATEGORY | Qty: 1 | MinStock: 1 | Status: In Stock\n" +
                     "CRITICAL RULES: " +
                     "1. Do NOT use the square brackets [ or ] in your response. " +
-                    "2. Be as specific as possible. " +
-                    "3. If you cannot identify it, simply write 'Unknown Item'.",
+                    "2. If you see a car, DO NOT just say 'Car'. You MUST identify the brand and model (e.g., Porsche, Ferrari, Ford). " +
+                    "3. Use the exact text I provided. Do not add any extra words.",
                     imageDataUrl,
                     { model: "gpt-4o" }
                 );
@@ -409,7 +400,14 @@
                 txt.innerHTML = ai_text;
                 ai_text = txt.value.trim();
 
-                // Parse the pipe format
+                // Bulletproof JSON-like extractor (Finds the {} and ignores everything else)
+                const start = ai_text.indexOf('{');
+                const end = ai_text.lastIndexOf('}');
+                if (start !== -1 && end !== -1) {
+                    ai_text = ai_text.substring(start, end + 1);
+                }
+
+                // Parse the format (Split by pipes)
                 const parts = ai_text.split('|');
                 const getVal = (str, index) => {
                     if (!str) return '';
