@@ -379,13 +379,19 @@
                     reader.readAsDataURL(file);
                 });
 
-                // ULTRA SPECIFIC PROMPT FOR HEAVY MACHINERY
+                // REVISED PROMPT: Forces the AI to TRIAL and ERROR if it can't identify
                 const response = await puter.ai.chat(
                     "You are a highly specific heavy machinery identification AI. Look at this image. " +
                     "If it is an excavator, write 'Excavator'. " +
                     "If it is a forklift, write 'Forklift'. " +
                     "If it is a bulldozer, write 'Bulldozer'. " +
                     "If it is a crane, write 'Crane'. " +
+                    "If it is a truck, write 'Truck'. " +
+                    "If it is a car, write 'Car'. " +
+                    "If it is a train, write 'Train'. " +
+                    "If it is an airplane, write 'Airplane'. " +
+                    "If it is a helicopter, write 'Helicopter'. " +
+                    "If it is a boat, write 'Boat'. " +
                     "Respond using ONLY this exact text format with pipes: " +
                     "\nName: EXACT_TYPE | Category: OBJECT_CATEGORY | Qty: 1 | MinStock: 1 | Status: In Stock\n" +
                     "CRITICAL RULES: " +
