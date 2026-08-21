@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>VisionTory.ai - AI Inspector</title>
     
-    <!-- Load Puter.js -->
     <script src="https://js.puter.com/v2/"></script>
 
     <style>
@@ -20,7 +19,6 @@
             transition: all 0.3s ease;
         }
 
-        /* BASE INDUSTRIAL THEME: CARBON FIBER */
         body[data-theme="industrial"] {
             --bg-color: #1a1a1a;
             --card-bg: #2a2a2a;
@@ -32,41 +30,16 @@
             --critical-color: #ef4444;
             --good-color: #10b981;
             --status-low: #fbbf24;
-            
-            /* CARBON FIBER TEXTURE */
-            background: 
-                repeating-linear-gradient(45deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 2px, transparent 2px, transparent 4px),
-                repeating-linear-gradient(-45deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 2px, transparent 2px, transparent 4px),
-                linear-gradient(135deg, #111111 0%, #1a1a1a 50%, #222222 100%);
+            background: repeating-linear-gradient(45deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 2px, transparent 2px, transparent 4px), repeating-linear-gradient(-45deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 2px, transparent 2px, transparent 4px), linear-gradient(135deg, #111111 0%, #1a1a1a 50%, #222222 100%);
         }
 
-        /* MEDICAL THEME: BLUE AND WHITE */
         body[data-theme="medical"] {
-            --bg-color: #f4f6fb; 
-            --card-bg: #ffffff;
-            --text-main: #1a202c;
-            --text-muted: #64748b;
-            --accent-start: #0ea5e9;
-            --accent-end: #2563eb;
-            --border-color: #e2e8f0;
-            --critical-color: #dc2626;
-            --good-color: #16a34a;
-            --status-low: #d97706;
+            --bg-color: #f4f6fb; --card-bg: #ffffff; --text-main: #1a202c; --text-muted: #64748b; --accent-start: #0ea5e9; --accent-end: #2563eb; --border-color: #e2e8f0; --critical-color: #dc2626; --good-color: #16a34a; --status-low: #d97706;
             background: var(--bg-color);
         }
 
-        /* AVIATION THEME: WHITE, RED, ORANGE */
         body[data-theme="aviation"] {
-            --bg-color: #f8fafc; 
-            --card-bg: #ffffff;
-            --text-main: #0f172a;
-            --text-muted: #475569;
-            --accent-start: #f97316;
-            --accent-end: #ef4444;
-            --border-color: #e2e8f0;
-            --critical-color: #dc2626;
-            --good-color: #16a34a;
-            --status-low: #f59e0b;
+            --bg-color: #f8fafc; --card-bg: #ffffff; --text-main: #0f172a; --text-muted: #475569; --accent-start: #f97316; --accent-end: #ef4444; --border-color: #e2e8f0; --critical-color: #dc2626; --good-color: #16a34a; --status-low: #f59e0b;
             background: var(--bg-color);
         }
 
@@ -94,16 +67,7 @@
         .status-low { background: rgba(251, 191, 36, 0.15); color: var(--status-low); }
         .status-critical { background: rgba(239, 68, 68, 0.15); color: var(--critical-color); }
 
-        .delete-btn {
-            background: var(--critical-color);
-            border: none;
-            color: white;
-            padding: 6px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            transition: all 0.2s;
-        }
+        .delete-btn { background: var(--critical-color); border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s; }
         .delete-btn:hover { opacity: 0.8; transform: scale(1.05); }
 
         .page-section { display: none; }
@@ -124,24 +88,13 @@
         .toast.error { background: var(--critical-color); color: white; }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-        /* ================= AUTH SCREENS ================= */
         .auth-screen { display: flex; justify-content: center; align-items: center; min-height: 100vh; width: 100%; }
         .auth-card { background-color: var(--card-bg); padding: 40px; border-radius: 16px; border: 1px solid var(--border-color); width: 100%; max-width: 400px; text-align: center; }
         .auth-logo { font-size: 4rem; margin-bottom: 20px; }
         .auth-title { font-size: 1.5rem; margin-bottom: 5px; color: var(--text-main); }
         .auth-sub { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 30px; }
         
-        .auth-input {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 15px;
-            background: var(--bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            color: var(--text-main);
-            font-size: 1rem;
-        }
-        
+        .auth-input { width: 100%; padding: 12px; margin-bottom: 15px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-main); font-size: 1rem; }
         .auth-btn { width: 100%; padding: 12px; background: linear-gradient(135deg, var(--accent-start), var(--accent-end)); border: none; color: white; border-radius: 8px; font-size: 1rem; cursor: pointer; font-weight: 500; margin-bottom: 10px; }
         .auth-btn:hover { opacity: 0.9; }
         
@@ -151,7 +104,6 @@
         .logout-btn { background: transparent; border: 1px solid var(--text-muted); color: var(--text-muted); padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.9rem; margin-left: auto; }
         .logout-btn:hover { color: var(--text-main); border-color: var(--text-main); }
         
-        /* Theme Selector */
         .theme-selector { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
         .theme-btn { background: transparent; border: 1px solid var(--border-color); color: var(--text-main); padding: 15px; border-radius: 8px; font-size: 1.1rem; cursor: pointer; transition: all 0.2s; text-align: left; display: flex; align-items: center; gap: 15px; }
         .theme-btn:hover { border-color: var(--accent-end); }
@@ -169,20 +121,20 @@
             <div class="auth-sub">Select your industry below</div>
             
             <div class="theme-selector">
-                <button class="theme-btn" onclick="selectTheme('industrial')">
+                <button type="button" class="theme-btn" onclick="selectTheme('industrial')">
                     <span class="theme-icon">🏭</span><div><strong>Industrial</strong><br><small style="color: var(--text-muted);">Carbon Fiber</small></div>
                 </button>
-                <button class="theme-btn" onclick="selectTheme('medical')">
+                <button type="button" class="theme-btn" onclick="selectTheme('medical')">
                     <span class="theme-icon">🏥</span><div><strong>Medical</strong><br><small style="color: var(--text-muted);">Blue & White</small></div>
                 </button>
-                <button class="theme-btn" onclick="selectTheme('aviation')">
+                <button type="button" class="theme-btn" onclick="selectTheme('aviation')">
                     <span class="theme-icon">✈️</span><div><strong>Aviation</strong><br><small style="color: var(--text-muted);">White / Red / Orange</small></div>
                 </button>
             </div>
 
             <input type="email" id="loginEmail" class="auth-input" placeholder="Email address">
             <input type="password" id="loginPassword" class="auth-input" placeholder="Password">
-            <button class="auth-btn" onclick="handleLogin()">Login</button>
+            <button type="button" class="auth-btn" onclick="handleLogin()">Login</button>
             
             <div class="switch-auth">
                 Don't have an account? <a onclick="showSignUp()">Sign Up</a>
@@ -199,7 +151,7 @@
 
             <input type="email" id="signUpEmail" class="auth-input" placeholder="Email address">
             <input type="password" id="signUpPassword" class="auth-input" placeholder="Password">
-            <button class="auth-btn" onclick="handleSignUp()">Sign Up</button>
+            <button type="button" class="auth-btn" onclick="handleSignUp()">Sign Up</button>
             
             <div class="switch-auth">
                 Already have an account? <a onclick="showLogin()">Login</a>
@@ -242,7 +194,7 @@
                 <span class="cloud-icon">☁️</span>
                 <h3>Drop files or photos here</h3>
                 <p style="color: var(--text-muted);">Upload an image, and the AI will inspect it for damage</p>
-                <button class="browse-btn" id="browseBtn">📂 Browse Files</button>
+                <button type="button" class="browse-btn" id="browseBtn">📂 Browse Files</button>
                 <input type="file" id="fileInput" accept=".csv,.xlsx,.json,image/*" style="display: none;" multiple>
                 <div id="loadingIndicator" style="display: none; margin-top: 20px;">
                     <div class="spinner"></div>
@@ -269,7 +221,7 @@
         }
 
         // ==========================================================
-        // AUTH SCREENS (LOGIN / SIGN UP)
+        // AUTH SCREENS (LOGIN / SIGN UP) - BULLETPROOF TOGGLES
         // ==========================================================
         function showSignUp() {
             document.getElementById('loginScreen').style.display = 'none';
@@ -283,6 +235,8 @@
 
         async function handleLogin() {
             try {
+                // Note: Puter.js requires a background connection to handle auth
+                // If this fails, it means the user needs to click the popup window
                 await puter.auth.signIn({
                     email: document.getElementById('loginEmail').value,
                     password: document.getElementById('loginPassword').value
