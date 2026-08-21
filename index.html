@@ -127,21 +127,21 @@
             
             <!-- Industry Selector -->
             <div class="theme-selector">
-                <button class="theme-btn" onclick="selectTheme('industrial', this)">
+                <button class="theme-btn" onclick="selectTheme('industrial')">
                     <span class="theme-icon">🏭</span>
                     <div>
                         <strong>Industrial</strong><br>
                         <small style="color: var(--text-muted);">Heavy machinery, equipment, tools</small>
                     </div>
                 </button>
-                <button class="theme-btn" onclick="selectTheme('medical', this)">
+                <button class="theme-btn" onclick="selectTheme('medical')">
                     <span class="theme-icon">🏥</span>
                     <div>
                         <strong>Medical</strong><br>
                         <small style="color: var(--text-muted);">Devices, instruments, supplies</small>
                     </div>
                 </button>
-                <button class="theme-btn" onclick="selectTheme('aviation', this)">
+                <button class="theme-btn" onclick="selectTheme('aviation')">
                     <span class="theme-icon">✈️</span>
                     <div>
                         <strong>Aviation</strong><br>
@@ -216,29 +216,19 @@
     <div class="toast-container" id="toastContainer"></div>
 
     <script>
-        // Theme / Industry Selection
+        // Theme / Industry Selection (NO window.onload crash!)
         let currentIndustry = localStorage.getItem('visiontory_industry') || 'industrial';
 
-        function selectTheme(industry, btn) {
+        function selectTheme(industry) {
             currentIndustry = industry;
             localStorage.setItem('visiontory_industry', industry);
             
             // Highlight selected button
             document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('selected'));
-            btn.classList.add('selected');
+            event.currentTarget.classList.add('selected');
             
             showToast('Industry set to: ' + industry.charAt(0).toUpperCase() + industry.slice(1));
         }
-
-        // On page load, set the default selected industry
-        window.onload = function() {
-            const buttons = document.querySelectorAll('.theme-btn');
-            buttons.forEach(btn => {
-                if (btn.onclick.toString().includes(currentIndustry)) {
-                    btn.classList.add('selected');
-                }
-            });
-        };
 
         async function handleLogin() {
             try {
