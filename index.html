@@ -113,53 +113,39 @@
 </head>
 <body data-theme="industrial">
 
-    <!-- ================= LOGIN SCREEN ================= -->
+    <!-- LOGIN SCREEN -->
     <div id="loginScreen" class="auth-screen">
         <div class="auth-card">
             <div class="auth-logo">👤</div>
             <div class="auth-title">VisionTory.ai</div>
             <div class="auth-sub">Select your industry below</div>
-            
             <div class="theme-selector">
-                <button type="button" class="theme-btn" onclick="selectTheme('industrial')">
-                    <span class="theme-icon">🏭</span><div><strong>Industrial</strong><br><small style="color: var(--text-muted);">Carbon Fiber</small></div>
-                </button>
-                <button type="button" class="theme-btn" onclick="selectTheme('medical')">
-                    <span class="theme-icon">🏥</span><div><strong>Medical</strong><br><small style="color: var(--text-muted);">Blue & White</small></div>
-                </button>
-                <button type="button" class="theme-btn" onclick="selectTheme('aviation')">
-                    <span class="theme-icon">✈️</span><div><strong>Aviation</strong><br><small style="color: var(--text-muted);">White / Red / Orange</small></div>
-                </button>
+                <button type="button" class="theme-btn" onclick="selectTheme('industrial')"><span class="theme-icon">🏭</span><div><strong>Industrial</strong><br><small style="color: var(--text-muted);">Carbon Fiber</small></div></button>
+                <button type="button" class="theme-btn" onclick="selectTheme('medical')"><span class="theme-icon">🏥</span><div><strong>Medical</strong><br><small style="color: var(--text-muted);">Blue & White</small></div></button>
+                <button type="button" class="theme-btn" onclick="selectTheme('aviation')"><span class="theme-icon">✈️</span><div><strong>Aviation</strong><br><small style="color: var(--text-muted);">White / Red / Orange</small></div></button>
             </div>
 
             <input type="email" id="loginEmail" class="auth-input" placeholder="Email address">
             <input type="password" id="loginPassword" class="auth-input" placeholder="Password">
             <button type="button" class="auth-btn" onclick="handleLogin()">Login</button>
-            
-            <div class="switch-auth">
-                Don't have an account? <a onclick="showSignUp()">Sign Up</a>
-            </div>
+            <div class="switch-auth">Don't have an account? <a onclick="showSignUp()">Sign Up</a></div>
         </div>
     </div>
 
-    <!-- ================= SIGN UP SCREEN ================= -->
+    <!-- SIGN UP SCREEN -->
     <div id="signUpScreen" class="auth-screen" style="display: none;">
         <div class="auth-card">
             <div class="auth-logo">✍️</div>
             <div class="auth-title">Create Account</div>
             <div class="auth-sub">Join VisionTory.ai</div>
-
             <input type="email" id="signUpEmail" class="auth-input" placeholder="Email address">
             <input type="password" id="signUpPassword" class="auth-input" placeholder="Password">
             <button type="button" class="auth-btn" onclick="handleSignUp()">Sign Up</button>
-            
-            <div class="switch-auth">
-                Already have an account? <a onclick="showLogin()">Login</a>
-            </div>
+            <div class="switch-auth">Already have an account? <a onclick="showLogin()">Login</a></div>
         </div>
     </div>
 
-    <!-- ================= APP SCREEN ================= -->
+    <!-- APP SCREEN -->
     <div id="appScreen" class="main-container" style="display: none;">
         <div class="header">
             <div class="logo-box">V</div>
@@ -178,7 +164,6 @@
                 <div class="stat-card"><div class="stat-label">Total Items</div><div class="stat-number" id="totalItems">0</div></div>
                 <div class="stat-card"><div class="stat-label">Critical / Repair</div><div class="stat-number" id="lowStock" style="color: var(--critical-color);">0</div></div>
             </div>
-
             <div class="inventory-container">
                 <h3>Inventory List</h3>
                 <table>
@@ -207,9 +192,6 @@
     <div class="toast-container" id="toastContainer"></div>
 
     <script>
-        // ==========================================================
-        // THEME SELECTION
-        // ==========================================================
         let currentIndustry = localStorage.getItem('visiontory_industry') || 'industrial';
 
         function selectTheme(industry) {
@@ -220,9 +202,6 @@
             event.currentTarget.classList.add('selected');
         }
 
-        // ==========================================================
-        // AUTH SCREENS (LOGIN / SIGN UP) - BULLETPROOF TOGGLES
-        // ==========================================================
         function showSignUp() {
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('signUpScreen').style.display = 'flex';
@@ -235,39 +214,25 @@
 
         async function handleLogin() {
             try {
-                // Note: Puter.js requires a background connection to handle auth
-                // If this fails, it means the user needs to click the popup window
-                await puter.auth.signIn({
-                    email: document.getElementById('loginEmail').value,
-                    password: document.getElementById('loginPassword').value
-                });
+                await puter.auth.signIn({ email: document.getElementById('loginEmail').value, password: document.getElementById('loginPassword').value });
                 onAuthSuccess();
-            } catch (error) {
-                showToast('Login failed. Please check credentials.', 'error');
-            }
+            } catch (error) { showToast('Login failed. Please check credentials.', 'error'); }
         }
 
         async function handleSignUp() {
             try {
-                await puter.auth.signUp({
-                    email: document.getElementById('signUpEmail').value,
-                    password: document.getElementById('signUpPassword').value
-                });
+                await puter.auth.signUp({ email: document.getElementById('signUpEmail').value, password: document.getElementById('signUpPassword').value });
                 onAuthSuccess();
-            } catch (error) {
-                showToast('Sign up failed. Please try again.', 'error');
-            }
+            } catch (error) { showToast('Sign up failed. Please try again.', 'error'); }
         }
 
         function onAuthSuccess() {
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('signUpScreen').style.display = 'none';
             document.getElementById('appScreen').style.display = 'block';
-            
             document.body.setAttribute('data-theme', currentIndustry);
             const badge = document.getElementById('industryBadge');
             badge.innerText = currentIndustry.charAt(0).toUpperCase() + currentIndustry.slice(1);
-            
             loadInventory();
             showToast('Welcome, ' + puter.auth.getUser().username + '!');
         }
@@ -279,17 +244,10 @@
         }
 
         async function checkAuth() {
-            if (puter.auth.isSignedIn()) {
-                onAuthSuccess();
-            } else {
-                document.getElementById('loginScreen').style.display = 'flex';
-                document.getElementById('appScreen').style.display = 'none';
-            }
+            if (puter.auth.isSignedIn()) { onAuthSuccess(); }
+            else { document.getElementById('loginScreen').style.display = 'flex'; document.getElementById('appScreen').style.display = 'none'; }
         }
 
-        // ==========================================================
-        // INVENTORY DATA
-        // ==========================================================
         let inventory = [];
         let idCounter = 1;
 
@@ -299,7 +257,6 @@
                 if (stored) { inventory = JSON.parse(stored); }
                 else { inventory = []; }
             } catch (e) { inventory = []; }
-            
             idCounter = inventory.length > 0 ? Math.max(...inventory.map(item => item.id)) + 1 : 1;
             renderDashboard();
         }
@@ -329,16 +286,13 @@
             const tbody = document.getElementById('inventoryTableBody');
             tbody.innerHTML = '';
             let total = 0, critical = 0;
-            
             inventory.forEach(item => {
                 total += item.qty || 0;
                 if (item.status === 'Critical' || item.repair_needed === 'true') critical++;
-                
                 const tr = document.createElement('tr');
                 let statusClass = item.status === 'Critical' ? 'status-critical' : (item.qty <= item.minStock ? 'status-low' : 'status-instock');
-                
                 tr.innerHTML = `
-                    <td><strong>${item.name}</strong></td>
+                    <td><strong>${item.manufacturer || "Unknown"}<br><small style="color: var(--text-muted); font-weight: normal;">${item.name}</small></strong></td>
                     <td style="color: var(--text-muted);">${item.category}</td>
                     <td>${item.qty}</td>
                     <td><span class="status-badge ${statusClass}">${item.status}</span></td>
@@ -347,7 +301,6 @@
                 `;
                 tbody.appendChild(tr);
             });
-
             document.getElementById('totalItems').innerText = total;
             document.getElementById('lowStock').innerText = critical;
             saveInventory();
@@ -356,63 +309,48 @@
         function deleteItem(id) {
             if (confirm('Are you sure you want to delete this item?')) {
                 inventory = inventory.filter(item => item.id !== id);
-                saveInventory();
-                renderDashboard();
-                showToast('Item deleted successfully.');
+                saveInventory(); renderDashboard(); showToast('Item deleted successfully.');
             }
         }
 
-        // ==========================================================
-        // UPLOAD & AI
-        // ==========================================================
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
         const browseBtn = document.getElementById('browseBtn');
         const loadingIndicator = document.getElementById('loadingIndicator');
-
         browseBtn.addEventListener('click', () => fileInput.click());
         fileInput.addEventListener('change', (e) => processFiles(e.target.files));
-
         dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('highlight'); });
         dropZone.addEventListener('dragleave', () => dropZone.classList.remove('highlight'));
         dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.classList.remove('highlight'); processFiles(e.dataTransfer.files); });
 
         function processFiles(files) {
             if (!files.length) return;
-            Array.from(files).forEach(file => {
-                if (file.type.startsWith('image/')) { sendToPuterAI(file); }
-            });
+            Array.from(files).forEach(file => { if (file.type.startsWith('image/')) { sendToPuterAI(file); } });
         }
 
         async function sendToPuterAI(file) {
-            loadingIndicator.style.display = 'block';
-            dropZone.classList.add('loading');
-
+            loadingIndicator.style.display = 'block'; dropZone.classList.add('loading');
             let industryInstruction = "";
-            if (currentIndustry === 'industrial') {
-                industryInstruction = "You are inspecting industrial machinery. Look for scratches, rust, hydraulic leaks, and structural damage.";
-            } else if (currentIndustry === 'medical') {
-                industryInstruction = "You are inspecting medical equipment. Look for cleanliness, sterilized packaging, expiry dates, and clinical wear.";
-            } else if (currentIndustry === 'aviation') {
-                industryInstruction = "You are inspecting aviation parts. Look for strict compliance, part numbers, safety labels, and structural integrity.";
-            }
+            if (currentIndustry === 'industrial') { industryInstruction = "You are inspecting industrial machinery. Look for scratches, rust, hydraulic leaks, and structural damage."; }
+            else if (currentIndustry === 'medical') { industryInstruction = "You are inspecting medical equipment. Look for cleanliness, sterilized packaging, expiry dates, and clinical wear."; }
+            else if (currentIndustry === 'aviation') { industryInstruction = "You are inspecting aviation parts. Look for strict compliance, part numbers, safety labels, and structural integrity."; }
 
             try {
                 const reader = new FileReader();
-                const imageDataUrl = await new Promise((resolve) => {
-                    reader.onload = (e) => resolve(e.target.result);
-                    reader.readAsDataURL(file);
-                });
+                const imageDataUrl = await new Promise((resolve) => { reader.onload = (e) => resolve(e.target.result); reader.readAsDataURL(file); });
 
+                // THE "BRAND DETECTIVE" PROMPT
                 const response = await puter.ai.chat(
-                    "You are a professional asset inspector. " + industryInstruction + " " +
-                    "Identify the exact brand and model. Example: 'Caterpillar Excavator', 'Porsche 911 GT3'. " +
+                    "You are an expert forensic asset identifier. " + industryInstruction + " " +
+                    "Your goal is to identify the MANUFACTURER and MODEL. " +
+                    "Look at the image pixel by pixel. Look for logos, brand names, serial numbers, engraved text, or any typography. " +
+                    "If you see a Rolex logo, say 'Rolex'. If you see a Caterpillar logo, say 'Caterpillar'. If you see a Porsche logo, say 'Porsche'. " +
                     "Respond with ONLY this exact JSON format: " +
-                    "{\"name\": \"EXACT SPECIFIC NAME\", \"category\": \"CATEGORY\", \"qty\": 1, \"minStock\": 1, \"status\": \"In Stock\", \"condition\": \"Excellent | Good | Fair | Poor | Critical\", \"repair_needed\": \"true or false\", \"report\": \"A brief 1-sentence professional inspection report based on what you see.\"}" +
+                    "{\"manufacturer\": \"EXACT_MANUFACTURER\", \"name\": \"BRAND_AND_MODEL\", \"category\": \"CATEGORY\", \"qty\": 1, \"minStock\": 1, \"status\": \"In Stock\", \"condition\": \"Excellent | Good | Fair | Poor | Critical\", \"repair_needed\": \"true or false\", \"report\": \"A brief 1-sentence professional inspection report\"}" +
                     "CRITICAL RULES: " +
-                    "1. If you see obvious damage, scratches, cracks, or rust, set status to 'Critical' and repair_needed to 'true'. " +
-                    "2. If the item is clean and looks new, set status to 'In Stock' and repair_needed to 'false'. " +
-                    "3. Provide a brief professional report. " +
+                    "1. If you see a logo, brand, or serial number, use it. If you don't see any branding, set manufacturer to 'Generic' or 'Unbranded'. " +
+                    "2. 'name' should always include the manufacturer and model (e.g., 'Caterpillar Excavator', 'Rolex Submariner'). " +
+                    "3. If the item is damaged, set status to 'Critical'. " +
                     "4. Do not write any words outside of this JSON.",
                     imageDataUrl,
                     { model: "gpt-4o" }
@@ -420,17 +358,14 @@
 
                 let ai_text = response.message.content.toString();
                 let txt = document.createElement("textarea");
-                txt.innerHTML = ai_text;
-                ai_text = txt.value.trim();
-
-                const start = ai_text.indexOf('{');
-                const end = ai_text.lastIndexOf('}');
+                txt.innerHTML = ai_text; ai_text = txt.value.trim();
+                const start = ai_text.indexOf('{'); const end = ai_text.lastIndexOf('}');
                 if (start !== -1 && end !== -1) { ai_text = ai_text.substring(start, end + 1); }
-
                 const data = JSON.parse(ai_text);
 
                 const newItem = {
                     id: idCounter++,
+                    manufacturer: data.manufacturer || "Unknown Manufacturer",
                     name: data.name || "Unknown Item",
                     category: data.category || "Unknown",
                     qty: data.qty || 1,
@@ -440,17 +375,12 @@
                     repair_needed: data.repair_needed || "false",
                     report: data.report || "No inspection report provided."
                 };
-                inventory.push(newItem);
-                saveInventory();
-
-                loadingIndicator.style.display = 'none';
-                dropZone.classList.remove('loading');
-                showToast('Inspected: ' + newItem.name);
+                inventory.push(newItem); saveInventory();
+                loadingIndicator.style.display = 'none'; dropZone.classList.remove('loading');
+                showToast('Inspected: ' + newItem.manufacturer + ' ' + newItem.name);
                 switchTab('dashboard');
-                
             } catch (error) {
-                loadingIndicator.style.display = 'none';
-                dropZone.classList.remove('loading');
+                loadingIndicator.style.display = 'none'; dropZone.classList.remove('loading');
                 showToast('Connection error. Please try again.', 'error');
             }
         }
