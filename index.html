@@ -48,8 +48,10 @@
         .status-low { background: rgba(251, 191, 36, 0.15); color: var(--status-low); }
         .status-critical { background: rgba(239, 68, 68, 0.15); color: var(--critical-color); }
 
-        .delete-btn { background: var(--critical-color); border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s; }
+        .delete-btn { background: var(--critical-color); border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s; margin-right: 5px; }
         .delete-btn:hover { opacity: 0.8; transform: scale(1.05); }
+        .edit-btn { background: var(--accent-end); border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s; }
+        .edit-btn:hover { opacity: 0.8; transform: scale(1.05); }
 
         .page-section { display: none; }
         .page-section.active { display: block; }
@@ -273,13 +275,28 @@
                     <td>${item.qty}</td>
                     <td><span class="status-badge ${statusClass}">${item.status}</span></td>
                     <td style="color: var(--text-muted); font-size: 0.85rem; max-width: 300px;">${item.report || "No report"}</td>
-                    <td><button class="delete-btn" onclick="deleteItem(${item.id})">Delete</button></td>
+                    <td>
+                        <button class="edit-btn" onclick="editManufacturer(${item.id})">Edit Brand</button>
+                        <button class="delete-btn" onclick="deleteItem(${item.id})">Delete</button>
+                    </td>
                 `;
                 tbody.appendChild(tr);
             });
             document.getElementById('totalItems').innerText = total;
             document.getElementById('lowStock').innerText = critical;
             saveInventory();
+        }
+
+        function editManufacturer(id) {
+            const item = inventory.find(i => i.id === id);
+            if (!item) return;
+            const newBrand = prompt("Enter the brand/manufacturer for " + item.name + ":", item.manufacturer || "");
+            if (newBrand) {
+                item.manufacturer = newBrand;
+                saveInventory();
+                renderDashboard();
+                showToast('Brand updated to ' + newBrand);
+            }
         }
 
         function deleteItem(id) {
@@ -315,15 +332,13 @@
                 const reader = new FileReader();
                 const imageDataUrl = await new Promise((resolve) => { reader.onload = (e) => resolve(e.target.result); reader.readAsDataURL(file); });
 
-                // THE "EXPERT APPRAISER" PROMPT
                 const response = await puter.ai.chat(
-                    "You are a world-renowned expert appraiser for " + currentIndustry + " assets. " + industryInstruction + " " +
-                    "Even if the item is dirty or blurry, use your expert knowledge to GUESS the most likely brand based on the item's design, shape, and context. " +
-                    "For example: If it looks like a watch, guess 'Rolex', 'Omega', or 'Seiko'. If it looks like heavy machinery, guess 'Caterpillar' or 'Komatsu'. If it looks like an aircraft part, guess 'Boeing' or 'Airbus'. " +
+                    "You are a professional asset inspector. " + industryInstruction + " " +
+                    "Identify the exact brand and model. " +
                     "Respond with ONLY this exact JSON format: " +
-                    "{\"manufacturer\": \"YOUR_EXPERT_GUESS_FOR_BRAND\", \"name\": \"ITEM_DESCRIPTION\", \"category\": \"CATEGORY\", \"qty\": 1, \"minStock\": 1, \"status\": \"In Stock\", \"condition\": \"Excellent | Good | Fair | Poor | Critical\", \"repair_needed\": \"true or false\", \"report\": \"A brief 1-sentence professional inspection report\"}" +
+                    "{\"manufacturer\": \"BRAND_NAME\", \"name\": \"ITEM_DESCRIPTION\", \"category\": \"CATEGORY\", \"qty\": 1, \"minStock\": 1, \"status\": \"In Stock\", \"condition\": \"Excellent | Good | Fair | Poor | Critical\", \"repair_needed\": \"true or false\", \"report\": \"A brief 1-sentence professional inspection report\"}" +
                     "CRITICAL RULES: " +
-                    "1. 'manufacturer' MUST be a specific brand name. NEVER use 'Generic' or 'Unknown'. " +
+                    "1. If you see a logo, use it. If you can't see a logo, use 'Generic' or 'Unbranded'. " +
                     "2. If the item is damaged, set status to 'Critical' and repair_needed to 'true'. " +
                     "3. Do not write any words outside of this JSON.",
                     imageDataUrl,
