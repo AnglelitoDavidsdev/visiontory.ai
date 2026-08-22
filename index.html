@@ -12,7 +12,7 @@
         // SUPABASE CONFIGURATION
         const SUPABASE_URL = 'https://lymobhzjswiuymcbcabq.supabase.co'; 
         const SUPABASE_ANON_KEY = 'sb_publishable_dz-2RaJJ2ZS0v301P5SuPQ_0LSEFSjT'; 
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); // CHANGED TO 'db'
         let currentUserID = 'demo_admin'; 
     </script>
 
@@ -159,10 +159,10 @@
             if(tabId === 'dashboard') renderDashboard();
         }
 
-        // SUPABASE LOGIC
+        // SUPABASE LOGIC (CHANGED TO db)
         async function loadInventory() {
             try {
-                const { data, error } = await supabase
+                const { data, error } = await db
                     .from('inventory')
                     .select('*')
                     .eq('user_id', currentUserID);
@@ -175,7 +175,7 @@
         async function addItemToDB(newItem) {
             try {
                 const uniqueId = Date.now().toString(36) + Math.random().toString(36).substring(2);
-                const { error } = await supabase
+                const { error } = await db
                     .from('inventory')
                     .insert([{ id: uniqueId, user_id: currentUserID, manufacturer: newItem.manufacturer, name: newItem.name, category: newItem.category, qty: newItem.qty, minStock: newItem.minStock, status: newItem.status, condition: newItem.condition, repair_needed: newItem.repair_needed, report: newItem.report }]);
                 if (error) throw error;
@@ -188,7 +188,7 @@
 
         async function deleteItemFromDB(id) {
             try {
-                const { error } = await supabase.from('inventory').delete().eq('id', id);
+                const { error } = await db.from('inventory').delete().eq('id', id);
                 if (error) throw error;
                 showToast('Item deleted from cloud.');
                 loadInventory();
@@ -197,7 +197,7 @@
 
         async function updateBrandInDB(id, newBrand) {
             try {
-                const { error } = await supabase.from('inventory').update({ manufacturer: newBrand }).eq('id', id);
+                const { error } = await db.from('inventory').update({ manufacturer: newBrand }).eq('id', id);
                 if (error) throw error;
                 showToast('Brand updated!');
                 loadInventory();
@@ -259,7 +259,6 @@
 
                 showToast('Scanning image... (Fallback mode)', 'success');
                 
-                // Fallback logic to save item to DB
                 const newItem = {
                     manufacturer: "Unknown",
                     name: "Fallback Item",
