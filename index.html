@@ -6,6 +6,21 @@
     <title>VisionTory.ai - AI Inspector</title>
     
     <script src="https://js.puter.com/v2/"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script>
+        // ==========================================================
+        // SUPABASE CONFIGURATION (YOUR KEYS ARE ALREADY IN!)
+        // ==========================================================
+        const SUPABASE_URL = 'https://lymobhzjswiuymcbcabq.supabase.co'; 
+        const SUPABASE_ANON_KEY = 'sb_publishable_dz-2RaJJ2ZS0v301P5SuPQ_0LSEFSjT'; 
+        
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // ==========================================================
+
+        let currentIndustry = localStorage.getItem('visiontory_industry') || 'industrial';
+        let currentUserID = 'public_demo'; 
+    </script>
 
     <style>
         * { box-sizing: border-box; }
@@ -211,8 +226,12 @@
             document.body.setAttribute('data-theme', currentIndustry);
             const badge = document.getElementById('industryBadge');
             badge.innerText = currentIndustry.charAt(0).toUpperCase() + currentIndustry.slice(1);
+            
+            const user = puter.auth.getUser();
+            currentUserID = user.username; 
+            
             loadInventory();
-            showToast('Welcome, ' + puter.auth.getUser().username + '!');
+            showToast('Welcome, ' + user.username + '!');
         }
 
         async function handleLogout() {
@@ -226,38 +245,80 @@
             else { document.getElementById('loginScreen').style.display = 'flex'; document.getElementById('appScreen').style.display = 'none'; }
         }
 
-        let inventory = [];
-        let idCounter = 1;
-
+        // ==========================================================
+        // SUPABASE DATABASE LOGIC
+        // ==========================================================
         async function loadInventory() {
             try {
-                const stored = await puter.localStorage.getItem('visiontory-inventory');
-                if (stored) { inventory = JSON.parse(stored); }
-                else { inventory = []; }
+                const { data, error } = await supabase
+                    .from('inventory')
+                    .select('*')
+                    .eq('user_id', currentUserID);
+                    
+                if (error) throw error;
+                inventory = data || [];
             } catch (e) { inventory = []; }
-            idCounter = inventory.length > 0 ? Math.max(...inventory.map(item => item.id)) + 1 : 1;
             renderDashboard();
         }
 
         async function saveInventory() {
-            try { await puter.localStorage.setItem('visiontory-inventory', JSON.stringify(inventory)); }
-            catch (e) { console.error(e); }
+            renderDashboard();
         }
 
-        function showToast(message, type='success') {
-            const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            toast.innerText = message;
-            container.appendChild(toast);
-            setTimeout(() => toast.remove(), 4000);
+        async function addItemToDB(newItem) {
+            try {
+                // Generate a unique ID because we are using text
+                const uniqueId = Date.now().toString(36) + Math.random().toString(36).substring(2);
+                
+                const { error } = await supabase
+                    .from('inventory')
+                    .insert([{ 
+                        id: uniqueId,
+                        user_id: currentUserID,
+                        manufacturer: newItem.manufacturer,
+                        name: newItem.name,
+                        category: newItem.category,
+                        qty: newItem.qty,
+                        minStock: newItem.minStock,
+                        status: newItem.status,
+                        condition: newItem.condition,
+                        repair_needed: newItem.repair_needed,
+                        report: newItem.report
+                    }]);
+                if (error) throw error;
+                showToast('Item saved to cloud!');
+                loadInventory();
+            } catch (e) {
+                showToast('Error saving to DB: ' + e.message, 'error');
+            }
         }
 
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            if(tabId === 'dashboard') renderDashboard();
+        async function deleteItemFromDB(id) {
+            try {
+                const { error } = await supabase
+                    .from('inventory')
+                    .delete()
+                    .eq('id', id);
+                if (error) throw error;
+                showToast('Item deleted from cloud.');
+                loadInventory();
+            } catch (e) {
+                showToast('Error deleting: ' + e.message, 'error');
+            }
+        }
+
+        async function updateBrandInDB(id, newBrand) {
+            try {
+                const { error } = await supabase
+                    .from('inventory')
+                    .update({ manufacturer: newBrand })
+                    .eq('id', id);
+                if (error) throw error;
+                showToast('Brand updated!');
+                loadInventory();
+            } catch (e) {
+                showToast('Error updating brand: ' + e.message, 'error');
+            }
         }
 
         function renderDashboard() {
@@ -284,25 +345,20 @@
             });
             document.getElementById('totalItems').innerText = total;
             document.getElementById('lowStock').innerText = critical;
-            saveInventory();
         }
 
-        function editManufacturer(id) {
+        async function editManufacturer(id) {
             const item = inventory.find(i => i.id === id);
             if (!item) return;
             const newBrand = prompt("Enter the brand/manufacturer for " + item.name + ":", item.manufacturer || "");
             if (newBrand) {
-                item.manufacturer = newBrand;
-                saveInventory();
-                renderDashboard();
-                showToast('Brand updated to ' + newBrand);
+                await updateBrandInDB(id, newBrand);
             }
         }
 
-        function deleteItem(id) {
+        async function deleteItem(id) {
             if (confirm('Are you sure you want to delete this item?')) {
-                inventory = inventory.filter(item => item.id !== id);
-                saveInventory(); renderDashboard(); showToast('Item deleted successfully.');
+                await deleteItemFromDB(id);
             }
         }
 
@@ -353,7 +409,6 @@
                 const data = JSON.parse(ai_text);
 
                 const newItem = {
-                    id: idCounter++,
                     manufacturer: data.manufacturer || "Generic",
                     name: data.name || "Unknown Item",
                     category: data.category || "Unknown",
@@ -364,7 +419,9 @@
                     repair_needed: data.repair_needed || "false",
                     report: data.report || "No inspection report provided."
                 };
-                inventory.push(newItem); saveInventory();
+                
+                await addItemToDB(newItem);
+
                 loadingIndicator.style.display = 'none'; dropZone.classList.remove('loading');
                 showToast('Inspected: ' + newItem.manufacturer);
                 switchTab('dashboard');
