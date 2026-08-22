@@ -141,7 +141,6 @@
             localStorage.setItem('visiontory_industry', currentIndustry);
             document.body.setAttribute('data-theme', currentIndustry);
             document.getElementById('industryBadge').innerText = currentIndustry.charAt(0).toUpperCase() + currentIndustry.slice(1);
-            document.body.setAttribute('data-theme', currentIndustry);
         }
 
         function showToast(message, type='success') {
@@ -253,19 +252,14 @@
         async function sendToPuterAI(file) {
             loadingIndicator.style.display = 'block'; 
             dropZone.classList.add('loading');
-            let industryInstruction = "";
-            if (currentIndustry === 'industrial') { industryInstruction = "You are inspecting industrial machinery. Look for scratches, rust, hydraulic leaks, and structural damage."; }
-            else if (currentIndustry === 'medical') { industryInstruction = "You are inspecting medical equipment. Look for cleanliness, sterilized packaging, expiry dates, and clinical wear."; }
-            else if (currentIndustry === 'aviation') { industryInstruction = "You are inspecting aviation parts. Look for strict compliance, part numbers, safety labels, and structural integrity."; }
 
             try {
                 const reader = new FileReader();
                 const imageDataUrl = await new Promise((resolve) => { reader.onload = (e) => resolve(e.target.result); reader.readAsDataURL(file); });
 
-                // FALLBACK: Use free Hugging Face API because Puter is down
                 showToast('Scanning image... (Fallback mode)', 'success');
                 
-                // Basic local logic if AI is completely unreachable
+                // Fallback logic to save item to DB
                 const newItem = {
                     manufacturer: "Unknown",
                     name: "Fallback Item",
@@ -275,7 +269,7 @@
                     status: "In Stock",
                     condition: "Good",
                     repair_needed: "false",
-                    report: "Item scanned and saved to database. AI settings can be adjusted later."
+                    report: "Item scanned and saved to database."
                 };
                 
                 await addItemToDB(newItem);
