@@ -3,20 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>VisionTory.ai - Commercial Mode</title>
+    <title>VisionTory.ai - Industrial Asset Intelligence</title>
 
-    <!-- Load Supabase (Database + Auth) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Load Puter.js (Free AI) -->
-    <script src="https://js.puter.com/v2/"></script>
 
     <script>
         // SUPABASE CONFIGURATION
         const SUPABASE_URL = 'https://lymobhzjswiuymcbcabq.supabase.co'; 
         const SUPABASE_ANON_KEY = 'sb_publishable_dz-2RaJJ2ZS0v301P5SuPQ_0LSEFSjT'; 
         const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        let currentUserID = null;
-        let currentIndustry = localStorage.getItem('visiontory_industry') || 'industrial';
     </script>
 
     <style>
@@ -109,6 +104,9 @@
         .auth-btn:hover { opacity: 0.9; }
         .switch-auth { color: var(--muted); font-size: 0.9rem; margin-top: 15px; }
         .switch-auth a { color: var(--accent); cursor: pointer; text-decoration: underline; font-weight: bold; }
+        
+        .theme-selector { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        .theme-selector button { width: 100%; padding: 10px; background: var(--border); color: var(--text); border: none; border-radius: 8px; cursor: pointer; }
     </style>
 </head>
 <body data-theme="industrial">
@@ -119,10 +117,10 @@
             <div class="auth-logo">👤</div>
             <div class="auth-title">VisionTory.ai</div>
             <div class="auth-sub">Select your industry below</div>
-            <div class="theme-selector" style="margin-bottom: 20px; text-align: left;">
-                <button type="button" style="width: 100%; padding: 10px; background: var(--border); color: var(--text); border: none; border-radius: 8px; margin-bottom: 10px; cursor: pointer;" onclick="selectTheme('industrial')">🏭 Industrial</button>
-                <button type="button" style="width: 100%; padding: 10px; background: var(--border); color: var(--text); border: none; border-radius: 8px; margin-bottom: 10px; cursor: pointer;" onclick="selectTheme('medical')">🏥 Medical</button>
-                <button type="button" style="width: 100%; padding: 10px; background: var(--border); color: var(--text); border: none; border-radius: 8px; margin-bottom: 10px; cursor: pointer;" onclick="selectTheme('aviation')">✈️ Aviation</button>
+            <div class="theme-selector">
+                <button onclick="selectTheme('industrial')">🏭 Industrial</button>
+                <button onclick="selectTheme('medical')">🏥 Medical</button>
+                <button onclick="selectTheme('aviation')">✈️ Aviation</button>
             </div>
             <input type="email" id="loginEmail" class="auth-input" placeholder="Email address">
             <input type="password" id="loginPassword" class="auth-input" placeholder="Password">
@@ -232,50 +230,48 @@
             setTimeout(() => toast.remove(), 4000);
         }
 
-        // AUTH FLOW
+        // SUPABASE AUTH FLOW
         async function handleLogin() {
-            try {
-                await puter.auth.signIn({ email: document.getElementById('loginEmail').value, password: document.getElementById('loginPassword').value });
-                onAuthSuccess();
-            } catch (error) { showToast('Login failed. Please check credentials.', 'error'); }
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const { error } = await db.auth.signInWithPassword({ email, password });
+            if (error) showToast('Login failed: ' + error.message, 'error');
+            else onAuthSuccess();
         }
 
         async function handleSignUp() {
-            try {
-                await puter.auth.signUp({ email: document.getElementById('signUpEmail').value, password: document.getElementById('signUpPassword').value });
-                onAuthSuccess();
-            } catch (error) { showToast('Sign up failed. Please try again.', 'error'); }
+            const email = document.getElementById('signUpEmail').value;
+            const password = document.getElementById('signUpPassword').value;
+            const { data, error } = await db.auth.signUp({ email, password });
+            if (error) showToast('Sign up failed: ' + error.message, 'error');
+            else showToast('Account created! Please check your email to verify.');
         }
 
-        function onAuthSuccess() {
+        async function onAuthSuccess() {
+            const { data: { user } } = await db.auth.getUser();
+            currentUserID = user.id; // Use the Supabase User ID
+
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('signUpScreen').style.display = 'none';
             document.getElementById('appScreen').style.display = 'block';
-            document.body.setAttribute('data-theme', currentIndustry);
-            const user = puter.auth.getUser();
-            currentUserID = user.username; 
+
             loadInventory();
-            showToast('Welcome, ' + user.username + '!');
+            showToast('Welcome back!');
         }
 
         async function handleLogout() {
-            await puter.auth.signOut();
+            await db.auth.signOut();
             document.getElementById('appScreen').style.display = 'none';
             document.getElementById('loginScreen').style.display = 'flex';
         }
 
-        async function checkAuth() {
-            if (puter.auth.isSignedIn()) { onAuthSuccess(); }
-            else { document.getElementById('loginScreen').style.display = 'flex'; document.getElementById('appScreen').style.display = 'none'; }
-        }
+        function showSignUp() { document.getElementById('loginScreen').style.display = 'none'; document.getElementById('signUpScreen').style.display = 'flex'; }
+        function showLogin() { document.getElementById('signUpScreen').style.display = 'none'; document.getElementById('loginScreen').style.display = 'flex'; }
 
-        function showSignUp() {
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('signUpScreen').style.display = 'flex';
-        }
-        function showLogin() {
-            document.getElementById('signUpScreen').style.display = 'none';
-            document.getElementById('loginScreen').style.display = 'flex';
+        async function checkAuth() {
+            const { data: { user } } = await db.auth.getUser();
+            if (user) onAuthSuccess();
+            else { document.getElementById('loginScreen').style.display = 'flex'; document.getElementById('appScreen').style.display = 'none'; }
         }
 
         function switchTab(tabId) {
@@ -285,7 +281,7 @@
             if(tabId === 'dashboard') renderDashboard();
         }
 
-        // SUPABASE LOGIC
+        // SUPABASE DATABASE LOGIC
         async function loadInventory() {
             try {
                 const { data, error } = await db
