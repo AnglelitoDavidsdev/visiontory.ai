@@ -8,18 +8,10 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
-        // ==========================================================
-        // SUPABASE CONFIGURATION (Database + Auth)
-        // ==========================================================
+        // SUPABASE CONFIGURATION
         const SUPABASE_URL = 'https://lymobhzjswiuymcbcabq.supabase.co'; 
         const SUPABASE_ANON_KEY = 'sb_publishable_dz-2RaJJ2ZS0v301P5SuPQ_0LSEFSjT'; 
         const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        
-        // ==========================================================
-        // OPENROUTER CONFIGURATION (Real AI)
-        // ==========================================================
-        const OPENROUTER_API_KEY = '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'; 
-        // ==========================================================
     </script>
 
     <style>
@@ -377,11 +369,11 @@
 
         function processFiles(files) {
             if (!files.length) return;
-            Array.from(files).forEach(file => { if (file.type.startsWith('image/')) { sendToPuterAI(file); } });
+            Array.from(files).forEach(file => { if (file.type.startsWith('image/')) { sendToSupabaseAI(file); } });
         }
 
-        // REAL AI SCANNING WITH OPENROUTER
-        async function sendToPuterAI(file) {
+        // SUPABASE AI SCANNING (EDGE FUNCTION)
+        async function sendToSupabaseAI(file) {
             loadingIndicator.style.display = 'block'; 
             dropZone.classList.add('loading');
 
@@ -395,34 +387,16 @@
                 else if (currentIndustry === 'medical') { industryInstruction = "You are inspecting medical equipment. Look for cleanliness, sterilized packaging, expiry dates, and clinical wear."; }
                 else if (currentIndustry === 'aviation') { industryInstruction = "You are inspecting aviation parts. Look for strict compliance, part numbers, safety labels, and structural integrity."; }
 
-                const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-                    method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        "model": "google/gemini-2.0-flash-exp:free",
-                        "messages": [
-                            {
-                                "role": "user",
-                                "content": [
-                                    {"type": "text", "text": "You are a professional asset inspector. " + industryInstruction + " Identify the exact brand and model. Respond with ONLY this exact JSON format: {\"manufacturer\": \"BRAND_NAME\", \"name\": \"ITEM_DESCRIPTION\", \"category\": \"CATEGORY\", \"qty\": 1, \"minStock\": 1, \"status\": \"In Stock\", \"condition\": \"Excellent | Good | Fair | Poor | Critical\", \"repair_needed\": \"true or false\", \"report\": \"A brief 1-sentence professional inspection report\"}"},
-                                    {"type": "image_url", "image_url": {"url": imageDataUrl}}
-                                ]
-                            }
-                        ]
-                    })
+                // Call Supabase Edge Function
+                const { data, error } = await db.functions.invoke('analyze-image', {
+                    body: { 
+                        image: base64Image,
+                        industry: currentIndustry,
+                        instruction: industryInstruction
+                    }
                 });
 
-                const jsonResponse = await response.json();
-                let ai_text = jsonResponse.choices[0].message.content;
-                
-                let txt = document.createElement("textarea");
-                txt.innerHTML = ai_text; ai_text = txt.value.trim();
-                const start = ai_text.indexOf('{'); const end = ai_text.lastIndexOf('}');
-                if (start !== -1 && end !== -1) { ai_text = ai_text.substring(start, end + 1); }
-                const data = JSON.parse(ai_text);
+                if (error) throw error;
 
                 const newItem = {
                     manufacturer: data.manufacturer || "Generic",
@@ -444,7 +418,7 @@
             } catch (error) {
                 loadingIndicator.style.display = 'none'; 
                 dropZone.classList.remove('loading');
-                showToast('Connection error. Please try again.', 'error');
+                showToast('Connection error: ' + error.message, 'error');
             }
         }
 
