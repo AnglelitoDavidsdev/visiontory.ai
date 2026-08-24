@@ -5,9 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>VisionTory.ai - Industrial Asset Intelligence</title>
 
-    <!-- Load Supabase (Database + Auth) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Load Puter (AI) -->
     <script src="https://js.puter.com/v2/"></script>
 
     <script>
@@ -18,27 +16,33 @@
 
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #0f1117; color: #e5e7eb; transition: all 0.3s ease; min-height: 100vh; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #e5e7eb; transition: all 0.3s ease; min-height: 100vh; }
 
+        /* CARBON FIBER + THEME VARIABLES */
         body[data-theme="industrial"] {
             --bg: #0f1117; --card: #1a1d29; --text: #f5f5f5; --muted: #9ca3af; --accent: #d946ef; --accent-2: #8b5cf6; --border: #2d3142; --critical: #ef4444; --good: #10b981;
-            background: radial-gradient(circle at 10% 20%, rgba(139, 92, 246, 0.05), transparent 40%), #0f1117;
+            /* Carbon Fiber Background */
+            background: 
+                repeating-linear-gradient(45deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 2px, transparent 2px, transparent 4px),
+                repeating-linear-gradient(-45deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 2px, transparent 2px, transparent 4px),
+                linear-gradient(135deg, #111111 0%, #1a1a1a 50%, #222222 100%);
         }
+
         body[data-theme="medical"] {
             --bg: #f4f6fb; --card: #ffffff; --text: #1a202c; --muted: #64748b; --accent: #0ea5e9; --accent-2: #2563eb; --border: #e2e8f0; --critical: #dc2626; --good: #16a34a;
             background: #f4f6fb;
         }
+
         body[data-theme="aviation"] {
             --bg: #f8fafc; --card: #ffffff; --text: #0f172a; --muted: #475569; --accent: #f97316; --accent-2: #ef4444; --border: #e2e8f0; --critical: #dc2626; --good: #16a34a;
             background: #f8fafc;
         }
 
+        /* CONSTANT STYLES */
         .navbar { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
         .logo-box { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.2rem; color: var(--text); }
         .logo-icon { width: 35px; height: 35px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.2rem; }
         .nav-actions { display: flex; gap: 10px; align-items: center; }
-        .theme-btn { background: var(--border); border: none; color: var(--muted); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; transition: 0.2s; }
-        .theme-btn:hover { color: var(--text); background: var(--accent); }
         .logout-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
         .logout-btn:hover { color: var(--critical); border-color: var(--critical); }
 
@@ -97,7 +101,7 @@
 
         /* AUTH SCREENS */
         .auth-screen { display: flex; justify-content: center; align-items: center; min-height: 100vh; width: 100%; }
-        .auth-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 40px; width: 100%; max-width: 400px; text-align: center; }
+        .auth-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 40px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         .auth-logo { font-size: 4rem; margin-bottom: 20px; }
         .auth-title { font-size: 1.5rem; margin-bottom: 5px; color: var(--text); }
         .auth-sub { color: var(--muted); font-size: 0.9rem; margin-bottom: 30px; }
@@ -107,23 +111,42 @@
         .switch-auth { color: var(--muted); font-size: 0.9rem; margin-top: 15px; }
         .switch-auth a { color: var(--accent); cursor: pointer; text-decoration: underline; font-weight: bold; }
         
-        .theme-selector { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
-        .theme-selector button { width: 100%; padding: 10px; background: var(--border); color: var(--text); border: none; border-radius: 8px; cursor: pointer; }
+        /* INDUSTRY SELECTOR - ONLY ON LOGIN */
+        .theme-selector { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; }
+        .industry-btn {
+            background: var(--card);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 80px;
+            height: 80px;
+        }
+        .industry-btn:hover { border-color: var(--accent); }
+        .industry-btn.selected { border-color: var(--accent); background: rgba(217, 70, 239, 0.1); }
+        .industry-icon { font-size: 2rem; }
     </style>
 </head>
 <body data-theme="industrial">
 
-    <!-- LOGIN SCREEN -->
+    <!-- LOGIN SCREEN (WITH INDUSTRY SELECTOR) -->
     <div id="loginScreen" class="auth-screen">
         <div class="auth-card">
             <div class="auth-logo">👤</div>
             <div class="auth-title">VisionTory.ai</div>
             <div class="auth-sub">Select your industry below</div>
+            
+            <!-- INDUSTRY SELECTOR -->
             <div class="theme-selector">
-                <button onclick="selectTheme('industrial')">🏭 Industrial</button>
-                <button onclick="selectTheme('medical')">🏥 Medical</button>
-                <button onclick="selectTheme('aviation')">✈️ Aviation</button>
+                <button class="industry-btn" onclick="selectTheme('industrial')"><span class="industry-icon">🏭</span></button>
+                <button class="industry-btn" onclick="selectTheme('medical')"><span class="industry-icon">🏥</span></button>
+                <button class="industry-btn" onclick="selectTheme('aviation')"><span class="industry-icon">✈️</span></button>
             </div>
+
             <input type="email" id="loginEmail" class="auth-input" placeholder="Email address">
             <input type="password" id="loginPassword" class="auth-input" placeholder="Password">
             <button type="button" class="auth-btn" onclick="handleLogin()">Login</button>
@@ -152,9 +175,7 @@
                 <span>VisionTory.ai</span>
             </div>
             <div class="nav-actions">
-                <button class="theme-btn" onclick="selectTheme('industrial')">🏭</button>
-                <button class="theme-btn" onclick="selectTheme('medical')">🏥</button>
-                <button class="theme-btn" onclick="selectTheme('aviation')">✈️</button>
+                <!-- NO THEME BUTTONS HERE -->
                 <button class="logout-btn" onclick="handleLogout()">Logout</button>
             </div>
         </nav>
@@ -221,6 +242,8 @@
             currentIndustry = industry;
             localStorage.setItem('visiontory_industry', industry);
             document.body.setAttribute('data-theme', industry);
+            document.querySelectorAll('.industry-btn').forEach(b => b.classList.remove('selected'));
+            event.currentTarget.classList.add('selected');
         }
 
         function showToast(message, type='success') {
@@ -374,7 +397,7 @@
             Array.from(files).forEach(file => { if (file.type.startsWith('image/')) { sendToPuterAI(file); } });
         }
 
-        // PUTER AI SCANNING (FINAL VERSION WITH BRAND FORCING)
+        // PUTER AI SCANNING
         async function sendToPuterAI(file) {
             loadingIndicator.style.display = 'block'; 
             dropZone.classList.add('loading');
@@ -388,14 +411,13 @@
                 else if (currentIndustry === 'medical') { industryInstruction = "You are inspecting medical equipment. Look for cleanliness, sterilized packaging, expiry dates, and clinical wear."; }
                 else if (currentIndustry === 'aviation') { industryInstruction = "You are inspecting aviation parts. Look for strict compliance, part numbers, safety labels, and structural integrity."; }
 
-                // ULTIMATE BRAND FORCING PROMPT
                 const response = await puter.ai.chat(
                     "You are a professional industrial asset appraiser and forensic brand detective. " + industryInstruction + " " +
                     "FIRST: Look at the image for any logos, brand names, serial numbers, or engraved text. " +
-                    "SECOND: You must look at the design and GUESS the brand. For example: If it looks like a watch, say 'Casio' or 'Rolex'. If it looks like a controller, say 'Xbox' or 'PlayStation'. If it looks like machinery, say 'Caterpillar' or 'Komatsu'. You MUST output a brand name from the image. " +
-                    "THIRD: Check the physical condition in extreme detail. Look for scratches, dents, rust, missing screws, broken straps, cracked screens, or wear. " +
+                    "SECOND: You must GUESS the brand. If it looks like a watch, say 'Casio' or 'Rolex'. If it looks like a controller, say 'Xbox' or 'PlayStation'. " +
+                    "THIRD: Check the physical condition in extreme detail. Look for scratches, dents, rust, broken straps, cracked screens, or wear. " +
                     "Respond with ONLY this exact JSON format: " +
-                    "{\"manufacturer\": \"THE BRAND NAME YOU GUESSED, DO NOT USE UNKNOWN\", \"name\": \"EXACT_MODEL_AND_ITEM_NAME\", \"category\": \"CATEGORY\", \"qty\": 1, \"minStock\": 1, \"status\": \"In Stock\", \"condition\": \"Excellent | Good | Fair | Poor | Critical\", \"repair_needed\": \"true or false\", \"report\": \"A VERY detailed 2-3 sentence professional inspection report describing exactly what damage you see. Mention specific parts like strap, glass, screen, or casing.\"}" +
+                    "{\"manufacturer\": \"GUESSED_BRAND_NAME\", \"name\": \"EXACT_MODEL_AND_ITEM_NAME\", \"category\": \"CATEGORY\", \"qty\": 1, \"minStock\": 1, \"status\": \"In Stock\", \"condition\": \"Excellent | Good | Fair | Poor | Critical\", \"repair_needed\": \"true or false\", \"report\": \"A VERY detailed 2-3 sentence professional inspection report.\"}" +
                     "CRITICAL RULES: " +
                     "1. THE MANUFACTURER FIELD MUST CONTAIN A REAL BRAND OR A GUESSED BRAND. " +
                     "2. IF YOU CANNOT READ A LOGO, YOU MUST STILL GUESS A BRAND BASED ON THE STYLE. " +
