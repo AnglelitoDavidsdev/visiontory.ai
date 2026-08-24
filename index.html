@@ -374,7 +374,7 @@
             Array.from(files).forEach(file => { if (file.type.startsWith('image/')) { sendToPuterAI(file); } });
         }
 
-        // PUTER AI SCANNING
+        // PUTER AI SCANNING (FINAL VERSION WITH BRAND FORCING)
         async function sendToPuterAI(file) {
             loadingIndicator.style.display = 'block'; 
             dropZone.classList.add('loading');
@@ -388,9 +388,19 @@
                 else if (currentIndustry === 'medical') { industryInstruction = "You are inspecting medical equipment. Look for cleanliness, sterilized packaging, expiry dates, and clinical wear."; }
                 else if (currentIndustry === 'aviation') { industryInstruction = "You are inspecting aviation parts. Look for strict compliance, part numbers, safety labels, and structural integrity."; }
 
+                // ULTIMATE BRAND FORCING PROMPT
                 const response = await puter.ai.chat(
-                    "You are a professional asset inspector. " + industryInstruction + " Identify the exact brand and model. " +
-                    "Respond with ONLY this exact JSON format: {\"manufacturer\": \"BRAND_NAME\", \"name\": \"ITEM_DESCRIPTION\", \"category\": \"CATEGORY\", \"qty\": 1, \"minStock\": 1, \"status\": \"In Stock\", \"condition\": \"Excellent | Good | Fair | Poor | Critical\", \"repair_needed\": \"true or false\", \"report\": \"A brief 1-sentence professional inspection report\"}",
+                    "You are a professional industrial asset appraiser and forensic brand detective. " + industryInstruction + " " +
+                    "FIRST: Look at the image for any logos, brand names, serial numbers, or engraved text. " +
+                    "SECOND: You must look at the design and GUESS the brand. For example: If it looks like a watch, say 'Casio' or 'Rolex'. If it looks like a controller, say 'Xbox' or 'PlayStation'. If it looks like machinery, say 'Caterpillar' or 'Komatsu'. You MUST output a brand name from the image. " +
+                    "THIRD: Check the physical condition in extreme detail. Look for scratches, dents, rust, missing screws, broken straps, cracked screens, or wear. " +
+                    "Respond with ONLY this exact JSON format: " +
+                    "{\"manufacturer\": \"THE BRAND NAME YOU GUESSED, DO NOT USE UNKNOWN\", \"name\": \"EXACT_MODEL_AND_ITEM_NAME\", \"category\": \"CATEGORY\", \"qty\": 1, \"minStock\": 1, \"status\": \"In Stock\", \"condition\": \"Excellent | Good | Fair | Poor | Critical\", \"repair_needed\": \"true or false\", \"report\": \"A VERY detailed 2-3 sentence professional inspection report describing exactly what damage you see. Mention specific parts like strap, glass, screen, or casing.\"}" +
+                    "CRITICAL RULES: " +
+                    "1. THE MANUFACTURER FIELD MUST CONTAIN A REAL BRAND OR A GUESSED BRAND. " +
+                    "2. IF YOU CANNOT READ A LOGO, YOU MUST STILL GUESS A BRAND BASED ON THE STYLE. " +
+                    "3. If you see obvious damage, set status to 'Critical' and repair_needed to 'true'. " +
+                    "4. Do not write any words outside of this JSON.",
                     imageDataUrl,
                     { model: "gpt-4o" }
                 );
