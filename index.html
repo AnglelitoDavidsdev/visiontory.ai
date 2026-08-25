@@ -70,6 +70,11 @@
         th { text-align: left; padding: 10px; font-size: 0.7rem; color: var(--muted); text-transform: uppercase; border-bottom: 1px solid var(--border); }
         td { padding: 10px; border-bottom: 1px solid var(--border); color: var(--text); font-size: 0.9rem; }
 
+        /* MATERIAL & TOOL SECTION HEADERS */
+        .section-header { padding: 10px; border-radius: 8px; margin: 20px 0 10px; font-size: 1rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .header-consumable { background: rgba(16, 185, 129, 0.15); color: var(--good); border-left: 5px solid var(--good); }
+        .header-reusable { background: rgba(139, 92, 246, 0.15); color: var(--accent-2); border-left: 5px solid var(--accent-2); }
+
         .status-badge { display: inline-flex; align-items: center; padding: 4px 8px; border-radius: 100px; font-size: 0.7rem; font-weight: 600; }
         .status-instock { background: rgba(16, 185, 129, 0.15); color: var(--good); }
         .status-low { background: rgba(251, 191, 36, 0.15); color: var(--low); }
@@ -189,11 +194,25 @@
                     <div id="alertContainer"></div>
                 </div>
 
+                <!-- CONSUMABLE SECTION -->
+                <div class="section-header header-consumable">
+                    🧤 Consumable Materials
+                </div>
                 <div class="inventory-container">
-                    <h3 style="margin-bottom: 10px; font-size: 1.1rem;">Inventory</h3>
                     <table>
-                        <thead><tr><th>Item</th><th>Type</th><th>Qty</th><th>Status</th></tr></thead>
-                        <tbody id="inventoryTableBody"></tbody>
+                        <thead><tr><th>Item</th><th>Category</th><th>Qty</th><th>Status</th></tr></thead>
+                        <tbody id="consumableTableBody"></tbody>
+                    </table>
+                </div>
+
+                <!-- REUSABLE SECTION -->
+                <div class="section-header header-reusable">
+                    🔧 Reusable Tools
+                </div>
+                <div class="inventory-container">
+                    <table>
+                        <thead><tr><th>Item</th><th>Category</th><th>Qty</th><th>Status</th></tr></thead>
+                        <tbody id="reusableTableBody"></tbody>
                     </table>
                 </div>
             </div>
@@ -225,7 +244,7 @@
                 <div class="chat-container">
                     <h3 style="margin-bottom: 10px;">💬 VisionTory Assistant</h3>
                     <div class="chat-messages" id="chatMessages">
-                        <div class="message ai">Hello! I am your VisionTory AI assistant. I can perform tasks like "Show my inventory", "Show my jobs", or answer questions about your assets.</div>
+                        <div class="message ai">Hello! I am your VisionTory AI assistant. Ask me to show my inventory, jobs, or perform other tasks.</div>
                     </div>
                     <div class="chat-input-group">
                         <input type="text" id="chatInput" class="chat-input" placeholder="Ask AI to perform a task..." onkeydown="if(event.key==='Enter') sendChat()">
@@ -509,26 +528,36 @@
         }
 
         function renderDashboard() {
-            const tbody = document.getElementById('inventoryTableBody');
-            tbody.innerHTML = '';
+            const totalItems = document.getElementById('totalItems');
+            const lowStock = document.getElementById('lowStock');
+            const consumableTbody = document.getElementById('consumableTableBody');
+            const reusableTbody = document.getElementById('reusableTableBody');
+            
+            consumableTbody.innerHTML = '';
+            reusableTbody.innerHTML = '';
+            
             let total = 0, critical = 0;
             let lowStockItems = [];
 
             inventory.forEach(item => {
                 total += item.qty || 0;
                 if (item.status === 'Critical' || item.repair_needed === 'true') critical++;
-                
                 if (item.qty <= item.minStock) lowStockItems.push(item);
 
                 const tr = document.createElement('tr');
                 let statusClass = item.status === 'Critical' ? 'status-critical' : (item.qty <= item.minStock ? 'status-low' : 'status-instock');
-                tr.innerHTML = `<td><strong>${item.manufacturer || "Unknown"}</strong><br><span style="color: var(--muted); font-size: 0.8rem;">${item.name}</span></td><td>${item.item_type || "Reusable"}</td><td>${item.qty}</td><td><span class="status-badge ${statusClass}">${item.status}</span></td>`;
-                tbody.appendChild(tr);
+                tr.innerHTML = `<td><strong>${item.manufacturer || "Unknown"}</strong><br><span style="color: var(--muted); font-size: 0.8rem;">${item.name}</span></td><td>${item.category}</td><td>${item.qty}</td><td><span class="status-badge ${statusClass}">${item.status}</span></td>`;
+
+                // Split into Consumable and Reusable sections
+                if (item.item_type === 'Consumable') {
+                    consumableTbody.appendChild(tr);
+                } else {
+                    reusableTbody.appendChild(tr);
+                }
             });
 
-            document.getElementById('totalItems').innerText = total;
-            document.getElementById('lowStock').innerText = critical;
-            
+            totalItems.innerText = total;
+            lowStock.innerText = critical;
             renderLowStockAlerts(lowStockItems);
         }
 
@@ -584,18 +613,15 @@
 
             const chatMessages = document.getElementById('chatMessages');
             
-            // Add user message
             chatMessages.innerHTML += `<div class="message user">${message}</div>`;
             input.value = '';
             chatMessages.scrollTop = chatMessages.scrollHeight;
 
-            // Add typing indicator
             const typingDiv = document.createElement('div');
             typingDiv.className = 'typing-indicator';
             typingDiv.textContent = 'Thinking...';
             chatMessages.appendChild(typingDiv);
 
-            // Command parsing logic
             const lowerCaseMsg = message.toLowerCase();
             let aiResponse = '';
 
@@ -608,7 +634,6 @@
                 aiResponse = `You have ${jobs.length} active jobs.`;
             } 
             else {
-                // Fallback to Puter AI for general questions
                 try {
                     const response = await puter.ai.chat(
                         "You are an assistant for an industrial asset management system. Answer this user's question: " + message, 
@@ -620,7 +645,6 @@
                 }
             }
 
-            // Remove typing indicator and add AI response
             setTimeout(() => {
                 typingDiv.remove();
                 chatMessages.innerHTML += `<div class="message ai">${aiResponse}</div>`;
