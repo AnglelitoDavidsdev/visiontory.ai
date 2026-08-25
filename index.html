@@ -21,24 +21,20 @@
         /* CARBON FIBER + THEME VARIABLES */
         body[data-theme="industrial"] {
             --bg: #0f1117; --card: #1a1d29; --text: #f5f5f5; --muted: #9ca3af; --accent: #d946ef; --accent-2: #8b5cf6; --border: #2d3142; --critical: #ef4444; --good: #10b981;
-            /* Carbon Fiber Background */
             background: 
                 repeating-linear-gradient(45deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 2px, transparent 2px, transparent 4px),
                 repeating-linear-gradient(-45deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 2px, transparent 2px, transparent 4px),
                 linear-gradient(135deg, #111111 0%, #1a1a1a 50%, #222222 100%);
         }
-
         body[data-theme="medical"] {
             --bg: #f4f6fb; --card: #ffffff; --text: #1a202c; --muted: #64748b; --accent: #0ea5e9; --accent-2: #2563eb; --border: #e2e8f0; --critical: #dc2626; --good: #16a34a;
             background: #f4f6fb;
         }
-
         body[data-theme="aviation"] {
             --bg: #f8fafc; --card: #ffffff; --text: #0f172a; --muted: #475569; --accent: #f97316; --accent-2: #ef4444; --border: #e2e8f0; --critical: #dc2626; --good: #16a34a;
             background: #f8fafc;
         }
 
-        /* CONSTANT STYLES */
         .navbar { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
         .logo-box { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.2rem; color: var(--text); }
         .logo-icon { width: 35px; height: 35px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.2rem; }
@@ -47,8 +43,8 @@
         .logout-btn:hover { color: var(--critical); border-color: var(--critical); }
 
         .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
-        .tabs { display: flex; gap: 15px; margin-bottom: 25px; border-bottom: 2px solid var(--border); padding-bottom: 5px; }
-        .tab { cursor: pointer; padding: 10px 20px; color: var(--muted); font-weight: 500; border-radius: 8px 8px 0 0; transition: all 0.2s; }
+        .tabs { display: flex; gap: 15px; margin-bottom: 25px; border-bottom: 2px solid var(--border); padding-bottom: 5px; overflow-x: auto; }
+        .tab { cursor: pointer; padding: 10px 20px; color: var(--muted); font-weight: 500; border-radius: 8px 8px 0 0; transition: all 0.2s; white-space: nowrap; }
         .tab.active { color: var(--accent); border-bottom: 2px solid var(--accent); background: linear-gradient(to top, rgba(217, 70, 239, 0.1), transparent); }
 
         .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
@@ -88,9 +84,9 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 999; justify-content: center; align-items: center; }
-        .modal { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 30px; width: 90%; max-width: 400px; }
+        .modal { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 30px; width: 90%; max-width: 500px; }
         .modal h3 { margin-bottom: 15px; color: var(--text); }
-        .modal input { width: 100%; padding: 12px; margin-bottom: 15px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 1rem; }
+        .modal input, .modal select, .modal textarea { width: 100%; padding: 12px; margin-bottom: 15px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 1rem; font-family: inherit; }
         .modal-buttons { display: flex; gap: 10px; justify-content: flex-end; }
 
         .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
@@ -113,19 +109,7 @@
         
         /* INDUSTRY SELECTOR - ONLY ON LOGIN */
         .theme-selector { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; }
-        .industry-btn {
-            background: var(--card);
-            border: 2px solid var(--border);
-            border-radius: 12px;
-            padding: 15px;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 80px;
-            height: 80px;
-        }
+        .industry-btn { background: var(--card); border: 2px solid var(--border); border-radius: 12px; padding: 15px; cursor: pointer; transition: all 0.2s; display: flex; justify-content: center; align-items: center; width: 80px; height: 80px; }
         .industry-btn:hover { border-color: var(--accent); }
         .industry-btn.selected { border-color: var(--accent); background: rgba(217, 70, 239, 0.1); }
         .industry-icon { font-size: 2rem; }
@@ -140,7 +124,6 @@
             <div class="auth-title">VisionTory.ai</div>
             <div class="auth-sub">Select your industry below</div>
             
-            <!-- INDUSTRY SELECTOR -->
             <div class="theme-selector">
                 <button class="industry-btn" onclick="selectTheme('industrial')"><span class="industry-icon">🏭</span></button>
                 <button class="industry-btn" onclick="selectTheme('medical')"><span class="industry-icon">🏥</span></button>
@@ -175,7 +158,6 @@
                 <span>VisionTory.ai</span>
             </div>
             <div class="nav-actions">
-                <!-- NO THEME BUTTONS HERE -->
                 <button class="logout-btn" onclick="handleLogout()">Logout</button>
             </div>
         </nav>
@@ -184,6 +166,7 @@
             <div class="tabs">
                 <div class="tab active" onclick="switchTab('dashboard')">Dashboard</div>
                 <div class="tab" onclick="switchTab('upload')">Upload & AI Inspect</div>
+                <div class="tab" onclick="switchTab('jobs')">Job Scope</div>
             </div>
 
             <div id="dashboard" class="page-section active">
@@ -214,10 +197,22 @@
                     </div>
                 </div>
             </div>
+
+            <div id="jobs" class="page-section">
+                <h2 style="color: var(--text); margin-bottom: 20px;">Job Scope & Work Orders</h2>
+                <button class="btn btn-primary" onclick="openJobModal()" style="margin-bottom: 20px;">+ New Job</button>
+                <div class="inventory-container">
+                    <h3 style="margin-bottom: 15px; color: var(--text);">Current Jobs</h3>
+                    <table>
+                        <thead><tr><th>Job Name</th><th>Assigned To</th><th>Priority</th><th>Status</th><th>Deadline</th><th>Notes</th><th>Actions</th></tr></thead>
+                        <tbody id="jobTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- MODAL -->
+    <!-- MODAL FOR EDITING BRAND -->
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal">
             <h3>Edit Manufacturer</h3>
@@ -229,12 +224,40 @@
         </div>
     </div>
 
+    <!-- MODAL FOR NEW JOB -->
+    <div class="modal-overlay" id="jobModal">
+        <div class="modal">
+            <h3>Create New Job</h3>
+            <input type="text" id="jobName" placeholder="Job Name (e.g. Repair Hydraulic Leak)">
+            <input type="text" id="jobAssigned" placeholder="Assigned To">
+            <select id="jobPriority">
+                <option value="Low">Low</option>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+                <option value="Critical">Critical</option>
+            </select>
+            <select id="jobStatus">
+                <option value="Open">Open</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Completed">Completed</option>
+            </select>
+            <input type="date" id="jobDeadline">
+            <textarea id="jobNotes" placeholder="Job Notes" rows="3"></textarea>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="closeJobModal()">Cancel</button>
+                <button class="btn btn-danger" onclick="saveJob()">Save Job</button>
+            </div>
+        </div>
+    </div>
+
     <div class="toast-container" id="toastContainer"></div>
 
     <script>
         let currentIndustry = localStorage.getItem('visiontory_industry') || 'industrial';
         let inventory = [];
+        let jobs = [];
         let editingItemId = null;
+        let editingJobId = null;
 
         document.body.setAttribute('data-theme', currentIndustry);
 
@@ -281,6 +304,7 @@
             document.getElementById('appScreen').style.display = 'block';
 
             loadInventory();
+            loadJobs();
             showToast('Welcome back!');
         }
 
@@ -304,6 +328,7 @@
             document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
             if(tabId === 'dashboard') renderDashboard();
+            if(tabId === 'jobs') renderJobs();
         }
 
         // SUPABASE DATABASE LOGIC
@@ -338,6 +363,102 @@
                 showToast('Item deleted from cloud.');
                 loadInventory();
             } catch (e) { showToast('Error deleting: ' + e.message, 'error'); }
+        }
+
+        // JOBS LOGIC
+        async function loadJobs() {
+            try {
+                const { data, error } = await db
+                    .from('jobs')
+                    .select('*')
+                    .eq('user_id', currentUserID);
+                if (error) throw error;
+                jobs = data || [];
+            } catch (e) { jobs = []; }
+            renderJobs();
+        }
+
+        function openJobModal() {
+            editingJobId = null;
+            document.getElementById('jobName').value = '';
+            document.getElementById('jobAssigned').value = '';
+            document.getElementById('jobPriority').value = 'Medium';
+            document.getElementById('jobStatus').value = 'Open';
+            document.getElementById('jobDeadline').value = '';
+            document.getElementById('jobNotes').value = '';
+            document.getElementById('jobModal').style.display = 'flex';
+        }
+
+        function closeJobModal() { document.getElementById('jobModal').style.display = 'none'; }
+
+        async function saveJob() {
+            const jobData = {
+                job_name: document.getElementById('jobName').value,
+                assigned_to: document.getElementById('jobAssigned').value,
+                priority: document.getElementById('jobPriority').value,
+                status: document.getElementById('jobStatus').value,
+                deadline: document.getElementById('jobDeadline').value,
+                notes: document.getElementById('jobNotes').value
+            };
+            
+            try {
+                if (editingJobId) {
+                    const { error } = await db.from('jobs').update(jobData).eq('id', editingJobId);
+                    if (error) throw error;
+                } else {
+                    const uniqueId = Date.now().toString(36) + Math.random().toString(36).substring(2);
+                    const { error } = await db.from('jobs').insert([{ id: uniqueId, user_id: currentUserID, ...jobData }]);
+                    if (error) throw error;
+                }
+                closeJobModal();
+                showToast('Job saved successfully!');
+                loadJobs();
+            } catch (e) { showToast('Error saving job: ' + e.message, 'error'); }
+        }
+
+        function renderJobs() {
+            const tbody = document.getElementById('jobTableBody');
+            tbody.innerHTML = '';
+            jobs.forEach(job => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${job.job_name || "Untitled Job"}</strong></td>
+                    <td>${job.assigned_to || "Unassigned"}</td>
+                    <td>${job.priority || "Medium"}</td>
+                    <td>${job.status || "Open"}</td>
+                    <td>${job.deadline || "No Deadline"}</td>
+                    <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">${job.notes || "No notes"}</td>
+                    <td>
+                        <button class="btn btn-secondary" onclick="editJob('${job.id}')">Edit</button>
+                        <button class="btn btn-danger" onclick="deleteJob('${job.id}')" style="margin-left: 5px;">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function editJob(id) {
+            editingJobId = id;
+            const job = jobs.find(j => j.id === id);
+            if (!job) return;
+            document.getElementById('jobName').value = job.job_name;
+            document.getElementById('jobAssigned').value = job.assigned_to;
+            document.getElementById('jobPriority').value = job.priority;
+            document.getElementById('jobStatus').value = job.status;
+            document.getElementById('jobDeadline').value = job.deadline;
+            document.getElementById('jobNotes').value = job.notes;
+            document.getElementById('jobModal').style.display = 'flex';
+        }
+
+        async function deleteJob(id) {
+            if (confirm('Are you sure you want to delete this job?')) {
+                try {
+                    const { error } = await db.from('jobs').delete().eq('id', id);
+                    if (error) throw error;
+                    showToast('Job deleted.');
+                    loadJobs();
+                } catch (e) { showToast('Error deleting: ' + e.message, 'error'); }
+            }
         }
 
         function openEditModal(id) {
