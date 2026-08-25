@@ -27,14 +27,12 @@
         body[data-theme="medical"] { --bg: #f4f6fb; --card: #ffffff; --text: #1a202c; --muted: #64748b; --accent: #0ea5e9; --accent-2: #2563eb; --border: #e2e8f0; --critical: #dc2626; --good: #16a34a; --low: #d97706; background: #f4f6fb; }
         body[data-theme="aviation"] { --bg: #f8fafc; --card: #ffffff; --text: #0f172a; --muted: #475569; --accent: #f97316; --accent-2: #ef4444; --border: #e2e8f0; --critical: #dc2626; --good: #16a34a; --low: #f59e0b; background: #f8fafc; }
 
-        /* NAVBAR - MOBILE OPTIMIZED */
         .navbar { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 1000; }
         .logo-box { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.1rem; color: var(--text); }
         .logo-icon { width: 32px; height: 32px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.1rem; }
         .nav-actions { display: flex; gap: 8px; }
         .logout-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
 
-        /* CONTAINER - MOBILE FRIENDLY */
         .container { max-width: 100%; padding: 15px; }
         .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid var(--border); padding-bottom: 5px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
         .tab { padding: 10px 15px; color: var(--muted); font-weight: 500; border-radius: 8px 8px 0 0; transition: all 0.2s; white-space: nowrap; font-size: 0.95rem; }
@@ -46,6 +44,31 @@
         .stat-label { color: var(--muted); font-size: 0.75rem; margin-bottom: 5px; text-transform: uppercase; }
         .stat-number { font-size: 1.8rem; font-weight: 800; color: var(--text); }
 
+        /* LOW STOCK ALERT SECTION */
+        .alert-section { margin-bottom: 20px; display: none; }
+        .alert-section.active { display: block; }
+        .alert-card {
+            background: rgba(245, 158, 11, 0.15);
+            border: 2px solid var(--low);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            animation: pulseAlert 2s infinite;
+        }
+        .alert-info { display: flex; align-items: center; gap: 10px; }
+        .alert-icon { font-size: 1.5rem; color: var(--low); }
+        .alert-text strong { display: block; font-size: 1rem; color: var(--text); }
+        .alert-text span { font-size: 0.85rem; color: var(--low); }
+        .alert-dismiss-btn { background: transparent; border: none; color: var(--muted); font-size: 1.2rem; cursor: pointer; padding: 5px; }
+        @keyframes pulseAlert {
+            0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+        }
+
         .inventory-container { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 15px; overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; min-width: 600px; }
         th { text-align: left; padding: 10px; font-size: 0.7rem; color: var(--muted); text-transform: uppercase; border-bottom: 1px solid var(--border); }
@@ -56,7 +79,6 @@
         .status-low { background: rgba(251, 191, 36, 0.15); color: var(--low); }
         .status-critical { background: rgba(239, 68, 68, 0.15); color: var(--critical); }
 
-        /* BUTTONS - FINGER FRIENDLY */
         .btn { padding: 10px 15px; border-radius: 8px; border: none; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
         .btn-secondary { background: var(--border); color: var(--text); width: 100%; }
         .btn-secondary:hover { background: var(--accent); color: white; }
@@ -66,19 +88,15 @@
         .page-section { display: none; }
         .page-section.active { display: block; }
 
-        /* UPLOAD */
         .upload-card { background: var(--card); border: 2px dashed var(--border); border-radius: 12px; padding: 40px 15px; text-align: center; }
         .cloud-icon { font-size: 3rem; color: var(--muted); margin-bottom: 15px; }
         .spinner { border: 4px solid rgba(255,255,255,0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: var(--accent); animation: spin 1s linear infinite; display: inline-block; margin: 10px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* MODALS - MOBILE OPTIMIZED */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center; }
         .modal { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; width: 95%; max-width: 400px; max-height: 90vh; overflow-y: auto; }
         .modal h3 { margin-bottom: 15px; color: var(--text); font-size: 1.2rem; }
         .modal input, .modal select, .modal textarea { width: 100%; padding: 12px; margin-bottom: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 1rem; font-family: inherit; }
-        
-        /* GPS MAP - TOP PRIORITY */
         #map { height: 200px; width: 100%; border-radius: 12px; margin-bottom: 15px; border: 2px solid var(--border); }
         .modal-buttons { display: flex; gap: 10px; justify-content: stretch; margin-top: 10px; }
         .modal-buttons .btn { flex: 1; }
@@ -90,7 +108,6 @@
         .toast.alert { background: var(--low); color: #111; }
         @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        /* LOGIN - MOBILE OPTIMIZED */
         .auth-screen { display: flex; justify-content: center; align-items: center; min-height: 100vh; width: 100%; padding: 15px; }
         .auth-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 25px; width: 100%; max-width: 400px; text-align: center; }
         .auth-title { font-size: 1.3rem; margin-bottom: 5px; color: var(--text); }
@@ -99,7 +116,6 @@
         .switch-auth { color: var(--muted); font-size: 0.9rem; margin-top: 15px; }
         .switch-auth a { color: var(--accent); cursor: pointer; text-decoration: underline; font-weight: bold; }
         
-        /* INDUSTRY SELECTOR */
         .theme-selector { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
         .industry-btn { background: var(--card); border: 2px solid var(--border); border-radius: 12px; padding: 10px; cursor: pointer; transition: all 0.2s; width: 60px; height: 60px; }
         .industry-btn:hover { border-color: var(--accent); }
@@ -159,6 +175,13 @@
                     <div class="stat-card"><div class="stat-label">Total Items</div><div class="stat-number" id="totalItems">0</div></div>
                     <div class="stat-card"><div class="stat-label">Critical</div><div class="stat-number" id="lowStock" style="color: var(--critical);">0</div></div>
                 </div>
+
+                <!-- LOW STOCK ALERTS -->
+                <div class="alert-section" id="alertSection">
+                    <h3 style="margin-bottom: 10px;">🚨 Low Stock Alerts</h3>
+                    <div id="alertContainer"></div>
+                </div>
+
                 <div class="inventory-container">
                     <h3 style="margin-bottom: 10px; font-size: 1.1rem;">Inventory</h3>
                     <table>
@@ -469,19 +492,73 @@
             const tbody = document.getElementById('inventoryTableBody');
             tbody.innerHTML = '';
             let total = 0, critical = 0;
-            let itemsToAlert = [];
+            let lowStockItems = [];
+
             inventory.forEach(item => {
                 total += item.qty || 0;
                 if (item.status === 'Critical' || item.repair_needed === 'true') critical++;
-                if (item.qty <= item.minStock) itemsToAlert.push(item);
+                
+                // Identify low stock items
+                if (item.qty <= item.minStock) {
+                    lowStockItems.push(item);
+                }
+
                 const tr = document.createElement('tr');
                 let statusClass = item.status === 'Critical' ? 'status-critical' : (item.qty <= item.minStock ? 'status-low' : 'status-instock');
                 tr.innerHTML = `<td><strong>${item.manufacturer || "Unknown"}</strong><br><span style="color: var(--muted); font-size: 0.8rem;">${item.name}</span></td><td>${item.item_type || "Reusable"}</td><td>${item.qty}</td><td><span class="status-badge ${statusClass}">${item.status}</span></td>`;
                 tbody.appendChild(tr);
             });
+
             document.getElementById('totalItems').innerText = total;
             document.getElementById('lowStock').innerText = critical;
-            if (itemsToAlert.length > 0) itemsToAlert.forEach(item => showToast(`ALERT: ${item.name} is LOW STOCK`, 'alert'));
+            
+            // Render Low Stock Alerts
+            renderLowStockAlerts(lowStockItems);
+        }
+
+        function renderLowStockAlerts(lowStockItems) {
+            const alertSection = document.getElementById('alertSection');
+            const alertContainer = document.getElementById('alertContainer');
+            const storageKey = 'visiontory_seen_alerts_' + currentUserID;
+            let seenAlerts = JSON.parse(localStorage.getItem(storageKey) || '[]');
+
+            // Filter out already seen alerts
+            let newAlerts = lowStockItems.filter(item => !seenAlerts.includes(item.id));
+
+            if (newAlerts.length > 0) {
+                alertSection.classList.add('active');
+                alertContainer.innerHTML = '';
+                
+                newAlerts.forEach(item => {
+                    const alertDiv = document.createElement('div');
+                    alertDiv.className = 'alert-card';
+                    alertDiv.innerHTML = `
+                        <div class="alert-info">
+                            <span class="alert-icon">⚠️</span>
+                            <div class="alert-text">
+                                <strong>${item.name || "Item"}</strong>
+                                <span>Only ${item.qty} left! Min stock: ${item.minStock}</span>
+                            </div>
+                        </div>
+                        <button class="alert-dismiss-btn" onclick="dismissAlert('${item.id}')">×</button>
+                    `;
+                    alertContainer.appendChild(alertDiv);
+                });
+            } else {
+                alertSection.classList.remove('active');
+            }
+        }
+
+        function dismissAlert(itemId) {
+            const storageKey = 'visiontory_seen_alerts_' + currentUserID;
+            let seenAlerts = JSON.parse(localStorage.getItem(storageKey) || '[]');
+            if (!seenAlerts.includes(itemId)) {
+                seenAlerts.push(itemId);
+                localStorage.setItem(storageKey, JSON.stringify(seenAlerts));
+            }
+            
+            // Re-render to remove the alert
+            renderLowStockAlerts(inventory.filter(item => item.qty <= item.minStock));
         }
 
         async function deleteItem(id) { if (confirm('Delete this item?')) await deleteItemFromDB(id); }
