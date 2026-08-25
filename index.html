@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>VisionTory.ai - Industrial Asset Intelligence</title>
+    <title>VisionTory.ai - AI Asset Intelligence</title>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://js.puter.com/v2/"></script>
@@ -18,146 +18,88 @@
 
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #e5e7eb; transition: all 0.3s ease; min-height: 100vh; }
+        body { font-family: 'Inter', sans-serif; background: #0f1117; color: #e5e7eb; min-height: 100vh; transition: all 0.3s ease; }
 
-        body[data-theme="industrial"] {
-            --bg: #0f1117; --card: #1a1d29; --text: #f5f5f5; --muted: #9ca3af; --accent: #d946ef; --accent-2: #8b5cf6; --border: #2d3142; --critical: #ef4444; --good: #10b981; --low: #f59e0b;
-            background: repeating-linear-gradient(45deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 2px, transparent 2px, transparent 4px), repeating-linear-gradient(-45deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 2px, transparent 2px, transparent 4px), linear-gradient(135deg, #111111 0%, #1a1a1a 50%, #222222 100%);
-        }
+        body[data-theme="industrial"] { --bg: #0f1117; --card: #1a1d29; --text: #f5f5f5; --muted: #9ca3af; --accent: #d946ef; --accent-2: #8b5cf6; --border: #2d3142; --critical: #ef4444; --good: #10b981; --low: #f59e0b; background: repeating-linear-gradient(45deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 2px, transparent 2px, transparent 4px), repeating-linear-gradient(-45deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 2px, transparent 2px, transparent 4px), linear-gradient(135deg, #111111 0%, #1a1a1a 50%, #222222 100%); }
         body[data-theme="medical"] { --bg: #f4f6fb; --card: #ffffff; --text: #1a202c; --muted: #64748b; --accent: #0ea5e9; --accent-2: #2563eb; --border: #e2e8f0; --critical: #dc2626; --good: #16a34a; --low: #d97706; background: #f4f6fb; }
         body[data-theme="aviation"] { --bg: #f8fafc; --card: #ffffff; --text: #0f172a; --muted: #475569; --accent: #f97316; --accent-2: #ef4444; --border: #e2e8f0; --critical: #dc2626; --good: #16a34a; --low: #f59e0b; background: #f8fafc; }
 
         .navbar { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 1000; }
         .logo-box { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.1rem; color: var(--text); }
         .logo-icon { width: 32px; height: 32px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.1rem; }
-        .nav-actions { display: flex; gap: 8px; }
         .logout-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
+        .dropdown { background: var(--border); border: none; color: var(--text); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; margin-right: 8px; }
 
-        .container { max-width: 100%; padding: 15px; position: relative; z-index: 2; }
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid var(--border); padding-bottom: 5px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-        .tab { padding: 10px 15px; color: var(--muted); font-weight: 500; border-radius: 8px 8px 0 0; transition: all 0.2s; white-space: nowrap; font-size: 0.95rem; }
-        .tab.active { color: var(--accent); border-bottom: 2px solid var(--accent); background: linear-gradient(to top, rgba(217, 70, 239, 0.1), transparent); }
+        .container { max-width: 900px; margin: 0 auto; padding: 15px; position: relative; z-index: 2; }
 
-        .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
-        .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 15px; position: relative; overflow: hidden; }
-        .stat-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
-        .stat-label { color: var(--muted); font-size: 0.75rem; margin-bottom: 5px; text-transform: uppercase; }
+        .auth-screen { display: flex; justify-content: center; align-items: center; min-height: 100vh; width: 100%; padding: 15px; }
+        .auth-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 25px; width: 100%; max-width: 400px; text-align: center; }
+        .auth-title { font-size: 1.3rem; margin-bottom: 15px; color: var(--text); }
+        .auth-input { width: 100%; padding: 14px; margin-bottom: 15px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 1rem; }
+        .auth-btn { width: 100%; padding: 15px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); border: none; color: white; border-radius: 8px; font-size: 1rem; cursor: pointer; font-weight: 600; margin-bottom: 10px; }
+        .switch-auth { color: var(--muted); font-size: 0.9rem; margin-top: 10px; }
+        .switch-auth a { color: var(--accent); cursor: pointer; font-weight: bold; text-decoration: underline; }
+
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; }
+        .tab { padding: 10px 15px; color: var(--muted); cursor: pointer; border-radius: 8px; white-space: nowrap; }
+        .tab.active { color: var(--text); background: var(--border); }
+
+        .stats { display: flex; gap: 10px; margin-bottom: 20px; }
+        .stat-card { flex: 1; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 15px; text-align: center; }
         .stat-number { font-size: 1.8rem; font-weight: 800; color: var(--text); }
 
-        .alert-section { margin-bottom: 20px; display: none; }
-        .alert-section.active { display: block; }
-        .alert-card {
-            background: rgba(245, 158, 11, 0.15);
-            border: 2px solid var(--low);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .alert-card.critical-consumable {
-            background: rgba(239, 68, 68, 0.15);
-            border: 2px solid var(--critical);
-            animation: pulseAlertCritical 2s infinite;
-        }
-        .alert-info { display: flex; align-items: center; gap: 10px; }
-        .alert-icon { font-size: 1.5rem; }
-        .alert-card.critical-consumable .alert-icon { color: var(--critical); }
-        .alert-card .alert-icon { color: var(--low); }
-        .alert-text strong { display: block; font-size: 1rem; color: var(--text); }
-        .alert-text span { font-size: 0.85rem; color: var(--low); }
-        .alert-card.critical-consumable .alert-text span { color: var(--critical); }
-        .alert-dismiss-btn { background: transparent; border: none; color: var(--muted); font-size: 1.2rem; cursor: pointer; padding: 5px; }
-        @keyframes pulseAlertCritical { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+        table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
+        th { background: var(--border); text-align: left; padding: 10px; color: var(--muted); font-size: 0.8rem; }
+        td { padding: 10px; border-bottom: 1px solid var(--border); font-size: 0.9rem; color: var(--text); }
 
-        .inventory-container { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 15px; overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; min-width: 600px; }
-        th { text-align: left; padding: 10px; font-size: 0.7rem; color: var(--muted); text-transform: uppercase; border-bottom: 1px solid var(--border); }
-        td { padding: 10px; border-bottom: 1px solid var(--border); color: var(--text); font-size: 0.9rem; }
+        .btn-secondary { background: var(--border); color: var(--text); padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer; font-size: 0.8rem; margin-right: 5px; }
+        .btn-danger { background: var(--critical); color: white; padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer; font-size: 0.8rem; }
 
-        .section-header { padding: 10px; border-radius: 8px; margin: 20px 0 10px; font-size: 1rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
-        .header-consumable { background: rgba(16, 185, 129, 0.15); color: var(--good); border-left: 5px solid var(--good); }
-        .header-reusable { background: rgba(139, 92, 246, 0.15); color: var(--accent-2); border-left: 5px solid var(--accent-2); }
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: white; padding: 15px; border-radius: 8px; border: none; font-size: 1rem; width: 100%; margin-top: 10px; cursor: pointer; }
 
-        .status-badge { display: inline-flex; align-items: center; padding: 4px 8px; border-radius: 100px; font-size: 0.7rem; font-weight: 600; }
-        .status-instock { background: rgba(16, 185, 129, 0.15); color: var(--good); }
-        .status-low { background: rgba(251, 191, 36, 0.15); color: var(--low); }
-        .status-critical { background: rgba(239, 68, 68, 0.15); color: var(--critical); }
-
-        .btn { padding: 10px 15px; border-radius: 8px; border: none; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
-        .btn-secondary { background: var(--border); color: var(--text); width: 100%; }
-        .btn-secondary:hover { background: var(--accent); color: white; }
-        .btn-danger { background: var(--critical); color: white; width: 100%; }
-        .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: white; padding: 15px 30px; font-size: 1rem; border-radius: 30px; width: 100%; margin-top: 10px; }
-
-        .page-section { display: none; position: relative; }
-        .page-section.active { display: block; }
-
-        /* MATRIX RAIN BACKGROUND */
-        #matrixCanvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; opacity: 0; transition: opacity 0.5s; pointer-events: none; }
-        .page-section.active #matrixCanvas { opacity: 0.2; }
-
-        .upload-card { background: rgba(26, 29, 41, 0.85); border: 2px dashed var(--border); border-radius: 12px; padding: 40px 15px; text-align: center; position: relative; z-index: 2; }
+        .upload-card { background: var(--card); border: 2px dashed var(--border); border-radius: 12px; padding: 40px 15px; text-align: center; position: relative; z-index: 2; }
         .cloud-icon { font-size: 3rem; color: var(--muted); margin-bottom: 15px; }
         .spinner { border: 4px solid rgba(255,255,255,0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: var(--accent); animation: spin 1s linear infinite; display: inline-block; margin: 10px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center; }
-        .modal { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; width: 95%; max-width: 400px; max-height: 90vh; overflow-y: auto; }
-        .modal h3 { margin-bottom: 15px; color: var(--text); font-size: 1.2rem; }
-        .modal input, .modal select, .modal textarea { width: 100%; padding: 12px; margin-bottom: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 1rem; font-family: inherit; }
-        #map { height: 200px; width: 100%; border-radius: 12px; margin-bottom: 15px; border: 2px solid var(--border); }
-        .modal-buttons { display: flex; gap: 10px; justify-content: stretch; margin-top: 10px; }
-        .modal-buttons .btn { flex: 1; }
+        .modal { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; width: 90%; max-width: 400px; }
+        #map { height: 200px; width: 100%; border-radius: 8px; margin-bottom: 15px; }
+        input, select, textarea { width: 100%; padding: 12px; margin-bottom: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 1rem; font-family: inherit; }
 
-        .chat-container { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 15px; height: 70vh; display: flex; flex-direction: column; }
-        .chat-messages { flex: 1; overflow-y: auto; margin-bottom: 10px; padding-right: 5px; }
-        .message { margin-bottom: 12px; max-width: 80%; padding: 10px 15px; border-radius: 12px; font-size: 0.9rem; line-height: 1.4; }
-        .message.user { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: white; margin-left: auto; border-bottom-right-radius: 4px; }
-        .message.ai { background: var(--bg); border: 1px solid var(--border); color: var(--text); border-bottom-left-radius: 4px; }
-        .chat-input-group { display: flex; gap: 10px; }
-        .chat-input { flex: 1; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 1rem; }
-        .send-btn { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: white; border: none; border-radius: 8px; width: 50px; font-size: 1.2rem; cursor: pointer; }
+        .alert-section { margin-bottom: 20px; display: none; }
+        .alert-section.active { display: block; }
+        .alert-card { background: rgba(245, 158, 11, 0.15); border: 2px solid var(--low); border-radius: 12px; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .alert-card.critical-consumable { background: rgba(239, 68, 68, 0.15); border: 2px solid var(--critical); animation: pulseAlert 2s infinite; }
+        .alert-text strong { display: block; font-size: 1rem; color: var(--text); }
+        .alert-text span { font-size: 0.85rem; }
+        .alert-card.critical-consumable .alert-text span { color: var(--critical); }
+        .alert-card .alert-text span { color: var(--low); }
+        .alert-dismiss-btn { background: transparent; border: none; color: var(--muted); font-size: 1.2rem; cursor: pointer; }
+        @keyframes pulseAlert { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
 
-        .toast-container { position: fixed; top: 10px; left: 10px; right: 10px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
-        .toast { padding: 15px; border-radius: 8px; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.2); animation: slideIn 0.3s ease-out; }
-        .toast.success { background: var(--good); color: white; }
-        .toast.error { background: var(--critical); color: white; }
-        .toast.alert { background: var(--low); color: #111; }
-        @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .section-header { padding: 10px; border-radius: 8px; margin-bottom: 10px; font-weight: 700; }
+        .header-consumable { background: rgba(16, 185, 129, 0.15); color: var(--good); border-left: 5px solid var(--good); }
+        .header-reusable { background: rgba(139, 92, 246, 0.15); color: var(--accent-2); border-left: 5px solid var(--accent-2); }
 
-        .auth-screen { display: flex; justify-content: center; align-items: center; min-height: 100vh; width: 100%; padding: 15px; }
-        .auth-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 25px; width: 100%; max-width: 400px; text-align: center; }
-        .auth-title { font-size: 1.3rem; margin-bottom: 5px; color: var(--text); }
-        .auth-input { width: 100%; padding: 14px; margin-bottom: 15px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 1rem; }
-        .auth-btn { width: 100%; padding: 15px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); border: none; color: white; border-radius: 8px; font-size: 1rem; cursor: pointer; font-weight: 500; margin-bottom: 10px; }
-        .switch-auth { color: var(--muted); font-size: 0.9rem; margin-top: 15px; }
-        .switch-auth a { color: var(--accent); cursor: pointer; text-decoration: underline; font-weight: bold; }
-        
-        .theme-selector { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
-        .industry-btn { background: var(--card); border: 2px solid var(--border); border-radius: 12px; padding: 10px; cursor: pointer; transition: all 0.2s; width: 60px; height: 60px; }
-        .industry-btn:hover { border-color: var(--accent); }
-        .industry-btn.selected { border-color: var(--accent); background: rgba(217, 70, 239, 0.1); }
-        .industry-icon { font-size: 1.8rem; }
+        .chat-messages { height: 50vh; overflow-y: auto; padding: 10px; background: var(--bg); border-radius: 8px; margin-bottom: 10px; }
+        .message { margin-bottom: 12px; max-width: 80%; padding: 10px 15px; border-radius: 12px; font-size: 0.9rem; }
+        .message.user { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: white; margin-left: auto; }
+        .message.ai { background: var(--border); color: var(--text); }
+
+        #matrixCanvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; opacity: 0; transition: opacity 0.5s; pointer-events: none; }
     </style>
 </head>
-<body data-theme="industrial">
+<body>
 
     <!-- LOGIN -->
     <div id="loginScreen" class="auth-screen">
         <div class="auth-card">
-            <div class="auth-logo">👤</div>
             <div class="auth-title">VisionTory.ai</div>
-            <div class="auth-sub" style="color: var(--muted); margin-bottom: 20px;">Select your industry below</div>
-            <div class="theme-selector">
-                <button class="industry-btn" onclick="selectTheme('industrial')"><span class="industry-icon">🏭</span></button>
-                <button class="industry-btn" onclick="selectTheme('medical')"><span class="industry-icon">🏥</span></button>
-                <button class="industry-btn" onclick="selectTheme('aviation')"><span class="industry-icon">✈️</span></button>
-            </div>
             <input type="email" id="loginEmail" class="auth-input" placeholder="Email address">
             <input type="password" id="loginPassword" class="auth-input" placeholder="Password">
-            <button type="button" class="auth-btn" onclick="handleLogin()">Login</button>
+            <button class="auth-btn" onclick="handleLogin()">Login</button>
             <div class="switch-auth">Don't have an account? <a onclick="showSignUp()">Sign Up</a></div>
         </div>
     </div>
@@ -165,34 +107,40 @@
     <!-- SIGN UP -->
     <div id="signUpScreen" class="auth-screen" style="display: none;">
         <div class="auth-card">
-            <div class="auth-logo">✍️</div>
             <div class="auth-title">Create Account</div>
-            <div class="auth-sub" style="color: var(--muted); margin-bottom: 20px;">Join VisionTory.ai</div>
             <input type="email" id="signUpEmail" class="auth-input" placeholder="Email address">
             <input type="password" id="signUpPassword" class="auth-input" placeholder="Password">
-            <button type="button" class="auth-btn" onclick="handleSignUp()">Sign Up</button>
+            <button class="auth-btn" onclick="handleSignUp()">Sign Up</button>
             <div class="switch-auth">Already have an account? <a onclick="showLogin()">Login</a></div>
         </div>
     </div>
 
-    <!-- APP SCREEN -->
-    <div id="appScreen" class="main-container" style="display: none;">
+    <!-- APP -->
+    <div id="appScreen" style="display: none;">
         <nav class="navbar">
             <div class="logo-box"><div class="logo-icon">V</div><span>VisionTory.ai</span></div>
-            <div class="nav-actions"><button class="logout-btn" onclick="handleLogout()">Logout</button></div>
+            <div>
+                <select class="dropdown" onchange="changeTheme(this.value)">
+                    <option value="industrial">🏭 Industrial</option>
+                    <option value="medical">🏥 Medical</option>
+                    <option value="aviation">✈️ Aviation</option>
+                </select>
+                <button class="logout-btn" onclick="handleLogout()">Logout</button>
+            </div>
         </nav>
 
         <div class="container">
             <div class="tabs">
                 <div class="tab active" onclick="switchTab('dashboard')">Dashboard</div>
-                <div class="tab" onclick="switchTab('upload')">Scan</div>
+                <div class="tab" onclick="switchTab('scan')">Scan</div>
                 <div class="tab" onclick="switchTab('jobs')">Jobs</div>
-                <div class="tab" onclick="switchTab('chat')">Vizi Chat</div>
+                <div class="tab" onclick="switchTab('chat')">Vizi</div>
             </div>
 
-            <div id="dashboard" class="page-section active">
+            <!-- DASHBOARD -->
+            <div id="dashboard" class="page-section" style="display: block;">
                 <div class="stats">
-                    <div class="stat-card"><div class="stat-label">Total Items</div><div class="stat-number" id="totalItems">0</div></div>
+                    <div class="stat-card"><div class="stat-label">Items</div><div class="stat-number" id="totalItems">0</div></div>
                     <div class="stat-card"><div class="stat-label">Critical</div><div class="stat-number" id="lowStock" style="color: var(--critical);">0</div></div>
                 </div>
 
@@ -201,631 +149,310 @@
                     <div id="alertContainer"></div>
                 </div>
 
-                <div class="section-header header-consumable">
-                    🧤 Consumable Materials
-                </div>
-                <div class="inventory-container">
-                    <table>
-                        <thead><tr><th>Item</th><th>Category</th><th>Qty</th><th>Status</th></tr></thead>
-                        <tbody id="consumableTableBody"></tbody>
-                    </table>
-                </div>
+                <div class="section-header header-consumable">🧤 Consumable Materials</div>
+                <table>
+                    <thead><tr><th>Item</th><th>Category</th><th>Qty</th><th>Actions</th></tr></thead>
+                    <tbody id="consumableTableBody"></tbody>
+                </table>
 
-                <div class="section-header header-reusable">
-                    🔧 Reusable Tools
-                </div>
-                <div class="inventory-container">
-                    <table>
-                        <thead><tr><th>Item</th><th>Category</th><th>Qty</th><th>Status</th></tr></thead>
-                        <tbody id="reusableTableBody"></tbody>
-                    </table>
-                </div>
+                <div class="section-header header-reusable" style="margin-top: 20px;">🔧 Reusable Tools</div>
+                <table>
+                    <thead><tr><th>Item</th><th>Category</th><th>Qty</th><th>Actions</th></tr></thead>
+                    <tbody id="reusableTableBody"></tbody>
+                </table>
             </div>
 
-            <div id="upload" class="page-section">
-                <canvas id="matrixCanvas"></canvas>
-                
+            <!-- SCAN -->
+            <div id="scan" class="page-section">
                 <div class="upload-card" id="dropZone">
                     <span class="cloud-icon">☁️</span>
                     <h3 style="font-size: 1.1rem;">Scan Equipment</h3>
-                    <button type="button" class="btn btn-primary browse-btn" id="browseBtn">📂 Browse Files</button>
-                    <input type="file" id="fileInput" accept=".csv,.xlsx,.json,image/*" style="display: none;" multiple>
+                    <button class="btn-primary" id="browseBtn">📂 Browse Files</button>
+                    <input type="file" id="fileInput" style="display: none;" accept="image/*">
                     <div id="loadingIndicator" style="display: none; margin-top: 20px;"><div class="spinner"></div><p style="color: var(--muted);">AI is inspecting...</p></div>
                 </div>
             </div>
 
+            <!-- JOBS -->
             <div id="jobs" class="page-section">
-                <div style="margin-bottom: 15px;">
-                    <h2 style="font-size: 1.2rem;">Jobs</h2>
-                    <button class="btn btn-primary" onclick="openJobModal()" style="margin-top: 10px;">+ New Job</button>
+                <div class="card">
+                    <h3 style="margin-bottom: 15px;">Create Job</h3>
+                    <input type="text" id="jobName" placeholder="Job Name">
+                    <input type="text" id="jobAssigned" placeholder="Assigned To">
+                    <input type="text" id="jobLocation" placeholder="Job Location" oninput="updateMap()">
+                    <div id="map"></div>
+                    <select id="jobPriority"><option value="Low">Low</option><option value="Medium">Medium</option><option value="High">High</option><option value="Critical">Critical</option></select>
+                    <button class="btn-primary" onclick="addJob()">Save Job</button>
                 </div>
-                <div class="inventory-container">
-                    <table>
-                        <thead><tr><th>Job</th><th>Location</th><th>Status</th><th>Actions</th></tr></thead>
-                        <tbody id="jobTableBody"></tbody>
-                    </table>
-                </div>
+                <table>
+                    <thead><tr><th>Job</th><th>Location</th><th>Status</th></tr></thead>
+                    <tbody id="jobsTableBody"></tbody>
+                </table>
             </div>
 
+            <!-- CHAT -->
             <div id="chat" class="page-section">
-                <div class="chat-container">
+                <div class="card">
                     <h3 style="margin-bottom: 10px;">💬 Vizi - VisionTory Assistant</h3>
                     <div class="chat-messages" id="chatMessages">
-                        <div class="message ai">Hello! I am Vizi. Ask me about your inventory, jobs, or to scan items!</div>
+                        <div class="message ai">Hello! I am Vizi. Ask me about your inventory!</div>
                     </div>
-                    <div class="chat-input-group">
-                        <input type="text" id="chatInput" class="chat-input" placeholder="Ask Vizi to perform a task..." onkeydown="if(event.key==='Enter') sendChat()">
-                        <button class="send-btn" onclick="sendChat()">➤</button>
+                    <div style="display: flex; gap: 10px; padding-top: 10px; border-top: 1px solid var(--border);">
+                        <input type="text" id="chatInput" placeholder="Ask Vizi..." onkeydown="if(event.key==='Enter') sendChat()" style="margin-bottom: 0;">
+                        <button class="btn-primary" onclick="sendChat()" style="width: auto; padding: 12px; margin-top: 0;">➤</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- JOB MODAL (GPS MAP AT TOP) -->
-    <div class="modal-overlay" id="jobModal">
-        <div class="modal">
-            <h3>Create Job</h3>
-            <input type="text" id="jobLocationInput" placeholder="Enter Job Location (e.g. Johannesburg)" oninput="updateMapLocation()">
-            <div id="map"></div>
-            <input type="text" id="jobName" placeholder="Job Name">
-            <input type="text" id="jobAssigned" placeholder="Assigned To">
-            <select id="jobPriority"><option value="Low">Low</option><option value="Medium">Medium</option><option value="High">High</option><option value="Critical">Critical</option></select>
-            <select id="jobStatus"><option value="Open">Open</option><option value="In Progress">In Progress</option><option value="Completed">Completed</option></select>
-            <input type="date" id="jobDeadline">
-            <textarea id="jobNotes" placeholder="Job Notes" rows="3"></textarea>
-            <div class="modal-buttons">
-                <button class="btn btn-secondary" onclick="closeJobModal()">Cancel</button>
-                <button class="btn btn-danger" onclick="saveJob()">Create Card</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- EDIT BRAND MODAL -->
-    <div class="modal-overlay" id="modalOverlay">
-        <div class="modal">
-            <h3>Edit Brand</h3>
-            <input type="text" id="editBrandInput" placeholder="e.g. Casio, Caterpillar">
-            <div class="modal-buttons">
-                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                <button class="btn btn-danger" onclick="saveBrandEdit()">Save</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="toast-container" id="toastContainer"></div>
-
     <script>
-        let currentIndustry = localStorage.getItem('visiontory_industry') || 'industrial';
-        let currentUserID = null;
+        let currentTheme = 'industrial';
+        let user = null;
         let inventory = [];
         let jobs = [];
-        let editingItemId = null;
-        let editingJobId = null;
         let map, marker;
+        let matrixInterval;
 
-        document.body.setAttribute('data-theme', currentIndustry);
+        document.body.setAttribute('data-theme', currentTheme);
 
-        function selectTheme(industry) {
-            currentIndustry = industry;
-            localStorage.setItem('visiontory_industry', industry);
-            document.body.setAttribute('data-theme', industry);
-            document.querySelectorAll('.industry-btn').forEach(b => b.classList.remove('selected'));
-            event.currentTarget.classList.add('selected');
+        function changeTheme(theme) {
+            currentTheme = theme;
+            localStorage.setItem('visiontory_theme', theme);
+            document.body.setAttribute('data-theme', theme);
         }
 
-        function showToast(message, type='success') {
-            const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            toast.innerText = message;
-            container.appendChild(toast);
-            setTimeout(() => toast.remove(), 4000);
-        }
+        function showSignUp() { document.getElementById('loginScreen').style.display = 'none'; document.getElementById('signUpScreen').style.display = 'flex'; }
+        function showLogin() { document.getElementById('signUpScreen').style.display = 'none'; document.getElementById('loginScreen').style.display = 'flex'; }
 
-        // SUPABASE AUTH
         async function handleLogin() {
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
-            const { error } = await db.auth.signInWithPassword({ email, password });
-            if (error) showToast('Login failed: ' + error.message, 'error');
-            else onAuthSuccess();
+            const { data, error } = await db.auth.signInWithPassword({ email, password });
+            if (error) { alert('Login Failed: ' + error.message); return; }
+            user = data.user;
+            enterApp();
         }
 
         async function handleSignUp() {
             const email = document.getElementById('signUpEmail').value;
             const password = document.getElementById('signUpPassword').value;
             const { data, error } = await db.auth.signUp({ email, password });
-            if (error) showToast('Sign up failed: ' + error.message, 'error');
-            else showToast('Account created!');
+            if (error) { alert('Sign Up Failed: ' + error.message); return; }
+            alert('Account created! Please log in.');
+            showLogin();
         }
 
-        async function onAuthSuccess() {
-            const { data: { user } } = await db.auth.getUser();
-            currentUserID = user.id; 
+        async function handleLogout() { await db.auth.signOut(); window.location.reload(); }
+        async function checkAuth() { const { data } = await db.auth.getUser(); if (data.user) { user = data.user; enterApp(); } }
+        
+        async function enterApp() {
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('signUpScreen').style.display = 'none';
             document.getElementById('appScreen').style.display = 'block';
-            loadInventory();
-            loadJobs();
-            showToast('Welcome back!');
+            await loadData();
         }
 
-        async function handleLogout() {
-            await db.auth.signOut();
-            document.getElementById('appScreen').style.display = 'none';
-            document.getElementById('loginScreen').style.display = 'flex';
-        }
-
-        function showSignUp() { document.getElementById('loginScreen').style.display = 'none'; document.getElementById('signUpScreen').style.display = 'flex'; }
-        function showLogin() { document.getElementById('signUpScreen').style.display = 'none'; document.getElementById('loginScreen').style.display = 'flex'; }
-
-        async function checkAuth() {
-            const { data: { user } } = await db.auth.getUser();
-            if (user) onAuthSuccess();
-            else { document.getElementById('loginScreen').style.display = 'flex'; document.getElementById('appScreen').style.display = 'none'; }
-        }
-
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.page-section').forEach(p => p.style.display = 'none');
+            document.getElementById(tab).style.display = 'block';
             
-            if(tabId === 'upload') initMatrix();
-            else stopMatrix();
-            
-            if(tabId === 'dashboard') renderDashboard();
-            if(tabId === 'jobs') renderJobs();
+            if(tab === 'dashboard') document.querySelectorAll('.tab')[0].classList.add('active');
+            if(tab === 'scan') { document.querySelectorAll('.tab')[1].classList.add('active'); startMatrix(); }
+            if(tab === 'jobs') { document.querySelectorAll('.tab')[2].classList.add('active'); stopMatrix(); setTimeout(initMap, 100); }
+            if(tab === 'chat') { document.querySelectorAll('.tab')[3].classList.add('active'); stopMatrix(); }
         }
 
-        // SUPABASE DATA (Industry Independent)
-        async function loadInventory() {
-            try {
-                const { data, error } = await db.from('inventory')
-                    .select('*')
-                    .eq('user_id', currentUserID)
-                    .eq('industry', currentIndustry);
-                if (error) throw error;
-                inventory = data || [];
-            } catch (e) { inventory = []; }
-            renderDashboard();
-        }
-
-        async function addItemToDB(newItem) {
-            try {
-                const uniqueId = Date.now().toString(36) + Math.random().toString(36).substring(2);
-                const { error } = await db.from('inventory')
-                    .insert([{ id: uniqueId, user_id: currentUserID, industry: currentIndustry, manufacturer: newItem.manufacturer, name: newItem.name, category: newItem.category, item_type: newItem.item_type, qty: newItem.qty, minStock: newItem.minStock, status: newItem.status, condition: newItem.condition, repair_needed: newItem.repair_needed, report: newItem.report }]);
-                if (error) throw error;
-                showToast('Item saved to cloud!');
-                loadInventory();
-            } catch (e) { showToast('Error saving to DB: ' + e.message, 'error'); }
-        }
-
-        async function deleteItemFromDB(id) {
-            try {
-                const { error } = await db.from('inventory').delete().eq('id', id);
-                if (error) throw error;
-                showToast('Item deleted from cloud.');
-                loadInventory();
-            } catch (e) { showToast('Error deleting: ' + e.message, 'error'); }
-        }
-
-        // JOBS + GPS (Industry Independent)
-        async function loadJobs() {
-            try {
-                const { data, error } = await db.from('jobs')
-                    .select('*')
-                    .eq('user_id', currentUserID)
-                    .eq('industry', currentIndustry);
-                if (error) throw error;
-                jobs = data || [];
-            } catch (e) { jobs = []; }
+        async function loadData() {
+            const inv = await db.from('inventory').select('*').eq('user_id', user.id);
+            inventory = inv.data || [];
+            const job = await db.from('jobs').select('*').eq('user_id', user.id);
+            jobs = job.data || [];
+            renderInventory();
             renderJobs();
         }
 
-        function openJobModal() {
-            editingJobId = null;
-            document.getElementById('jobName').value = '';
-            document.getElementById('jobAssigned').value = '';
-            document.getElementById('jobLocationInput').value = '';
-            document.getElementById('jobPriority').value = 'Medium';
-            document.getElementById('jobStatus').value = 'Open';
-            document.getElementById('jobDeadline').value = '';
-            document.getElementById('jobNotes').value = '';
-            document.getElementById('jobModal').style.display = 'flex';
+        function renderInventory() {
+            const consumableTbody = document.getElementById('consumableTableBody');
+            const reusableTbody = document.getElementById('reusableTableBody');
+            consumableTbody.innerHTML = '';
+            reusableTbody.innerHTML = '';
+            let total = 0;
+            let alerts = [];
             
-            setTimeout(() => {
-                if (!map) {
-                    map = L.map('map').setView([-26.2041, 28.0473], 6);
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
-                } else {
-                    map.invalidateSize();
-                }
-            }, 100);
+            inventory.forEach(i => {
+                total += i.qty || 0;
+                if (i.qty <= i.minStock) alerts.push(i);
+                const row = `<tr><td>${i.manufacturer || "Unknown"} ${i.name || ""}</td><td>${i.category || "-"}</td><td>${i.qty || 0}</td><td><button class="btn-secondary" onclick="editItem('${i.id}')">Edit</button> <button class="btn-danger" onclick="deleteItem('${i.id}')">Del</button></td></tr>`;
+                if (i.item_type === 'Consumable') consumableTbody.innerHTML += row;
+                else reusableTbody.innerHTML += row;
+            });
+            document.getElementById('totalItems').innerText = total;
+            document.getElementById('lowStock').innerText = alerts.length;
+            renderAlerts(alerts);
         }
 
-        function closeJobModal() { document.getElementById('jobModal').style.display = 'none'; }
-
-        function updateMapLocation() {
-            const location = document.getElementById('jobLocationInput').value;
-            if (!location || !map) return;
-            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.length > 0) {
-                        const lat = parseFloat(data[0].lat);
-                        const lon = parseFloat(data[0].lon);
-                        if (!marker) { marker = L.marker([lat, lon]).addTo(map); }
-                        else { marker.setLatLng([lat, lon]); }
-                        map.setView([lat, lon], 12);
-                    } else {
-                        showToast('Location not found. Try again.', 'error');
-                    }
-                }).catch(err => console.error(err));
+        async function editItem(id) {
+            const item = inventory.find(i => i.id === id);
+            if (!item) return;
+            const newQty = prompt("Update quantity for " + (item.name || "this item"), item.qty);
+            if (newQty !== null) {
+                await db.from('inventory').update({ qty: parseInt(newQty) }).eq('id', id);
+                await loadData();
+            }
         }
 
-        async function saveJob() {
-            const jobData = {
-                job_name: document.getElementById('jobName').value,
-                assigned_to: document.getElementById('jobAssigned').value,
-                job_location: document.getElementById('jobLocationInput').value,
-                priority: document.getElementById('jobPriority').value,
-                status: document.getElementById('jobStatus').value,
-                deadline: document.getElementById('jobDeadline').value,
-                notes: document.getElementById('jobNotes').value
-            };
+        async function deleteItem(id) {
+            if (confirm("Delete this item?")) {
+                await db.from('inventory').delete().eq('id', id);
+                await loadData();
+            }
+        }
+
+        function renderAlerts(items) {
+            const alertSection = document.getElementById('alertSection');
+            const alertContainer = document.getElementById('alertContainer');
+            const storageKey = 'seen_alerts_' + user.id;
+            let seen = JSON.parse(localStorage.getItem(storageKey) || '[]');
+            let newAlerts = items.filter(i => !seen.includes(i.id));
             
-            try {
-                if (editingJobId) {
-                    const { error } = await db.from('jobs').update(jobData).eq('id', editingJobId);
-                    if (error) throw error;
-                } else {
-                    const uniqueId = Date.now().toString(36) + Math.random().toString(36).substring(2);
-                    const { error } = await db.from('jobs')
-                        .insert([{ id: uniqueId, user_id: currentUserID, industry: currentIndustry, ...jobData }]);
-                    if (error) throw error;
-                }
-                closeJobModal();
-                showToast('Job Card Created!');
-                loadJobs();
-            } catch (e) { showToast('Error saving job: ' + e.message, 'error'); }
+            if (newAlerts.length === 0) { alertSection.classList.remove('active'); return; }
+            alertSection.classList.add('active');
+            alertContainer.innerHTML = '';
+            
+            newAlerts.sort((a,b) => (a.item_type === 'Consumable' ? -1 : 1));
+            newAlerts.forEach(item => {
+                const isConsumable = item.item_type === 'Consumable';
+                alertContainer.innerHTML += `
+                    <div class="alert-card ${isConsumable ? 'critical-consumable' : ''}">
+                        <div class="alert-text"><strong>${item.name || "Item"}</strong><span>Only ${item.qty} left!</span></div>
+                        <button class="alert-dismiss-btn" onclick="dismissAlert('${item.id}')">×</button>
+                    </div>`;
+            });
+        }
+
+        function dismissAlert(id) {
+            const storageKey = 'seen_alerts_' + user.id;
+            let seen = JSON.parse(localStorage.getItem(storageKey) || '[]');
+            if (!seen.includes(id)) seen.push(id);
+            localStorage.setItem(storageKey, JSON.stringify(seen));
+            renderAlerts(inventory.filter(i => i.qty <= i.minStock));
         }
 
         function renderJobs() {
-            const tbody = document.getElementById('jobTableBody');
+            const tbody = document.getElementById('jobsTableBody');
             tbody.innerHTML = '';
-            jobs.forEach(job => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `<td><strong>${job.job_name || "Untitled"}</strong></td><td>${job.job_location || "No Location"}</td><td>${job.status || "Open"}</td><td><button class="btn btn-secondary" onclick="editJob('${job.id}')">Edit</button> <button class="btn btn-danger" onclick="deleteJob('${job.id}')">Del</button></td>`;
-                tbody.appendChild(tr);
+            if (jobs.length === 0) tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: var(--muted);">No jobs</td></tr>';
+            jobs.forEach(j => {
+                tbody.innerHTML += `<tr><td>${j.job_name || "Job"}</td><td>${j.job_location || "-"}</td><td>${j.status || "Open"}</td></tr>`;
             });
         }
 
-        function editJob(id) {
-            editingJobId = id;
-            const job = jobs.find(j => j.id === id);
-            if (!job) return;
-            document.getElementById('jobName').value = job.job_name;
-            document.getElementById('jobAssigned').value = job.assigned_to;
-            document.getElementById('jobLocationInput').value = job.job_location || '';
-            document.getElementById('jobPriority').value = job.priority;
-            document.getElementById('jobStatus').value = job.status;
-            document.getElementById('jobDeadline').value = job.deadline;
-            document.getElementById('jobNotes').value = job.notes;
-            document.getElementById('jobModal').style.display = 'flex';
+        function initMap() {
+            if (!map) { map = L.map('map').setView([-26.2041, 28.0473], 6); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map); }
+            else map.invalidateSize();
         }
-
-        async function deleteJob(id) {
-            if (confirm('Delete this job?')) {
-                try {
-                    const { error } = await db.from('jobs').delete().eq('id', id);
-                    if (error) throw error;
-                    showToast('Job deleted.');
-                    loadJobs();
-                } catch (e) { showToast('Error deleting: ' + e.message, 'error'); }
-            }
-        }
-
-        function openEditModal(id) {
-            editingItemId = id;
-            const item = inventory.find(i => i.id === id);
-            document.getElementById('editBrandInput').value = item ? item.manufacturer : '';
-            document.getElementById('modalOverlay').style.display = 'flex';
-        }
-        function closeModal() { document.getElementById('modalOverlay').style.display = 'none'; }
-
-        async function saveBrandEdit() {
-            const newBrand = document.getElementById('editBrandInput').value;
-            if (!newBrand) return;
-            try {
-                const { error } = await db.from('inventory').update({ manufacturer: newBrand }).eq('id', editingItemId);
-                if (error) throw error;
-                closeModal();
-                showToast('Brand updated!');
-                loadInventory();
-            } catch (e) { showToast('Error updating brand: ' + e.message, 'error'); }
-        }
-
-        function renderDashboard() {
-            const totalItems = document.getElementById('totalItems');
-            const lowStock = document.getElementById('lowStock');
-            const consumableTbody = document.getElementById('consumableTableBody');
-            const reusableTbody = document.getElementById('reusableTableBody');
-            
-            consumableTbody.innerHTML = '';
-            reusableTbody.innerHTML = '';
-            
-            let total = 0, critical = 0;
-            let lowStockItems = [];
-
-            inventory.forEach(item => {
-                total += item.qty || 0;
-                if (item.status === 'Critical' || item.repair_needed === 'true') critical++;
-                if (item.qty <= item.minStock) lowStockItems.push(item);
-
-                const tr = document.createElement('tr');
-                let statusClass = item.status === 'Critical' ? 'status-critical' : (item.qty <= item.minStock ? 'status-low' : 'status-instock');
-                tr.innerHTML = `<td><strong>${item.manufacturer || "Unknown"}</strong><br><span style="color: var(--muted); font-size: 0.8rem;">${item.name}</span></td><td>${item.category}</td><td>${item.qty}</td><td><span class="status-badge ${statusClass}">${item.status}</span></td>`;
-
-                if (item.item_type === 'Consumable') {
-                    consumableTbody.appendChild(tr);
-                } else {
-                    reusableTbody.appendChild(tr);
-                }
-            });
-
-            totalItems.innerText = total;
-            lowStock.innerText = critical;
-            renderLowStockAlerts(lowStockItems);
-        }
-
-        function renderLowStockAlerts(lowStockItems) {
-            const alertSection = document.getElementById('alertSection');
-            const alertContainer = document.getElementById('alertContainer');
-            const storageKey = 'visiontory_seen_alerts_' + currentUserID;
-            let seenAlerts = JSON.parse(localStorage.getItem(storageKey) || '[]');
-
-            let newAlerts = lowStockItems.filter(item => !seenAlerts.includes(item.id));
-
-            newAlerts.sort((a, b) => {
-                if (a.item_type === 'Consumable' && b.item_type !== 'Consumable') return -1;
-                if (a.item_type !== 'Consumable' && b.item_type === 'Consumable') return 1;
-                return 0;
-            });
-
-            if (newAlerts.length > 0) {
-                alertSection.classList.add('active');
-                alertContainer.innerHTML = '';
-                
-                newAlerts.forEach(item => {
-                    const alertDiv = document.createElement('div');
-                    
-                    if (item.item_type === 'Consumable') {
-                        alertDiv.className = 'alert-card critical-consumable';
-                        alertDiv.innerHTML = `
-                            <div class="alert-info">
-                                <span class="alert-icon">🚨</span>
-                                <div class="alert-text">
-                                    <strong>CRITICAL: ${item.name || "Item"}</strong>
-                                    <span>Only ${item.qty} left! Stock up immediately!</span>
-                                </div>
-                            </div>
-                            <button class="alert-dismiss-btn" onclick="dismissAlert('${item.id}')">×</button>
-                        `;
-                    } 
-                    else {
-                        alertDiv.className = 'alert-card';
-                        alertDiv.innerHTML = `
-                            <div class="alert-info">
-                                <span class="alert-icon">⚠️</span>
-                                <div class="alert-text">
-                                    <strong>${item.name || "Item"}</strong>
-                                    <span>Only ${item.qty} left! Min stock: ${item.minStock}</span>
-                                </div>
-                            </div>
-                            <button class="alert-dismiss-btn" onclick="dismissAlert('${item.id}')">×</button>
-                        `;
+        function updateMap() {
+            const location = document.getElementById('jobLocation').value;
+            if (!location || !map) return;
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}`)
+                .then(res => res.json()).then(data => {
+                    if (data.length > 0) {
+                        const lat = parseFloat(data[0].lat), lon = parseFloat(data[0].lon);
+                        if (!marker) marker = L.marker([lat, lon]).addTo(map);
+                        else marker.setLatLng([lat, lon]);
+                        map.setView([lat, lon], 12);
                     }
-                    alertContainer.appendChild(alertDiv);
                 });
-            } else {
-                alertSection.classList.remove('active');
-            }
+        }
+        async function addJob() {
+            const jobData = { job_name: document.getElementById('jobName').value, job_location: document.getElementById('jobLocation').value, priority: document.getElementById('jobPriority').value, status: 'Open' };
+            const uniqueId = Date.now().toString(36) + Math.random().toString(36).substring(2);
+            await db.from('jobs').insert([{ id: uniqueId, user_id: user.id, ...jobData }]);
+            document.getElementById('jobName').value = ''; document.getElementById('jobLocation').value = '';
+            await loadData();
         }
 
-        function dismissAlert(itemId) {
-            const storageKey = 'visiontory_seen_alerts_' + currentUserID;
-            let seenAlerts = JSON.parse(localStorage.getItem(storageKey) || '[]');
-            if (!seenAlerts.includes(itemId)) {
-                seenAlerts.push(itemId);
-                localStorage.setItem(storageKey, JSON.stringify(seenAlerts));
-            }
-            renderLowStockAlerts(inventory.filter(item => item.qty <= item.minStock));
-        }
-
-        async function deleteItem(id) { if (confirm('Delete this item?')) await deleteItemFromDB(id); }
-
-        // CHAT LOGIC (Puter)
+        // CHAT
         async function sendChat() {
             const input = document.getElementById('chatInput');
             const message = input.value.trim();
             if (!message) return;
-
             const chatMessages = document.getElementById('chatMessages');
             chatMessages.innerHTML += `<div class="message user">${message}</div>`;
             input.value = '';
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-
-            const typingDiv = document.createElement('div');
-            typingDiv.className = 'typing-indicator';
-            typingDiv.textContent = 'Vizi is thinking...';
-            chatMessages.appendChild(typingDiv);
-
-            const lowerCaseMsg = message.toLowerCase();
-            let aiResponse = '';
-
-            if (lowerCaseMsg.includes('inventory') || lowerCaseMsg.includes('stock') || lowerCaseMsg.includes('items')) {
-                switchTab('dashboard');
-                aiResponse = `📦 You have ${inventory.length} items. ${lowStockWarning()}`;
-            } 
-            else if (lowerCaseMsg.includes('job') || lowerCaseMsg.includes('work')) {
-                switchTab('jobs');
-                aiResponse = `📋 You have ${jobs.length} active jobs.`;
-            } 
-            else if (lowerCaseMsg.includes('scan') || lowerCaseMsg.includes('upload')) {
-                switchTab('upload');
-                aiResponse = `📸 Great! Please upload an image to scan.`;
-            }
-            else {
-                try {
-                    const response = await puter.ai.chat(
-                        "You are Vizi, an AI assistant for an industrial asset management system. Answer this: " + message, 
-                        { model: "gpt-4o-mini" }
-                    );
-                    aiResponse = response.message.content;
-                } catch (error) {
-                    aiResponse = "I couldn't process that. Please try again.";
-                }
-            }
-
-            setTimeout(() => {
-                typingDiv.remove();
-                chatMessages.innerHTML += `<div class="message ai">${aiResponse}</div>`;
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-            }, 500);
-        }
-
-        function lowStockWarning() {
-            const lowConsumables = inventory.filter(item => item.item_type === 'Consumable' && item.qty <= item.minStock);
-            const lowReusables = inventory.filter(item => item.item_type !== 'Consumable' && item.qty <= item.minStock);
             
-            if (lowConsumables.length > 0) {
-                return `🚨 CRITICAL: You have ${lowConsumables.length} CONSUMABLE item(s) low on stock!`;
-            } else if (lowReusables.length > 0) {
-                return `⚠️ You have ${lowReusables.length} reusable item(s) low on stock.`;
+            let aiResponse = '';
+            if (message.toLowerCase().includes('stock') || message.toLowerCase().includes('item')) {
+                aiResponse = `You have ${inventory.length} items. ${inventory.filter(i => i.qty <= i.minStock).length} are low!`;
+            } else {
+                try {
+                    const response = await puter.ai.chat("You are Vizi. Answer this: " + message, { model: "gpt-4o-mini" });
+                    aiResponse = response.message.content;
+                } catch (e) { aiResponse = "Offline. Try again later."; }
             }
-            return 'All items are well stocked.';
+            chatMessages.innerHTML += `<div class="message ai">${aiResponse}</div>`;
+            chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
-        // MATRIX RAIN ANIMATION
-        let matrixInterval;
-        function initMatrix() {
+        // MATRIX
+        function startMatrix() {
             const canvas = document.getElementById('matrixCanvas');
+            canvas.style.opacity = '0.2';
             const ctx = canvas.getContext('2d');
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-
-            const matrix = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-            const matrixArray = matrix.split("");
-            const fontSize = 14;
-            let columns = canvas.width / fontSize;
-            let drops = [];
-            for(let x=0; x<columns; x++) drops[x] = 1;
-
-            function draw() {
-                ctx.fillStyle = "rgba(0, 0, 0, 0.04)";
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = "#0F0";
-                ctx.font = fontSize + "px monospace";
-
-                for(let i=0; i<drops.length; i++) {
-                    const text = matrixArray[Math.floor(Math.random()*matrixArray.length)];
-                    ctx.fillText(text, i*fontSize, drops[i]*fontSize);
-                    if(drops[i]*fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+            const chars = "01".split(""); const fontSize = 14;
+            let drops = Array(Math.floor(canvas.width / fontSize)).fill(1);
+            
+            if (matrixInterval) clearInterval(matrixInterval);
+            matrixInterval = setInterval(() => {
+                ctx.fillStyle = "rgba(0, 0, 0, 0.04)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = "#0F0"; ctx.font = fontSize + "px monospace";
+                drops.forEach((y, i) => {
+                    ctx.fillText(chars[Math.floor(Math.random() * chars.length)], i * fontSize, y * fontSize);
+                    if (y * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
                     drops[i]++;
-                }
-            }
-
-            if(matrixInterval) clearInterval(matrixInterval);
-            matrixInterval = setInterval(draw, 35);
+                });
+            }, 35);
         }
 
         function stopMatrix() {
-            if(matrixInterval) {
-                clearInterval(matrixInterval);
-                matrixInterval = null;
-                const canvas = document.getElementById('matrixCanvas');
-                const ctx = canvas.getContext('2d');
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-            }
+            if (matrixInterval) { clearInterval(matrixInterval); matrixInterval = null; document.getElementById('matrixCanvas').style.opacity = '0'; }
         }
 
-        // UPLOAD WITH PUTER AI
+        // SCAN
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
         const browseBtn = document.getElementById('browseBtn');
         const loadingIndicator = document.getElementById('loadingIndicator');
         browseBtn.addEventListener('click', () => fileInput.click());
-        fileInput.addEventListener('change', (e) => processFiles(e.target.files));
+        fileInput.addEventListener('change', (e) => scan(e.target.files[0]));
         dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('highlight'); });
-        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('highlight'));
-        dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.classList.remove('highlight'); processFiles(e.dataTransfer.files); });
+        dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.classList.remove('highlight'); scan(e.dataTransfer.files[0]); });
 
-        function processFiles(files) {
-            if (!files.length) return;
-            Array.from(files).forEach(file => { if (file.type.startsWith('image/')) { sendToPuterAI(file); } });
-        }
+        async function scan(file) {
+            loadingIndicator.style.display = 'block';
+            const reader = new FileReader();
+            const imageDataUrl = await new Promise((resolve) => { reader.onload = (e) => resolve(e.target.result); reader.readAsDataURL(file); });
+            
+            const response = await puter.ai.chat(
+                "Identify this item. Return ONLY JSON: {\"manufacturer\": \"BRAND\", \"name\": \"ITEM\", \"category\": \"CATEGORY\", \"item_type\": \"Consumable or Reusable\", \"qty\": 1, \"minStock\": 1, \"status\": \"In Stock\", \"report\": \"2 sentence report\"}",
+                imageDataUrl,
+                { model: "gpt-4o" }
+            );
+            
+            let text = response.message.content;
+            const start = text.indexOf('{'); const end = text.lastIndexOf('}');
+            text = text.substring(start, end + 1);
+            const data = JSON.parse(text);
 
-        async function sendToPuterAI(file) {
-            loadingIndicator.style.display = 'block'; 
-            dropZone.classList.add('loading');
-            try {
-                const reader = new FileReader();
-                const imageDataUrl = await new Promise((resolve) => { reader.onload = (e) => resolve(e.target.result); reader.readAsDataURL(file); });
-
-                let industryInstruction = "";
-                if (currentIndustry === 'industrial') { industryInstruction = "You are inspecting industrial machinery. Look for scratches, rust, hydraulic leaks, and structural damage."; }
-                else if (currentIndustry === 'medical') { industryInstruction = "You are inspecting medical equipment. Look for cleanliness, sterilized packaging, expiry dates, and clinical wear."; }
-                else if (currentIndustry === 'aviation') { industryInstruction = "You are inspecting aviation parts. Look for strict compliance, part numbers, safety labels, and structural integrity."; }
-
-                const response = await puter.ai.chat(
-                    "You are a professional industrial asset appraiser and forensic brand detective. " + industryInstruction + " " +
-                    "FIRST: Look at the image for any logos, brand names, serial numbers, or engraved text. " +
-                    "SECOND: You must GUESS the brand. If it looks like a watch, say 'Casio' or 'Rolex'. If it looks like a controller, say 'Xbox' or 'PlayStation'. " +
-                    "THIRD: Check the physical condition in extreme detail. Look for scratches, dents, rust, broken straps, cracked screens, or wear. " +
-                    "FOURTH: Determine if the item is 'Consumable' (disposable, used once) or 'Reusable' (can be used multiple times). " +
-                    "Respond with ONLY this exact JSON format: " +
-                    "{\"manufacturer\": \"GUESSED_BRAND_NAME\", \"name\": \"EXACT_MODEL_AND_ITEM_NAME\", \"category\": \"CATEGORY\", \"item_type\": \"Consumable or Reusable\", \"qty\": 1, \"minStock\": 1, \"status\": \"In Stock\", \"condition\": \"Excellent | Good | Fair | Poor | Critical\", \"repair_needed\": \"true or false\", \"report\": \"A VERY detailed 2-3 sentence professional inspection report.\"}" +
-                    "CRITICAL RULES: " +
-                    "1. THE MANUFACTURER FIELD MUST CONTAIN A REAL BRAND OR A GUESSED BRAND. " +
-                    "2. IF YOU CANNOT READ A LOGO, YOU MUST STILL GUESS A BRAND BASED ON THE STYLE. " +
-                    "3. If you see obvious damage, set status to 'Critical' and repair_needed to 'true'. " +
-                    "4. Do not write any words outside of this JSON.",
-                    imageDataUrl,
-                    { model: "gpt-4o" }
-                );
-
-                let ai_text = response.message.content.toString();
-                let txt = document.createElement("textarea");
-                txt.innerHTML = ai_text; ai_text = txt.value.trim();
-                const start = ai_text.indexOf('{'); const end = ai_text.lastIndexOf('}');
-                if (start !== -1 && end !== -1) { ai_text = ai_text.substring(start, end + 1); }
-                const data = JSON.parse(ai_text);
-
-                const newItem = {
-                    manufacturer: data.manufacturer || "Generic",
-                    name: data.name || "Unknown Item",
-                    category: data.category || "Unknown",
-                    item_type: data.item_type || "Reusable",
-                    qty: data.qty || 1,
-                    minStock: data.minStock || 1,
-                    status: data.status || "In Stock",
-                    condition: data.condition || "Good",
-                    repair_needed: data.repair_needed || "false",
-                    report: data.report || "No inspection report provided."
-                };
-                
-                await addItemToDB(newItem);
-                loadingIndicator.style.display = 'none'; 
-                dropZone.classList.remove('loading');
-                showToast('Inspected: ' + newItem.manufacturer);
-                switchTab('dashboard');
-            } catch (error) {
-                loadingIndicator.style.display = 'none'; 
-                dropZone.classList.remove('loading');
-                showToast('Connection error. Please try again.', 'error');
-            }
+            const uniqueId = Date.now().toString(36) + Math.random().toString(36).substring(2);
+            await db.from('inventory').insert([{ id: uniqueId, user_id: user.id, ...data }]);
+            
+            loadingIndicator.style.display = 'none';
+            await loadData();
+            switchTab('dashboard');
         }
 
         checkAuth();
