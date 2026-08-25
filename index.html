@@ -33,7 +33,7 @@
         .nav-actions { display: flex; gap: 8px; }
         .logout-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
 
-        .container { max-width: 100%; padding: 15px; }
+        .container { max-width: 100%; padding: 15px; position: relative; z-index: 2; }
         .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid var(--border); padding-bottom: 5px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
         .tab { padding: 10px 15px; color: var(--muted); font-weight: 500; border-radius: 8px 8px 0 0; transition: all 0.2s; white-space: nowrap; font-size: 0.95rem; }
         .tab.active { color: var(--accent); border-bottom: 2px solid var(--accent); background: linear-gradient(to top, rgba(217, 70, 239, 0.1), transparent); }
@@ -91,10 +91,14 @@
         .btn-danger { background: var(--critical); color: white; width: 100%; }
         .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: white; padding: 15px 30px; font-size: 1rem; border-radius: 30px; width: 100%; margin-top: 10px; }
 
-        .page-section { display: none; }
+        .page-section { display: none; position: relative; }
         .page-section.active { display: block; }
 
-        .upload-card { background: var(--card); border: 2px dashed var(--border); border-radius: 12px; padding: 40px 15px; text-align: center; }
+        /* MATRIX RAIN BACKGROUND */
+        #matrixCanvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; opacity: 0; transition: opacity 0.5s; pointer-events: none; }
+        .page-section.active #matrixCanvas { opacity: 0.2; }
+
+        .upload-card { background: rgba(26, 29, 41, 0.85); border: 2px dashed var(--border); border-radius: 12px; padding: 40px 15px; text-align: center; position: relative; z-index: 2; }
         .cloud-icon { font-size: 3rem; color: var(--muted); margin-bottom: 15px; }
         .spinner { border: 4px solid rgba(255,255,255,0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: var(--accent); animation: spin 1s linear infinite; display: inline-block; margin: 10px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -107,22 +111,14 @@
         .modal-buttons { display: flex; gap: 10px; justify-content: stretch; margin-top: 10px; }
         .modal-buttons .btn { flex: 1; }
 
-        /* CHAT UI - REFINED */
-        .chat-container { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 15px; height: 70vh; display: flex; flex-direction: column; position: relative; }
-        .chat-header { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
-        .chat-header-avatar { width: 35px; height: 35px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
-        .chat-header h3 { font-size: 1.1rem; color: var(--text); }
+        .chat-container { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 15px; height: 70vh; display: flex; flex-direction: column; }
         .chat-messages { flex: 1; overflow-y: auto; margin-bottom: 10px; padding-right: 5px; }
         .message { margin-bottom: 12px; max-width: 80%; padding: 10px 15px; border-radius: 12px; font-size: 0.9rem; line-height: 1.4; }
         .message.user { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: white; margin-left: auto; border-bottom-right-radius: 4px; }
         .message.ai { background: var(--bg); border: 1px solid var(--border); color: var(--text); border-bottom-left-radius: 4px; }
-        .chat-input-group { display: flex; gap: 10px; border-top: 1px solid var(--border); padding-top: 10px; }
+        .chat-input-group { display: flex; gap: 10px; }
         .chat-input { flex: 1; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 1rem; }
         .send-btn { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: white; border: none; border-radius: 8px; width: 50px; font-size: 1.2rem; cursor: pointer; }
-        .typing-indicator { color: var(--muted); font-size: 0.8rem; font-style: italic; }
-        .quick-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
-        .quick-action-btn { background: var(--bg); border: 1px solid var(--accent); color: var(--text); padding: 8px 12px; border-radius: 20px; font-size: 0.8rem; cursor: pointer; transition: 0.2s; }
-        .quick-action-btn:hover { background: var(--accent); color: white; }
 
         .toast-container { position: fixed; top: 10px; left: 10px; right: 10px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
         .toast { padding: 15px; border-radius: 8px; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.2); animation: slideIn 0.3s ease-out; }
@@ -227,6 +223,8 @@
             </div>
 
             <div id="upload" class="page-section">
+                <canvas id="matrixCanvas"></canvas>
+                
                 <div class="upload-card" id="dropZone">
                     <span class="cloud-icon">☁️</span>
                     <h3 style="font-size: 1.1rem;">Scan Equipment</h3>
@@ -249,23 +247,11 @@
                 </div>
             </div>
 
-            <!-- REFINED VIZI CHAT -->
             <div id="chat" class="page-section">
                 <div class="chat-container">
-                    <div class="chat-header">
-                        <div class="chat-header-avatar">V</div>
-                        <h3>Vizi - VisionTory Assistant</h3>
-                    </div>
-
-                    <div class="quick-actions" id="quickActions">
-                        <button class="quick-action-btn" onclick="quickAction('inventory')">📦 Show Inventory</button>
-                        <button class="quick-action-btn" onclick="quickAction('jobs')">📋 Show Jobs</button>
-                        <button class="quick-action-btn" onclick="quickAction('createjob')">➕ Create Job</button>
-                        <button class="quick-action-btn" onclick="quickAction('scan')">📸 Scan Item</button>
-                    </div>
-
+                    <h3 style="margin-bottom: 10px;">💬 Vizi - VisionTory Assistant</h3>
                     <div class="chat-messages" id="chatMessages">
-                        <div class="message ai">Hey! I'm Vizi, your AI assistant. Use the buttons below or ask me anything!</div>
+                        <div class="message ai">Hello! I am Vizi. Ask me about your inventory, jobs, or to scan items!</div>
                     </div>
                     <div class="chat-input-group">
                         <input type="text" id="chatInput" class="chat-input" placeholder="Ask Vizi to perform a task..." onkeydown="if(event.key==='Enter') sendChat()">
@@ -383,14 +369,21 @@
             document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
+            
+            if(tabId === 'upload') initMatrix();
+            else stopMatrix();
+            
             if(tabId === 'dashboard') renderDashboard();
             if(tabId === 'jobs') renderJobs();
         }
 
-        // SUPABASE DATA
+        // SUPABASE DATA (Industry Independent - THE KEY FIX)
         async function loadInventory() {
             try {
-                const { data, error } = await db.from('inventory').select('*').eq('user_id', currentUserID);
+                const { data, error } = await db.from('inventory')
+                    .select('*')
+                    .eq('user_id', currentUserID)
+                    .eq('industry', currentIndustry); // ONLY SHOW SELECTED INDUSTRY
                 if (error) throw error;
                 inventory = data || [];
             } catch (e) { inventory = []; }
@@ -400,7 +393,8 @@
         async function addItemToDB(newItem) {
             try {
                 const uniqueId = Date.now().toString(36) + Math.random().toString(36).substring(2);
-                const { error } = await db.from('inventory').insert([{ id: uniqueId, user_id: currentUserID, manufacturer: newItem.manufacturer, name: newItem.name, category: newItem.category, item_type: newItem.item_type, qty: newItem.qty, minStock: newItem.minStock, status: newItem.status, condition: newItem.condition, repair_needed: newItem.repair_needed, report: newItem.report }]);
+                const { error } = await db.from('inventory')
+                    .insert([{ id: uniqueId, user_id: currentUserID, industry: currentIndustry, manufacturer: newItem.manufacturer, name: newItem.name, category: newItem.category, item_type: newItem.item_type, qty: newItem.qty, minStock: newItem.minStock, status: newItem.status, condition: newItem.condition, repair_needed: newItem.repair_needed, report: newItem.report }]);
                 if (error) throw error;
                 showToast('Item saved to cloud!');
                 loadInventory();
@@ -416,10 +410,13 @@
             } catch (e) { showToast('Error deleting: ' + e.message, 'error'); }
         }
 
-        // JOBS + GPS
+        // JOBS + GPS (Industry Independent - THE KEY FIX)
         async function loadJobs() {
             try {
-                const { data, error } = await db.from('jobs').select('*').eq('user_id', currentUserID);
+                const { data, error } = await db.from('jobs')
+                    .select('*')
+                    .eq('user_id', currentUserID)
+                    .eq('industry', currentIndustry); // ONLY SHOW SELECTED INDUSTRY
                 if (error) throw error;
                 jobs = data || [];
             } catch (e) { jobs = []; }
@@ -484,334 +481,10 @@
                     if (error) throw error;
                 } else {
                     const uniqueId = Date.now().toString(36) + Math.random().toString(36).substring(2);
-                    const { error } = await db.from('jobs').insert([{ id: uniqueId, user_id: currentUserID, ...jobData }]);
+                    const { error } = await db.from('jobs')
+                        .insert([{ id: uniqueId, user_id: currentUserID, industry: currentIndustry, ...jobData }]);
                     if (error) throw error;
                 }
                 closeJobModal();
                 showToast('Job Card Created!');
-                loadJobs();
-            } catch (e) { showToast('Error saving job: ' + e.message, 'error'); }
-        }
-
-        function renderJobs() {
-            const tbody = document.getElementById('jobTableBody');
-            tbody.innerHTML = '';
-            jobs.forEach(job => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `<td><strong>${job.job_name || "Untitled"}</strong></td><td>${job.job_location || "No Location"}</td><td>${job.status || "Open"}</td><td><button class="btn btn-secondary" onclick="editJob('${job.id}')">Edit</button> <button class="btn btn-danger" onclick="deleteJob('${job.id}')">Del</button></td>`;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function editJob(id) {
-            editingJobId = id;
-            const job = jobs.find(j => j.id === id);
-            if (!job) return;
-            document.getElementById('jobName').value = job.job_name;
-            document.getElementById('jobAssigned').value = job.assigned_to;
-            document.getElementById('jobLocationInput').value = job.job_location || '';
-            document.getElementById('jobPriority').value = job.priority;
-            document.getElementById('jobStatus').value = job.status;
-            document.getElementById('jobDeadline').value = job.deadline;
-            document.getElementById('jobNotes').value = job.notes;
-            document.getElementById('jobModal').style.display = 'flex';
-        }
-
-        async function deleteJob(id) {
-            if (confirm('Delete this job?')) {
-                try {
-                    const { error } = await db.from('jobs').delete().eq('id', id);
-                    if (error) throw error;
-                    showToast('Job deleted.');
-                    loadJobs();
-                } catch (e) { showToast('Error deleting: ' + e.message, 'error'); }
-            }
-        }
-
-        function openEditModal(id) {
-            editingItemId = id;
-            const item = inventory.find(i => i.id === id);
-            document.getElementById('editBrandInput').value = item ? item.manufacturer : '';
-            document.getElementById('modalOverlay').style.display = 'flex';
-        }
-        function closeModal() { document.getElementById('modalOverlay').style.display = 'none'; }
-
-        async function saveBrandEdit() {
-            const newBrand = document.getElementById('editBrandInput').value;
-            if (!newBrand) return;
-            try {
-                const { error } = await db.from('inventory').update({ manufacturer: newBrand }).eq('id', editingItemId);
-                if (error) throw error;
-                closeModal();
-                showToast('Brand updated!');
-                loadInventory();
-            } catch (e) { showToast('Error updating brand: ' + e.message, 'error'); }
-        }
-
-        function renderDashboard() {
-            const totalItems = document.getElementById('totalItems');
-            const lowStock = document.getElementById('lowStock');
-            const consumableTbody = document.getElementById('consumableTableBody');
-            const reusableTbody = document.getElementById('reusableTableBody');
-            
-            consumableTbody.innerHTML = '';
-            reusableTbody.innerHTML = '';
-            
-            let total = 0, critical = 0;
-            let lowStockItems = [];
-
-            inventory.forEach(item => {
-                total += item.qty || 0;
-                if (item.status === 'Critical' || item.repair_needed === 'true') critical++;
-                if (item.qty <= item.minStock) lowStockItems.push(item);
-
-                const tr = document.createElement('tr');
-                let statusClass = item.status === 'Critical' ? 'status-critical' : (item.qty <= item.minStock ? 'status-low' : 'status-instock');
-                tr.innerHTML = `<td><strong>${item.manufacturer || "Unknown"}</strong><br><span style="color: var(--muted); font-size: 0.8rem;">${item.name}</span></td><td>${item.category}</td><td>${item.qty}</td><td><span class="status-badge ${statusClass}">${item.status}</span></td>`;
-
-                if (item.item_type === 'Consumable') {
-                    consumableTbody.appendChild(tr);
-                } else {
-                    reusableTbody.appendChild(tr);
-                }
-            });
-
-            totalItems.innerText = total;
-            lowStock.innerText = critical;
-            renderLowStockAlerts(lowStockItems);
-        }
-
-        function renderLowStockAlerts(lowStockItems) {
-            const alertSection = document.getElementById('alertSection');
-            const alertContainer = document.getElementById('alertContainer');
-            const storageKey = 'visiontory_seen_alerts_' + currentUserID;
-            let seenAlerts = JSON.parse(localStorage.getItem(storageKey) || '[]');
-
-            let newAlerts = lowStockItems.filter(item => !seenAlerts.includes(item.id));
-
-            newAlerts.sort((a, b) => {
-                if (a.item_type === 'Consumable' && b.item_type !== 'Consumable') return -1;
-                if (a.item_type !== 'Consumable' && b.item_type === 'Consumable') return 1;
-                return 0;
-            });
-
-            if (newAlerts.length > 0) {
-                alertSection.classList.add('active');
-                alertContainer.innerHTML = '';
-                
-                newAlerts.forEach(item => {
-                    const alertDiv = document.createElement('div');
-                    
-                    if (item.item_type === 'Consumable') {
-                        alertDiv.className = 'alert-card critical-consumable';
-                        alertDiv.innerHTML = `
-                            <div class="alert-info">
-                                <span class="alert-icon">🚨</span>
-                                <div class="alert-text">
-                                    <strong>CRITICAL: ${item.name || "Item"}</strong>
-                                    <span>Only ${item.qty} left! Stock up immediately!</span>
-                                </div>
-                            </div>
-                            <button class="alert-dismiss-btn" onclick="dismissAlert('${item.id}')">×</button>
-                        `;
-                    } 
-                    else {
-                        alertDiv.className = 'alert-card';
-                        alertDiv.innerHTML = `
-                            <div class="alert-info">
-                                <span class="alert-icon">⚠️</span>
-                                <div class="alert-text">
-                                    <strong>${item.name || "Item"}</strong>
-                                    <span>Only ${item.qty} left! Min stock: ${item.minStock}</span>
-                                </div>
-                            </div>
-                            <button class="alert-dismiss-btn" onclick="dismissAlert('${item.id}')">×</button>
-                        `;
-                    }
-                    alertContainer.appendChild(alertDiv);
-                });
-            } else {
-                alertSection.classList.remove('active');
-            }
-        }
-
-        function dismissAlert(itemId) {
-            const storageKey = 'visiontory_seen_alerts_' + currentUserID;
-            let seenAlerts = JSON.parse(localStorage.getItem(storageKey) || '[]');
-            if (!seenAlerts.includes(itemId)) {
-                seenAlerts.push(itemId);
-                localStorage.setItem(storageKey, JSON.stringify(seenAlerts));
-            }
-            renderLowStockAlerts(inventory.filter(item => item.qty <= item.minStock));
-        }
-
-        async function deleteItem(id) { if (confirm('Delete this item?')) await deleteItemFromDB(id); }
-
-        // REFINED VIZI CHAT LOGIC
-        function quickAction(action) {
-            if (action === 'inventory') {
-                switchTab('dashboard');
-                addChatMessage('ai', `📦 You have ${inventory.length} items in your inventory. ${lowStockWarning()}`);
-            } else if (action === 'jobs') {
-                switchTab('jobs');
-                addChatMessage('ai', `📋 You have ${jobs.length} active jobs.`);
-            } else if (action === 'createjob') {
-                openJobModal();
-                addChatMessage('ai', `Let's create a new job! Please fill out the form.`);
-            } else if (action === 'scan') {
-                switchTab('upload');
-                addChatMessage('ai', `📸 Great! Please upload an image to scan.`);
-            }
-        }
-
-        function addChatMessage(type, text) {
-            const chatMessages = document.getElementById('chatMessages');
-            chatMessages.innerHTML += `<div class="message ${type}">${text}</div>`;
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        async function sendChat() {
-            const input = document.getElementById('chatInput');
-            const message = input.value.trim();
-            if (!message) return;
-
-            addChatMessage('user', message);
-            input.value = '';
-
-            const typingDiv = document.createElement('div');
-            typingDiv.className = 'typing-indicator';
-            typingDiv.textContent = 'Vizi is thinking...';
-            document.getElementById('chatMessages').appendChild(typingDiv);
-
-            const lowerCaseMsg = message.toLowerCase();
-            let aiResponse = '';
-
-            // Natural Language Commands
-            if (lowerCaseMsg.includes('inventory') || lowerCaseMsg.includes('stock') || lowerCaseMsg.includes('items')) {
-                switchTab('dashboard');
-                aiResponse = `📦 You have ${inventory.length} items. ${lowStockWarning()}`;
-            } 
-            else if (lowerCaseMsg.includes('job') || lowerCaseMsg.includes('work') || lowerCaseMsg.includes('pe')) {
-                if (lowerCaseMsg.includes('create') || lowerCaseMsg.includes('new') || lowerCaseMsg.includes('add')) {
-                    openJobModal();
-                    aiResponse = `Great! Let's create a new job. Fill out the form on screen.`;
-                } else {
-                    switchTab('jobs');
-                    aiResponse = `📋 You have ${jobs.length} active jobs.`;
-                }
-            } 
-            else if (lowerCaseMsg.includes('scan') || lowerCaseMsg.includes('upload') || lowerCaseMsg.includes('inspect')) {
-                switchTab('upload');
-                aiResponse = `📸 Perfect! Upload your image to scan.`;
-            }
-            else {
-                try {
-                    const response = await puter.ai.chat(
-                        "You are Vizi, a helpful AI assistant for an industrial asset management system. Answer this user's question: " + message, 
-                        { model: "gpt-4o-mini" }
-                    );
-                    aiResponse = response.message.content;
-                } catch (error) {
-                    aiResponse = "I couldn't process that request. Please try again.";
-                }
-            }
-
-            setTimeout(() => {
-                typingDiv.remove();
-                addChatMessage('ai', aiResponse);
-            }, 500);
-        }
-
-        function lowStockWarning() {
-            const lowConsumables = inventory.filter(item => item.item_type === 'Consumable' && item.qty <= item.minStock);
-            const lowReusables = inventory.filter(item => item.item_type !== 'Consumable' && item.qty <= item.minStock);
-            
-            if (lowConsumables.length > 0) {
-                return `🚨 CRITICAL: You have ${lowConsumables.length} CONSUMABLE item(s) low on stock!`;
-            } else if (lowReusables.length > 0) {
-                return `⚠️ You have ${lowReusables.length} reusable item(s) low on stock.`;
-            }
-            return 'All items are well stocked.';
-        }
-
-        // UPLOAD
-        const dropZone = document.getElementById('dropZone');
-        const fileInput = document.getElementById('fileInput');
-        const browseBtn = document.getElementById('browseBtn');
-        const loadingIndicator = document.getElementById('loadingIndicator');
-        browseBtn.addEventListener('click', () => fileInput.click());
-        fileInput.addEventListener('change', (e) => processFiles(e.target.files));
-        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('highlight'); });
-        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('highlight'));
-        dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.classList.remove('highlight'); processFiles(e.dataTransfer.files); });
-
-        function processFiles(files) {
-            if (!files.length) return;
-            Array.from(files).forEach(file => { if (file.type.startsWith('image/')) { sendToPuterAI(file); } });
-        }
-
-        async function sendToPuterAI(file) {
-            loadingIndicator.style.display = 'block'; 
-            dropZone.classList.add('loading');
-            try {
-                const reader = new FileReader();
-                const imageDataUrl = await new Promise((resolve) => { reader.onload = (e) => resolve(e.target.result); reader.readAsDataURL(file); });
-
-                let industryInstruction = "";
-                if (currentIndustry === 'industrial') { industryInstruction = "You are inspecting industrial machinery. Look for scratches, rust, hydraulic leaks, and structural damage."; }
-                else if (currentIndustry === 'medical') { industryInstruction = "You are inspecting medical equipment. Look for cleanliness, sterilized packaging, expiry dates, and clinical wear."; }
-                else if (currentIndustry === 'aviation') { industryInstruction = "You are inspecting aviation parts. Look for strict compliance, part numbers, safety labels, and structural integrity."; }
-
-                const response = await puter.ai.chat(
-                    "You are a professional industrial asset appraiser and forensic brand detective. " + industryInstruction + " " +
-                    "FIRST: Look at the image for any logos, brand names, serial numbers, or engraved text. " +
-                    "SECOND: You must GUESS the brand. If it looks like a watch, say 'Casio' or 'Rolex'. If it looks like a controller, say 'Xbox' or 'PlayStation'. " +
-                    "THIRD: Check the physical condition in extreme detail. Look for scratches, dents, rust, broken straps, cracked screens, or wear. " +
-                    "FOURTH: Determine if the item is 'Consumable' (disposable, used once) or 'Reusable' (can be used multiple times). " +
-                    "Respond with ONLY this exact JSON format: " +
-                    "{\"manufacturer\": \"GUESSED_BRAND_NAME\", \"name\": \"EXACT_MODEL_AND_ITEM_NAME\", \"category\": \"CATEGORY\", \"item_type\": \"Consumable or Reusable\", \"qty\": 1, \"minStock\": 1, \"status\": \"In Stock\", \"condition\": \"Excellent | Good | Fair | Poor | Critical\", \"repair_needed\": \"true or false\", \"report\": \"A VERY detailed 2-3 sentence professional inspection report.\"}" +
-                    "CRITICAL RULES: " +
-                    "1. THE MANUFACTURER FIELD MUST CONTAIN A REAL BRAND OR A GUESSED BRAND. " +
-                    "2. IF YOU CANNOT READ A LOGO, YOU MUST STILL GUESS A BRAND BASED ON THE STYLE. " +
-                    "3. If you see obvious damage, set status to 'Critical' and repair_needed to 'true'. " +
-                    "4. Do not write any words outside of this JSON.",
-                    imageDataUrl,
-                    { model: "gpt-4o" }
-                );
-
-                let ai_text = response.message.content.toString();
-                let txt = document.createElement("textarea");
-                txt.innerHTML = ai_text; ai_text = txt.value.trim();
-                const start = ai_text.indexOf('{'); const end = ai_text.lastIndexOf('}');
-                if (start !== -1 && end !== -1) { ai_text = ai_text.substring(start, end + 1); }
-                const data = JSON.parse(ai_text);
-
-                const newItem = {
-                    manufacturer: data.manufacturer || "Generic",
-                    name: data.name || "Unknown Item",
-                    category: data.category || "Unknown",
-                    item_type: data.item_type || "Reusable",
-                    qty: data.qty || 1,
-                    minStock: data.minStock || 1,
-                    status: data.status || "In Stock",
-                    condition: data.condition || "Good",
-                    repair_needed: data.repair_needed || "false",
-                    report: data.report || "No inspection report provided."
-                };
-                
-                await addItemToDB(newItem);
-                loadingIndicator.style.display = 'none'; 
-                dropZone.classList.remove('loading');
-                showToast('Inspected: ' + newItem.manufacturer);
-                switchTab('dashboard');
-            } catch (error) {
-                loadingIndicator.style.display = 'none'; 
-                dropZone.classList.remove('loading');
-                showToast('Connection error. Please try again.', 'error');
-            }
-        }
-
-        checkAuth();
-    </script>
-</body>
-</html>
+               
