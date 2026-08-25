@@ -44,7 +44,7 @@
         .stat-label { color: var(--muted); font-size: 0.75rem; margin-bottom: 5px; text-transform: uppercase; }
         .stat-number { font-size: 1.8rem; font-weight: 800; color: var(--text); }
 
-        /* LOW STOCK ALERT SECTION */
+        /* LOW STOCK ALERTS - PRIORITY SORTING */
         .alert-section { margin-bottom: 20px; display: none; }
         .alert-section.active { display: block; }
         .alert-card {
@@ -56,21 +56,28 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            animation: pulseAlert 2s infinite;
+        }
+        /* CRITICAL CONSUMABLE ALERTS */
+        .alert-card.critical-consumable {
+            background: rgba(239, 68, 68, 0.15);
+            border: 2px solid var(--critical);
+            animation: pulseAlertCritical 2s infinite;
         }
         .alert-info { display: flex; align-items: center; gap: 10px; }
-        .alert-icon { font-size: 1.5rem; color: var(--low); }
+        .alert-icon { font-size: 1.5rem; }
+        .alert-card.critical-consumable .alert-icon { color: var(--critical); }
+        .alert-card .alert-icon { color: var(--low); }
         .alert-text strong { display: block; font-size: 1rem; color: var(--text); }
         .alert-text span { font-size: 0.85rem; color: var(--low); }
+        .alert-card.critical-consumable .alert-text span { color: var(--critical); }
         .alert-dismiss-btn { background: transparent; border: none; color: var(--muted); font-size: 1.2rem; cursor: pointer; padding: 5px; }
-        @keyframes pulseAlert { 0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); } 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); } }
+        @keyframes pulseAlertCritical { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
 
         .inventory-container { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 15px; overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; min-width: 600px; }
         th { text-align: left; padding: 10px; font-size: 0.7rem; color: var(--muted); text-transform: uppercase; border-bottom: 1px solid var(--border); }
         td { padding: 10px; border-bottom: 1px solid var(--border); color: var(--text); font-size: 0.9rem; }
 
-        /* MATERIAL & TOOL SECTION HEADERS */
         .section-header { padding: 10px; border-radius: 8px; margin: 20px 0 10px; font-size: 1rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
         .header-consumable { background: rgba(16, 185, 129, 0.15); color: var(--good); border-left: 5px solid var(--good); }
         .header-reusable { background: rgba(139, 92, 246, 0.15); color: var(--accent-2); border-left: 5px solid var(--accent-2); }
@@ -102,7 +109,6 @@
         .modal-buttons { display: flex; gap: 10px; justify-content: stretch; margin-top: 10px; }
         .modal-buttons .btn { flex: 1; }
 
-        /* CHAT UI */
         .chat-container { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 15px; height: 65vh; display: flex; flex-direction: column; }
         .chat-messages { flex: 1; overflow-y: auto; margin-bottom: 10px; padding-right: 5px; }
         .message { margin-bottom: 12px; max-width: 80%; padding: 10px 15px; border-radius: 12px; font-size: 0.9rem; line-height: 1.4; }
@@ -548,7 +554,6 @@
                 let statusClass = item.status === 'Critical' ? 'status-critical' : (item.qty <= item.minStock ? 'status-low' : 'status-instock');
                 tr.innerHTML = `<td><strong>${item.manufacturer || "Unknown"}</strong><br><span style="color: var(--muted); font-size: 0.8rem;">${item.name}</span></td><td>${item.category}</td><td>${item.qty}</td><td><span class="status-badge ${statusClass}">${item.status}</span></td>`;
 
-                // Split into Consumable and Reusable sections
                 if (item.item_type === 'Consumable') {
                     consumableTbody.appendChild(tr);
                 } else {
@@ -567,7 +572,15 @@
             const storageKey = 'visiontory_seen_alerts_' + currentUserID;
             let seenAlerts = JSON.parse(localStorage.getItem(storageKey) || '[]');
 
+            // Filter out already seen alerts
             let newAlerts = lowStockItems.filter(item => !seenAlerts.includes(item.id));
+
+            // SORT: Put Consumables first (Priority)
+            newAlerts.sort((a, b) => {
+                if (a.item_type === 'Consumable' && b.item_type !== 'Consumable') return -1;
+                if (a.item_type !== 'Consumable' && b.item_type === 'Consumable') return 1;
+                return 0;
+            });
 
             if (newAlerts.length > 0) {
                 alertSection.classList.add('active');
@@ -575,17 +588,35 @@
                 
                 newAlerts.forEach(item => {
                     const alertDiv = document.createElement('div');
-                    alertDiv.className = 'alert-card';
-                    alertDiv.innerHTML = `
-                        <div class="alert-info">
-                            <span class="alert-icon">⚠️</span>
-                            <div class="alert-text">
-                                <strong>${item.name || "Item"}</strong>
-                                <span>Only ${item.qty} left! Min stock: ${item.minStock}</span>
+                    
+                    // CRITICAL ALERT FOR CONSUMABLES
+                    if (item.item_type === 'Consumable') {
+                        alertDiv.className = 'alert-card critical-consumable';
+                        alertDiv.innerHTML = `
+                            <div class="alert-info">
+                                <span class="alert-icon">🚨</span>
+                                <div class="alert-text">
+                                    <strong>CRITICAL: ${item.name || "Item"}</strong>
+                                    <span>Only ${item.qty} left! Stock up immediately!</span>
+                                </div>
                             </div>
-                        </div>
-                        <button class="alert-dismiss-btn" onclick="dismissAlert('${item.id}')">×</button>
-                    `;
+                            <button class="alert-dismiss-btn" onclick="dismissAlert('${item.id}')">×</button>
+                        `;
+                    } 
+                    // NORMAL ALERT FOR REUSABLE ITEMS
+                    else {
+                        alertDiv.className = 'alert-card';
+                        alertDiv.innerHTML = `
+                            <div class="alert-info">
+                                <span class="alert-icon">⚠️</span>
+                                <div class="alert-text">
+                                    <strong>${item.name || "Item"}</strong>
+                                    <span>Only ${item.qty} left! Min stock: ${item.minStock}</span>
+                                </div>
+                            </div>
+                            <button class="alert-dismiss-btn" onclick="dismissAlert('${item.id}')">×</button>
+                        `;
+                    }
                     alertContainer.appendChild(alertDiv);
                 });
             } else {
@@ -653,9 +684,13 @@
         }
 
         function lowStockWarning() {
-            const lowItems = inventory.filter(item => item.qty <= item.minStock);
-            if (lowItems.length > 0) {
-                return `⚠️ However, you have ${lowItems.length} item(s) that are low on stock!`;
+            const lowConsumables = inventory.filter(item => item.item_type === 'Consumable' && item.qty <= item.minStock);
+            const lowReusables = inventory.filter(item => item.item_type !== 'Consumable' && item.qty <= item.minStock);
+            
+            if (lowConsumables.length > 0) {
+                return `🚨 CRITICAL: You have ${lowConsumables.length} CONSUMABLE item(s) low on stock!`;
+            } else if (lowReusables.length > 0) {
+                return `⚠️ You have ${lowReusables.length} reusable item(s) low on stock.`;
             }
             return 'All items are well stocked.';
         }
