@@ -44,7 +44,6 @@
         .stat-label { color: var(--muted); font-size: 0.75rem; margin-bottom: 5px; text-transform: uppercase; }
         .stat-number { font-size: 1.8rem; font-weight: 800; color: var(--text); }
 
-        /* LOW STOCK ALERTS - PRIORITY SORTING */
         .alert-section { margin-bottom: 20px; display: none; }
         .alert-section.active { display: block; }
         .alert-card {
@@ -57,7 +56,6 @@
             justify-content: space-between;
             align-items: center;
         }
-        /* CRITICAL CONSUMABLE ALERTS */
         .alert-card.critical-consumable {
             background: rgba(239, 68, 68, 0.15);
             border: 2px solid var(--critical);
@@ -109,15 +107,22 @@
         .modal-buttons { display: flex; gap: 10px; justify-content: stretch; margin-top: 10px; }
         .modal-buttons .btn { flex: 1; }
 
-        .chat-container { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 15px; height: 65vh; display: flex; flex-direction: column; }
+        /* CHAT UI - REFINED */
+        .chat-container { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 15px; height: 70vh; display: flex; flex-direction: column; position: relative; }
+        .chat-header { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+        .chat-header-avatar { width: 35px; height: 35px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .chat-header h3 { font-size: 1.1rem; color: var(--text); }
         .chat-messages { flex: 1; overflow-y: auto; margin-bottom: 10px; padding-right: 5px; }
         .message { margin-bottom: 12px; max-width: 80%; padding: 10px 15px; border-radius: 12px; font-size: 0.9rem; line-height: 1.4; }
         .message.user { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: white; margin-left: auto; border-bottom-right-radius: 4px; }
         .message.ai { background: var(--bg); border: 1px solid var(--border); color: var(--text); border-bottom-left-radius: 4px; }
-        .chat-input-group { display: flex; gap: 10px; }
+        .chat-input-group { display: flex; gap: 10px; border-top: 1px solid var(--border); padding-top: 10px; }
         .chat-input { flex: 1; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 1rem; }
         .send-btn { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: white; border: none; border-radius: 8px; width: 50px; font-size: 1.2rem; cursor: pointer; }
         .typing-indicator { color: var(--muted); font-size: 0.8rem; font-style: italic; }
+        .quick-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+        .quick-action-btn { background: var(--bg); border: 1px solid var(--accent); color: var(--text); padding: 8px 12px; border-radius: 20px; font-size: 0.8rem; cursor: pointer; transition: 0.2s; }
+        .quick-action-btn:hover { background: var(--accent); color: white; }
 
         .toast-container { position: fixed; top: 10px; left: 10px; right: 10px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
         .toast { padding: 15px; border-radius: 8px; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.2); animation: slideIn 0.3s ease-out; }
@@ -186,7 +191,7 @@
                 <div class="tab active" onclick="switchTab('dashboard')">Dashboard</div>
                 <div class="tab" onclick="switchTab('upload')">Scan</div>
                 <div class="tab" onclick="switchTab('jobs')">Jobs</div>
-                <div class="tab" onclick="switchTab('chat')">AI Chat</div>
+                <div class="tab" onclick="switchTab('chat')">Vizi Chat</div>
             </div>
 
             <div id="dashboard" class="page-section active">
@@ -200,7 +205,6 @@
                     <div id="alertContainer"></div>
                 </div>
 
-                <!-- CONSUMABLE SECTION -->
                 <div class="section-header header-consumable">
                     🧤 Consumable Materials
                 </div>
@@ -211,7 +215,6 @@
                     </table>
                 </div>
 
-                <!-- REUSABLE SECTION -->
                 <div class="section-header header-reusable">
                     🔧 Reusable Tools
                 </div>
@@ -246,14 +249,26 @@
                 </div>
             </div>
 
+            <!-- REFINED VIZI CHAT -->
             <div id="chat" class="page-section">
                 <div class="chat-container">
-                    <h3 style="margin-bottom: 10px;">💬 VisionTory Assistant</h3>
+                    <div class="chat-header">
+                        <div class="chat-header-avatar">V</div>
+                        <h3>Vizi - VisionTory Assistant</h3>
+                    </div>
+
+                    <div class="quick-actions" id="quickActions">
+                        <button class="quick-action-btn" onclick="quickAction('inventory')">📦 Show Inventory</button>
+                        <button class="quick-action-btn" onclick="quickAction('jobs')">📋 Show Jobs</button>
+                        <button class="quick-action-btn" onclick="quickAction('createjob')">➕ Create Job</button>
+                        <button class="quick-action-btn" onclick="quickAction('scan')">📸 Scan Item</button>
+                    </div>
+
                     <div class="chat-messages" id="chatMessages">
-                        <div class="message ai">Hello! I am your VisionTory AI assistant. Ask me to show my inventory, jobs, or perform other tasks.</div>
+                        <div class="message ai">Hey! I'm Vizi, your AI assistant. Use the buttons below or ask me anything!</div>
                     </div>
                     <div class="chat-input-group">
-                        <input type="text" id="chatInput" class="chat-input" placeholder="Ask AI to perform a task..." onkeydown="if(event.key==='Enter') sendChat()">
+                        <input type="text" id="chatInput" class="chat-input" placeholder="Ask Vizi to perform a task..." onkeydown="if(event.key==='Enter') sendChat()">
                         <button class="send-btn" onclick="sendChat()">➤</button>
                     </div>
                 </div>
@@ -572,10 +587,8 @@
             const storageKey = 'visiontory_seen_alerts_' + currentUserID;
             let seenAlerts = JSON.parse(localStorage.getItem(storageKey) || '[]');
 
-            // Filter out already seen alerts
             let newAlerts = lowStockItems.filter(item => !seenAlerts.includes(item.id));
 
-            // SORT: Put Consumables first (Priority)
             newAlerts.sort((a, b) => {
                 if (a.item_type === 'Consumable' && b.item_type !== 'Consumable') return -1;
                 if (a.item_type !== 'Consumable' && b.item_type === 'Consumable') return 1;
@@ -589,7 +602,6 @@
                 newAlerts.forEach(item => {
                     const alertDiv = document.createElement('div');
                     
-                    // CRITICAL ALERT FOR CONSUMABLES
                     if (item.item_type === 'Consumable') {
                         alertDiv.className = 'alert-card critical-consumable';
                         alertDiv.innerHTML = `
@@ -603,7 +615,6 @@
                             <button class="alert-dismiss-btn" onclick="dismissAlert('${item.id}')">×</button>
                         `;
                     } 
-                    // NORMAL ALERT FOR REUSABLE ITEMS
                     else {
                         alertDiv.className = 'alert-card';
                         alertDiv.innerHTML = `
@@ -636,38 +647,67 @@
 
         async function deleteItem(id) { if (confirm('Delete this item?')) await deleteItemFromDB(id); }
 
-        // CHAT LOGIC
+        // REFINED VIZI CHAT LOGIC
+        function quickAction(action) {
+            if (action === 'inventory') {
+                switchTab('dashboard');
+                addChatMessage('ai', `📦 You have ${inventory.length} items in your inventory. ${lowStockWarning()}`);
+            } else if (action === 'jobs') {
+                switchTab('jobs');
+                addChatMessage('ai', `📋 You have ${jobs.length} active jobs.`);
+            } else if (action === 'createjob') {
+                openJobModal();
+                addChatMessage('ai', `Let's create a new job! Please fill out the form.`);
+            } else if (action === 'scan') {
+                switchTab('upload');
+                addChatMessage('ai', `📸 Great! Please upload an image to scan.`);
+            }
+        }
+
+        function addChatMessage(type, text) {
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.innerHTML += `<div class="message ${type}">${text}</div>`;
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
         async function sendChat() {
             const input = document.getElementById('chatInput');
             const message = input.value.trim();
             if (!message) return;
 
-            const chatMessages = document.getElementById('chatMessages');
-            
-            chatMessages.innerHTML += `<div class="message user">${message}</div>`;
+            addChatMessage('user', message);
             input.value = '';
-            chatMessages.scrollTop = chatMessages.scrollHeight;
 
             const typingDiv = document.createElement('div');
             typingDiv.className = 'typing-indicator';
-            typingDiv.textContent = 'Thinking...';
-            chatMessages.appendChild(typingDiv);
+            typingDiv.textContent = 'Vizi is thinking...';
+            document.getElementById('chatMessages').appendChild(typingDiv);
 
             const lowerCaseMsg = message.toLowerCase();
             let aiResponse = '';
 
+            // Natural Language Commands
             if (lowerCaseMsg.includes('inventory') || lowerCaseMsg.includes('stock') || lowerCaseMsg.includes('items')) {
                 switchTab('dashboard');
-                aiResponse = `You have ${inventory.length} items in your inventory. ${lowStockWarning()}`;
+                aiResponse = `📦 You have ${inventory.length} items. ${lowStockWarning()}`;
             } 
-            else if (lowerCaseMsg.includes('job') || lowerCaseMsg.includes('work')) {
-                switchTab('jobs');
-                aiResponse = `You have ${jobs.length} active jobs.`;
+            else if (lowerCaseMsg.includes('job') || lowerCaseMsg.includes('work') || lowerCaseMsg.includes('pe')) {
+                if (lowerCaseMsg.includes('create') || lowerCaseMsg.includes('new') || lowerCaseMsg.includes('add')) {
+                    openJobModal();
+                    aiResponse = `Great! Let's create a new job. Fill out the form on screen.`;
+                } else {
+                    switchTab('jobs');
+                    aiResponse = `📋 You have ${jobs.length} active jobs.`;
+                }
             } 
+            else if (lowerCaseMsg.includes('scan') || lowerCaseMsg.includes('upload') || lowerCaseMsg.includes('inspect')) {
+                switchTab('upload');
+                aiResponse = `📸 Perfect! Upload your image to scan.`;
+            }
             else {
                 try {
                     const response = await puter.ai.chat(
-                        "You are an assistant for an industrial asset management system. Answer this user's question: " + message, 
+                        "You are Vizi, a helpful AI assistant for an industrial asset management system. Answer this user's question: " + message, 
                         { model: "gpt-4o-mini" }
                     );
                     aiResponse = response.message.content;
@@ -678,8 +718,7 @@
 
             setTimeout(() => {
                 typingDiv.remove();
-                chatMessages.innerHTML += `<div class="message ai">${aiResponse}</div>`;
-                chatMessages.scrollTop = chatMessages.scrollHeight;
+                addChatMessage('ai', aiResponse);
             }, 500);
         }
 
