@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>VisionTory.ai</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://js.puter.com/v2/"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; background: #0f1117; color: white; min-height: 100vh; }
+        
+        .navbar { background: #1a1d29; padding: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        .container { max-width: 1200px; margin: auto; padding: 20px; }
+        
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .tab { padding: 10px 20px; background: #2d3142; border-radius: 8px; cursor: pointer; }
+        .tab.active { background: #d946ef; }
+        
+        table { width: 100%; border-collapse: collapse; background: #1a1d29; border-radius: 12px; overflow: hidden; margin-bottom: 20px; font-size: 0.8rem; }
+        th, td { padding: 6px 8px; text-align: left; border-bottom: 1px solid #2d3142; }
+        th { background: #2d3142; color: #aaa; font-weight: 600; white-space: nowrap; }
+        td { max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        
+        .stats { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
+        .stat-card { flex: 1; background: #1a1d29; padding: 20px; border-radius: 12px; text-align: center; min-width: 120px; }
+        
+        .section-header { padding: 10px; border-radius: 8px; margin-bottom: 10px; font-weight: 700; }
+        .header-consumable { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+        .header-reusable { background: rgba(139, 92, 246, 0.2); color: #8b5cf6; }
+        
+        .btn-secondary { background: #2d3142; border: none; color: white; padding: 4px 8px; border-radius: 6px; cursor: pointer; margin-right: 3px; font-size: 0.75rem; }
+        .btn-danger { background: #ef4444; border: none; color: white; padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; }
+        .btn-primary { width: 100%; padding: 15px; background: #d946ef; border: none; color: white; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        .btn-demo { width: 100%; padding: 12px; background: #f59e0b; border: none; color: #000; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        .btn-details { background: #3b82f6; border: none; color: white; padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; }
+        
+        .upload-card { background: #1a1d29; border: 2px dashed #2d3142; border-radius: 12px; padding: 40px; text-align: center; }
+        .spinner { border: 4px solid rgba(255,255,255,0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: #d946ef; animation: spin 1s linear infinite; display: inline-block; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .auth-screen { display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .auth-card { background: #1a1d29; padding: 30px; border-radius: 12px; width: 380px; text-align: center; }
+        .auth-input { width: 100%; padding: 12px; margin-bottom: 10px; background: #0f1117; border: 1px solid #2d3142; border-radius: 6px; color: white; }
+        .auth-btn { width: 100%; padding: 12px; background: #d946ef; border: none; color: white; border-radius: 6px; cursor: pointer; }
+        
+        .industry-selector { display: flex; justify-content: space-between; margin-bottom: 15px; gap: 5px; }
+        .industry-btn { flex: 1; background: #2d3142; border: none; color: white; padding: 10px; margin: 0 5px; border-radius: 6px; cursor: pointer; }
+        .industry-btn.active { background: #d946ef; }
+        
+        .chat-messages { height: 300px; overflow-y: auto; background: #0f1117; border-radius: 8px; padding: 10px; margin-bottom: 10px; }
+        .message { margin-bottom: 10px; padding: 10px; border-radius: 8px; }
+        .message.user { background: #d946ef; text-align: right; }
+        .message.ai { background: #2d3142; text-align: left; }
+        
+        #map { height: 200px; border-radius: 8px; margin-bottom: 15px; background: #1a1d29; }
+        input, select, textarea { width: 100%; padding: 12px; margin-bottom: 10px; background: #0f1117; border: 1px solid #2d3142; border-radius: 6px; color: white; }
+        
+        .toast { background: #ef4444; color: white; padding: 12px 20px; border-radius: 8px; margin-bottom: 15px; display: none; }
+        .toast.success { background: #10b981; }
+        .toast.warning { background: #f59e0b; }
+        .badge { background: #d946ef; padding: 2px 10px; border-radius: 12px; font-size: 0.7rem; margin-left: 8px; }
+        .env-indicator { font-size: 0.7rem; opacity: 0.6; }
+        .condition-badge { padding: 2px 10px; border-radius: 12px; font-size: 0.7rem; }
+        .condition-new { background: #10b981; color: #fff; }
+        .condition-good { background: #3b82f6; color: #fff; }
+        .condition-fair { background: #f59e0b; color: #000; }
+        .condition-worn { background: #f97316; color: #000; }
+        .condition-damaged { background: #ef4444; color: #fff; }
+        .condition-unknown { background: #6b7280; color: #fff; }
+        .scroll-x { overflow-x: auto; }
+        .debug-log { background: #0a0c12; padding: 10px; border-radius: 8px; font-size: 0.7rem; font-family: monospace; max-height: 150px; overflow-y: auto; margin-top: 10px; display: none; border: 1px solid #2d3142; }
+        .demo-badge { background: #f59e0b; color: #000; padding: 2px 10px; border-radius: 12px; font-size: 0.7rem; margin-left: 8px; }
+        .warning-banner { background: #f59e0b; color: #000; padding: 10px 15px; border-radius: 8px; margin-bottom: 15px; display: none; font-size: 0.9rem; }
+        .scroll-x table { min-width: 1100px; }
+        .detail-popup { background: #1a1d29; border: 1px solid #2d3142; border-radius: 8px; padding: 15px; margin-top: 10px; display: none; }
+        .detail-popup.show { display: block; }
+        .detail-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #2d3142; }
+        .detail-label { color: #aaa; font-weight: 600; }
+        .detail-value { color: #fff; }
+        .ai-status-badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 0.7rem; }
+        .ai-status-online { background: #10b981; color: #fff; }
+        .ai-status-offline { background: #ef4444; color: #fff; }
+        .ai-status-free { background: #f59e0b; color: #000; }
+        .free-badge { background: #10b981; color: #fff; padding: 2px 10px; border-radius: 12px; font-size: 0.6rem; margin-left: 5px; }
+        .no-guess-banner { background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.25); color: #10b981; padding: 8px 15px; border-radius: 8px; margin-bottom: 10px; font-size: 0.85rem; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <!-- LOGIN SCREEN -->
+    <div id="loginScreen" class="auth-screen">
+        <div class="auth-card">
+            <h2 style="margin-bottom: 20px;">VisionTory.ai</h2>
+            <p class="env-indicator" id="envDisplay">🌐 Checking environment...</p>
+            
+            <div class="industry-selector">
+                <button class="industry-btn" onclick="selectLoginIndustry('industrial', this)">🏭 Industrial</button>
+                <button class="industry-btn" onclick="selectLoginIndustry('medical', this)">🏥 Medical</button>
+                <button class="industry-btn" onclick="selectLoginIndustry('aviation', this)">✈️ Aviation</button>
+            </div>
+
+            <input type="email" id="loginEmail" class="auth-input" placeholder="Email address" value="demo@visiontory.ai">
+            <input type="password" id="loginPassword" class="auth-input" placeholder="Password" value="demo123456">
+            <button class="auth-btn" onclick="handleLogin()">Login</button>
+            
+            <button class="btn-demo" onclick="enterDemoMode()">🚀 Enter Demo Mode (No Login)</button>
+            
+            <p style="margin-top: 15px; font-size: 0.9rem;">Don't have an account? <a href="#" onclick="showSignUp()" style="color: #d946ef;">Sign Up</a></p>
+            <p style="margin-top: 10px; font-size: 0.7rem; opacity: 0.4;">Demo: demo@visiontory.ai / demo123456</p>
+        </div>
+    </div>
+
+    <!-- SIGN UP SCREEN -->
+    <div id="signUpScreen" class="auth-screen" style="display: none;">
+        <div class="auth-card">
+            <h2 style="margin-bottom: 20px;">Create Account</h2>
+            <input type="email" id="signUpEmail" class="auth-input" placeholder="Email address">
+            <input type="password" id="signUpPassword" class="auth-input" placeholder="Password (min 6 chars)">
+            <button class="auth-btn" onclick="handleSignUp()">Sign Up</button>
+            <p style="margin-top: 15px; font-size: 0.9rem;">Already have an account? <a href="#" onclick="showLogin()" style="color: #d946ef;">Login</a></p>
+        </div>
+    </div>
+
+    <!-- APP SCREEN -->
+    <div id="appScreen" style="display: none;">
+        <div class="navbar">
+            <div>
+                <strong>VisionTory.ai</strong> 
+                <span class="badge" id="envBadge">puter</span> 
+                <span class="demo-badge" id="demoBadge" style="display:none;">DEMO</span>
+                <span class="free-badge" id="freeBadge">🆓 FREE AI</span>
+            </div>
+            <div>
+                <span id="aiStatusBadge" class="ai-status-badge ai-status-offline">⚡ AI: Offline</span>
+                <button onclick="handleLogout()" style="background: transparent; border: 1px solid #555; color: white; padding: 8px 15px; border-radius: 6px; cursor: pointer; margin-left: 10px;">Logout</button>
+            </div>
+        </div>
+
+        <div class="container">
+            <div id="warningBanner" class="warning-banner">⚠️ Running in sandbox mode. Items will not persist after refresh.</div>
+            <div id="toast" class="toast"></div>
+
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('dashboard')">Dashboard</div>
+                <div class="tab" onclick="switchTab('scan')">Scan</div>
+                <div class="tab" onclick="switchTab('jobs')">Jobs</div>
+                <div class="tab" onclick="switchTab('chat')">Vizi Chat</div>
+            </div>
+
+            <!-- DASHBOARD -->
+            <div id="dashboard">
+                <div class="no-guess-banner">🔍 AI Model: <strong>openai/gpt-oss-20b:free</strong> — 100% FREE, no credits used!</div>
+                
+                <div class="stats">
+                    <div class="stat-card"><h3>Total Items</h3><h1 id="totalItems">0</h1></div>
+                    <div class="stat-card"><h3>Critical</h3><h1 id="lowStock" style="color: #ef4444;">0</h1></div>
+                </div>
+
+                <div class="section-header header-consumable">🧤 Consumables</div>
+                <div class="scroll-x">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Manufacturer</th>
+                                <th>Model</th>
+                                <th>Serial #</th>
+                                <th>Color</th>
+                                <th>Size</th>
+                                <th>Material</th>
+                                <th>Condition</th>
+                                <th>Qty</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="consumableTable"></tbody>
+                    </table>
+                </div>
+
+                <div class="section-header header-reusable">🔧 Reusables</div>
+                <div class="scroll-x">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Manufacturer</th>
+                                <th>Model</th>
+                                <th>Serial #</th>
+                                <th>Color</th>
+                                <th>Size</th>
+                                <th>Material</th>
+                                <th>Condition</th>
+                                <th>Qty</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reusableTable"></tbody>
+                    </table>
+                </div>
+
+                <!-- Debug Log -->
+                <div class="debug-log" id="debugLog"></div>
+            </div>
+
+            <!-- SCAN -->
+            <div id="scan" style="display: none;">
+                <div class="upload-card">
+                    <h2>Scan Equipment</h2>
+                    <p style="opacity:0.6; margin:10px 0;" id="aiStatus">🤖 AI: <span id="aiModelDisplay">Detecting...</span></p>
+                    <p style="font-size:0.8rem; color: #10b981; margin-bottom:15px;">✅ Using <strong>openai/gpt-oss-20b:free</strong> — FREE AI, no credits used!</p>
+                    <button class="btn-primary" onclick="document.getElementById('fileInput').click()">📂 Browse Files</button>
+                    <input type="file" id="fileInput" style="display:none;" accept="image/*" onchange="scan(this.files[0])">
+                    <div id="loadingIndicator" style="display: none; margin-top: 20px;">
+                        <div class="spinner"></div>
+                        <p>AI Analyzing image (FREE model)...</p>
+                        <p style="font-size:0.8rem; opacity:0.5;">Using openai/gpt-oss-20b:free — 0 credits used</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- JOBS -->
+            <div id="jobs" style="display: none;">
+                <div style="background: #1a1d29; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                    <h2 style="margin-bottom: 15px;">Create Job</h2>
+                    <input type="text" id="jobName" placeholder="Job Name">
+                    <input type="text" id="jobLocation" placeholder="Job Location" oninput="updateMap()">
+                    <div id="map"></div>
+                    <button class="btn-primary" onclick="addJob()">Save Job</button>
+                </div>
+                <table><thead><tr><th>Job</th><th>Status</th></tr></thead><tbody id="jobTable"></tbody></table>
+            </div>
+
+            <!-- CHAT -->
+            <div id="chat" style="display: none;">
+                <div style="background: #1a1d29; padding: 20px; border-radius: 12px;">
+                    <h2 style="margin-bottom: 15px;">💬 Vizi Assistant <span class="free-badge">FREE</span></h2>
+                    <div class="chat-messages" id="chatMsgs"><div class="message ai">Hello! I'm Vizi, powered by FREE AI (gpt-oss-20b:free). How can I help?</div></div>
+                    <input type="text" id="chatInput" placeholder="Ask Vizi..." onkeydown="if(event.key==='Enter') sendChat()">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // CONFIGURATION
+        // ============================================================
+        const SUPABASE_URL = 'https://lymobhzjswiuymcbcabq.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_dz-2RaJJ2ZS0v301P5SuPQ_0LSEFSjT';
+        const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // ============================================================
+        // FREE AI MODEL - NO CREDITS USED!
+        // ============================================================
+        const FREE_AI_MODEL = 'openai/gpt-oss-20b:free';
+        const FREE_AI_MODEL_CHAT = 'openai/gpt-oss-20b:free';
+
+        let currentIndustry = 'industrial';
+        let user = null;
+        let inventory = [];
+        let jobs = [];
+        let map, marker;
+        let isPuterEnvironment = false;
+        let aiModel = 'Offline Mode';
+        let isDemoMode = false;
+        let isSandboxed = false;
+        let aiAvailable = false;
+
+        // ============================================================
+        // DETECT SANDBOX
+        // ============================================================
+        function detectSandbox() {
+            try {
+                localStorage.setItem('test', 'test');
+                localStorage.removeItem('test');
+                isSandboxed = false;
+            } catch(e) {
+                isSandboxed = true;
+                document.getElementById('warningBanner').style.display = 'block';
+                debugLog('⚠️ Running in sandboxed environment - localStorage disabled');
+            }
+        }
+
+        // ============================================================
+        // DEBUG LOG
+        // ============================================================
+        function debugLog(msg) {
+            const log = document.getElementById('debugLog');
+            log.style.display = 'block';
+            log.innerHTML += `[${new Date().toLocaleTimeString()}] ${msg}\n`;
+            log.scrollTop = log.scrollHeight;
+            console.log(msg);
+        }
+
+        // ============================================================
+        // ENVIRONMENT DETECTION
+        // ============================================================
+        function detectEnvironment() {
+            try {
+                if (typeof puter !== 'undefined') {
+                    isPuterEnvironment = true;
+                    
+                    if (puter.ai && typeof puter.ai.chat === 'function') {
+                        aiAvailable = true;
+                        aiModel = `${FREE_AI_MODEL} (FREE)`;
+                        document.getElementById('envBadge').textContent = 'puter';
+                        document.getElementById('envBadge').style.background = '#10b981';
+                        document.getElementById('envDisplay').textContent = '✅ puter.com (FREE AI Ready)';
+                        document.getElementById('aiModelDisplay').textContent = aiModel;
+                        document.getElementById('aiStatusBadge').textContent = `⚡ AI: FREE (${FREE_AI_MODEL})`;
+                        document.getElementById('aiStatusBadge').className = 'ai-status-badge ai-status-free';
+                        document.getElementById('freeBadge').style.display = 'inline';
+                        debugLog('✅ Environment: puter.com with FREE AI available');
+                        return;
+                    } else {
+                        aiAvailable = false;
+                        aiModel = 'puter.ai (Unavailable)';
+                        document.getElementById('envBadge').textContent = 'puter';
+                        document.getElementById('envBadge').style.background = '#f59e0b';
+                        document.getElementById('envDisplay').textContent = '⚠️ puter.com (AI Unavailable)';
+                        document.getElementById('aiModelDisplay').textContent = aiModel;
+                        document.getElementById('aiStatusBadge').textContent = '⚡ AI: Unavailable';
+                        document.getElementById('aiStatusBadge').className = 'ai-status-badge ai-status-offline';
+                        debugLog('⚠️ puter.com detected but AI unavailable');
+                        return;
+                    }
+                }
+            } catch(e) {
+                debugLog('⚠️ Error checking puter: ' + e.message);
+            }
+
+            isPuterEnvironment = false;
+            aiAvailable = false;
+            aiModel = 'Local Mode';
+            document.getElementById('envBadge').textContent = 'local';
+            document.getElementById('envBadge').style.background = '#f59e0b';
+            document.getElementById('envDisplay').textContent = '⚠️ Local Mode - No AI';
+            document.getElementById('aiModelDisplay').textContent = aiModel;
+            document.getElementById('aiStatusBadge').textContent = '⚡ AI: Offline';
+            document.getElementById('aiStatusBadge').className = 'ai-status-badge ai-status-offline';
+            debugLog('⚠️ Environment: Local (no AI)');
+            showToast('⚠️ Running in local mode. AI not available.', 'warning');
+        }
+
+        // ============================================================
+        // TOAST NOTIFICATIONS
+        // ============================================================
+        function showToast(msg, type = 'error') {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.className = 'toast';
+            if (type === 'success') toast.classList.add('success');
+            if (type === 'warning') toast.classList.add('warning');
+            toast.style.display = 'block';
+            debugLog(`📢 ${type.toUpperCase()}: ${msg}`);
+            setTimeout(() => { toast.style.display = 'none'; }, 8000);
+        }
+
+        // ============================================================
+        // AUTH
+        // ============================================================
+        function selectLoginIndustry(industry, btn) {
+            currentIndustry = industry;
+            document.querySelectorAll('.industry-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        function showSignUp() { document.getElementById('loginScreen').style.display = 'none'; document.getElementById('signUpScreen').style.display = 'flex'; }
+        function showLogin() { document.getElementById('signUpScreen').style.display = 'none'; document.getElementById('loginScreen').style.display = 'flex'; }
+
+        // ============================================================
+        // DEMO MODE
+        // ============================================================
+        function enterDemoMode() {
+            isDemoMode = true;
+            user = { id: 'demo_user', email: 'demo@visiontory.ai' };
+            document.getElementById('demoBadge').style.display = 'inline';
+            document.getElementById('envDisplay').textContent = '🎮 Demo Mode - No Login';
+            showToast('🎮 Entered Demo Mode! Using FREE AI model.', 'success');
+            debugLog('🎮 Demo mode activated');
+            
+            // Load sample items
+            inventory = [
+                { 
+                    id: 'sample1', 
+                    name: 'Rolex Submariner', 
+                    manufacturer: 'Rolex', 
+                    model: '126610LN', 
+                    serial_number: 'R-1245-7890',
+                    color: 'Black Dial, Silver Case',
+                    size: '41mm',
+                    material: 'Stainless Steel',
+                    condition: 'Good', 
+                    qty: 1, 
+                    item_type: 'Reusable', 
+                    category: 'Watch',
+                    specifications: '300m water resistant, Ceramic bezel',
+                    minStock: 1, 
+                    status: 'In Stock' 
+                },
+                { 
+                    id: 'sample2', 
+                    name: '3M Safety Gloves', 
+                    manufacturer: '3M', 
+                    model: 'L-100', 
+                    serial_number: '3M-2024-001',
+                    color: 'Blue',
+                    size: 'Large',
+                    material: 'Nitrile',
+                    condition: 'New', 
+                    qty: 10, 
+                    item_type: 'Consumable', 
+                    category: 'Safety Equipment',
+                    specifications: 'Chemical resistant, Powder-free',
+                    minStock: 2, 
+                    status: 'In Stock' 
+                },
+                { 
+                    id: 'sample3', 
+                    name: 'Bosch Drill Bit Set', 
+                    manufacturer: 'Bosch', 
+                    model: 'HB-200', 
+                    serial_number: 'BOS-2024-456',
+                    color: 'Silver/Black',
+                    size: '1mm-10mm',
+                    material: 'Carbide Steel',
+                    condition: 'Fair', 
+                    qty: 3, 
+                    item_type: 'Reusable', 
+                    category: 'Tools',
+                    specifications: '20-piece set, Titanium coated',
+                    minStock: 1, 
+                    status: 'In Stock' 
+                }
+            ];
+            debugLog('📦 Loaded sample items');
+            enterApp();
+        }
+
+        async function handleLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            if (!email || !password) { 
+                showToast('Please enter email and password'); 
+                return; 
+            }
+            
+            debugLog('🔐 Attempting login for: ' + email);
+            
+            try {
+                const { data, error } = await db.auth.signInWithPassword({ email, password });
+                
+                if (error) {
+                    debugLog('❌ Login error: ' + error.message);
+                    if (error.message.includes('fetch') || error.message.includes('network')) {
+                        showToast('⚠️ Network error. Try Demo Mode.', 'warning');
+                    } else if (error.message.includes('Invalid login credentials')) {
+                        showToast('❌ Invalid email or password. Try Demo Mode.', 'error');
+                    } else {
+                        showToast('❌ Login Failed: ' + error.message, 'error');
+                    }
+                    return;
+                }
+                
+                user = data.user;
+                debugLog('✅ User logged in: ' + user.email);
+                showToast('Welcome back!', 'success');
+                enterApp();
+            } catch(e) {
+                debugLog('❌ Login exception: ' + e.message);
+                showToast('⚠️ Login error. Try Demo Mode.', 'warning');
+            }
+        }
+
+        async function handleSignUp() {
+            const email = document.getElementById('signUpEmail').value;
+            const password = document.getElementById('signUpPassword').value;
+            
+            if (!email || !password) { 
+                showToast('Please enter email and password'); 
+                return; 
+            }
+            if (password.length < 6) { 
+                showToast('Password must be at least 6 characters'); 
+                return; 
+            }
+            
+            try {
+                const { data, error } = await db.auth.signUp({ email, password });
+                if (error) { 
+                    showToast('Sign Up Failed: ' + error.message); 
+                    debugLog('❌ Signup error: ' + error.message); 
+                    return; 
+                }
+                showToast('Account created! Please log in.', 'success');
+                debugLog('✅ Account created: ' + email);
+                showLogin();
+            } catch(e) {
+                showToast('Sign up error. Try Demo Mode.', 'warning');
+            }
+        }
+
+        async function handleLogout() { 
+            window.location.reload(); 
+        }
+        
+        async function checkAuth() {
+            try {
+                const { data } = await db.auth.getUser();
+                if (data.user) { 
+                    user = data.user; 
+                    enterApp(); 
+                }
+            } catch(e) {
+                debugLog('⚠️ Auth check failed: ' + e.message);
+            }
+        }
+
+        async function enterApp() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('signUpScreen').style.display = 'none';
+            document.getElementById('appScreen').style.display = 'block';
+            detectEnvironment();
+            detectSandbox();
+            
+            if (isDemoMode) {
+                renderInventory();
+                renderJobs();
+                showToast('📦 Demo mode with FREE AI model loaded', 'success');
+            } else {
+                await loadData();
+            }
+        }
+
+        // ============================================================
+        // NAVIGATION
+        // ============================================================
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('#dashboard, #scan, #jobs, #chat').forEach(d => d.style.display = 'none');
+            document.getElementById(tab).style.display = 'block';
+            document.querySelector(`.tab[onclick*="${tab}"]`)?.classList.add('active');
+            if (tab === 'jobs') setTimeout(initMap, 100);
+        }
+
+        // ============================================================
+        // DATA LOADING
+        // ============================================================
+        async function loadData() {
+            try {
+                debugLog('📥 Loading inventory data...');
+                const inv = await db.from('inventory').select('*').eq('user_id', user.id);
+                inventory = inv.data || [];
+                debugLog(`📦 Loaded ${inventory.length} items`);
+                
+                const job = await db.from('jobs').select('*').eq('user_id', user.id);
+                jobs = job.data || [];
+                
+                renderInventory();
+                renderJobs();
+            } catch(e) {
+                showToast('Error loading data: ' + e.message);
+                debugLog('❌ Load error: ' + e.message);
+            }
+        }
+
+        function getConditionBadge(condition) {
+            const c = (condition || 'Unknown').toLowerCase();
+            const map = {
+                'new': 'condition-new',
+                'good': 'condition-good',
+                'fair': 'condition-fair',
+                'worn': 'condition-worn',
+                'damaged': 'condition-damaged'
+            };
+            return `<span class="condition-badge ${map[c] || 'condition-unknown'}">${condition || 'Unknown'}</span>`;
+        }
+
+        function renderInventory() {
+            const consumableTbody = document.getElementById('consumableTable');
+            const reusableTbody = document.getElementById('reusableTable');
+            consumableTbody.innerHTML = '';
+            reusableTbody.innerHTML = '';
+
+            if (inventory.length === 0) {
+                const emptyRow = `<tr><td colspan="10" style="text-align:center; opacity:0.5; padding:20px;">No items yet. Scan something!</td></tr>`;
+                consumableTbody.innerHTML = emptyRow;
+                reusableTbody.innerHTML = emptyRow;
+                document.getElementById('totalItems').innerText = '0';
+                document.getElementById('lowStock').innerText = '0';
+                return;
+            }
+
+            inventory.forEach(i => {
+                const row = `<tr>
+                    <td><strong>${i.name || 'Unknown'}</strong></td>
+                    <td>${i.manufacturer || 'Unknown'}</td>
+                    <td>${i.model || 'N/A'}</td>
+                    <td style="font-family:monospace; font-size:0.7rem;">${i.serial_number || i.serialNumber || 'N/A'}</td>
+                    <td>${i.color || 'Unknown'}</td>
+                    <td>${i.size || 'N/A'}</td>
+                    <td>${i.material || 'Unknown'}</td>
+                    <td>${getConditionBadge(i.condition)}</td>
+                    <td>${i.qty || 0}</td>
+                    <td>
+                        <button class="btn-secondary" onclick="editQty('${i.id}', ${i.qty || 0})">Edit</button>
+                        <button class="btn-danger" onclick="deleteItem('${i.id}')">Del</button>
+                        <button class="btn-details" onclick="showDetails('${i.id}')">📋</button>
+                    </td>
+                </tr>`;
+                if (i.item_type === 'Consumable') consumableTbody.innerHTML += row;
+                else reusableTbody.innerHTML += row;
+            });
+            
+            document.getElementById('totalItems').innerText = inventory.length;
+            document.getElementById('lowStock').innerText = inventory.filter(i => (i.qty || 0) <= (i.minStock || 1)).length;
+            debugLog(`📊 Rendered ${inventory.length} items`);
+        }
+
+        function showDetails(id) {
+            const item = inventory.find(i => i.id === id);
+            if (!item) return;
+            
+            const details = `
+                <div style="background:#1a1d29; padding:15px; border-radius:8px; margin-top:10px; border:1px solid #d946ef;">
+                    <h4 style="color:#d946ef;">📋 ${item.name}</h4>
+                    <div class="detail-row"><span class="detail-label">Manufacturer:</span><span class="detail-value">${item.manufacturer || 'Unknown'}</span></div>
+                    <div class="detail-row"><span class="detail-label">Model:</span><span class="detail-value">${item.model || 'N/A'}</span></div>
+                    <div class="detail-row"><span class="detail-label">Serial Number:</span><span class="detail-value" style="font-family:monospace;">${item.serial_number || item.serialNumber || 'N/A'}</span></div>
+                    <div class="detail-row"><span class="detail-label">Color:</span><span class="detail-value">${item.color || 'Unknown'}</span></div>
+                    <div class="detail-row"><span class="detail-label">Size:</span><span class="detail-value">${item.size || 'N/A'}</span></div>
+                    <div class="detail-row"><span class="detail-label">Material:</span><span class="detail-value">${item.material || 'Unknown'}</span></div>
+                    <div class="detail-row"><span class="detail-label">Condition:</span><span class="detail-value">${item.condition || 'Good'}</span></div>
+                    <div class="detail-row"><span class="detail-label">Category:</span><span class="detail-value">${item.category || 'Equipment'}</span></div>
+                    <div class="detail-row"><span class="detail-label">Type:</span><span class="detail-value">${item.item_type || 'Reusable'}</span></div>
+                    <div class="detail-row"><span class="detail-label">Quantity:</span><span class="detail-value">${item.qty || 0}</span></div>
+                    <div class="detail-row"><span class="detail-label">Min Stock:</span><span class="detail-value">${item.minStock || 1}</span></div>
+                    <div class="detail-row"><span class="detail-label">Status:</span><span class="detail-value">${item.status || 'In Stock'}</span></div>
+                    ${item.specifications ? `<div class="detail-row"><span class="detail-label">Specs:</span><span class="detail-value">${item.specifications}</span></div>` : ''}
+                    <button onclick="document.getElementById('detailPopup').style.display='none'" style="margin-top:10px; background:#2d3142; border:none; color:white; padding:5px 15px; border-radius:4px; cursor:pointer;">Close</button>
+                </div>
+            `;
+            
+            let popup = document.getElementById('detailPopup');
+            if (!popup) {
+                popup = document.createElement('div');
+                popup.id = 'detailPopup';
+                popup.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); display:flex; align-items:center; justify-content:center; z-index:9999; padding:20px;';
+                document.body.appendChild(popup);
+            }
+            popup.innerHTML = `<div style="max-width:500px; width:100%; max-height:80vh; overflow-y:auto;">${details}</div>`;
+            popup.style.display = 'flex';
+            popup.onclick = (e) => { if (e.target === popup) popup.style.display = 'none'; };
+        }
+
+        async function editQty(id, qty) {
+            const newQty = prompt("New quantity:", qty);
+            if (newQty !== null && !isNaN(newQty)) {
+                if (isDemoMode) {
+                    const item = inventory.find(i => i.id === id);
+                    if (item) {
+                        item.qty = parseInt(newQty);
+                        renderInventory();
+                        showToast('Quantity updated (demo)', 'success');
+                    }
+                } else {
+                    await db.from('inventory').update({ qty: parseInt(newQty) }).eq('id', id);
+                    await loadData();
+                    showToast('Quantity updated', 'success');
+                }
+            }
+        }
+
+        async function deleteItem(id) {
+            if (confirm("Delete this item?")) {
+                if (isDemoMode) {
+                    inventory = inventory.filter(i => i.id !== id);
+                    renderInventory();
+                    showToast('Item deleted (demo)', 'success');
+                } else {
+                    await db.from('inventory').delete().eq('id', id);
+                    await loadData();
+                    showToast('Item deleted', 'success');
+                }
+            }
+        }
+
+        function renderJobs() {
+            const tbody = document.getElementById('jobTable');
+            tbody.innerHTML = '';
+            if (jobs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; opacity:0.5;">No jobs yet</td></tr>';
+                return;
+            }
+            jobs.forEach(j => tbody.innerHTML += `<tr><td>${j.job_name || "Job"}</td><td>${j.status || "Open"}</td></tr>`);
+        }
+
+        // ============================================================
+        // MAP
+        // ============================================================
+        function initMap() {
+            if (!map) { 
+                map = L.map('map').setView([-26.2041, 28.0473], 6); 
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map); 
+            } else map.invalidateSize();
+        }
+
+        function updateMap() {
+            const loc = document.getElementById('jobLocation').value;
+            if (!loc || !map) return;
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(loc)}`)
+                .then(r => r.json()).then(d => {
+                    if (d.length > 0) {
+                        if (!marker) marker = L.marker([d[0].lat, d[0].lon]).addTo(map);
+                        else marker.setLatLng([d[0].lat, d[0].lon]);
+                        map.setView([d[0].lat, d[0].lon], 12);
+                    }
+                }).catch(() => {});
+        }
+
+        async function addJob() {
+            const name = document.getElementById('jobName').value;
+            const location = document.getElementById('jobLocation').value;
+            if (!name) { showToast('Please enter a job name'); return; }
+            
+            if (isDemoMode) {
+                const jobData = { 
+                    id: 'job_' + Date.now(),
+                    job_name: name, 
+                    job_location: location || 'Unknown', 
+                    status: 'Open'
+                };
+                jobs.push(jobData);
+                renderJobs();
+                document.getElementById('jobName').value = '';
+                document.getElementById('jobLocation').value = '';
+                showToast('Job created (demo)', 'success');
+                return;
+            }
+            
+            const jobData = { 
+                job_name: name, 
+                job_location: location || 'Unknown', 
+                status: 'Open', 
+                industry: currentIndustry 
+            };
+            const id = Date.now().toString(36);
+            await db.from('jobs').insert([{ id, user_id: user.id, ...jobData }]);
+            document.getElementById('jobName').value = '';
+            document.getElementById('jobLocation').value = '';
+            await loadData();
+            showToast('Job created!', 'success');
+        }
+
+        // ============================================================
+        // SCAN - FREE AI IMAGE ANALYSIS (NO CREDITS!)
+        // ============================================================
+        async function scan(file) {
+            if (!file) {
+                showToast('Please select an image');
+                return;
+            }
+            
+            document.getElementById('loadingIndicator').style.display = 'block';
+            debugLog('🔍 Starting scan: ' + file.name);
+            debugLog(`🤖 Using FREE AI model: ${FREE_AI_MODEL} (0 credits used)`);
+            
+            const imgData = await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.readAsDataURL(file);
+            });
+
+            try {
+                let result = null;
+                let usedAI = false;
+
+                // ---- TRY PUTER.AI WITH FREE MODEL ----
+                if (aiAvailable && typeof puter !== 'undefined' && puter.ai && typeof puter.ai.chat === 'function') {
+                    try {
+                        debugLog(`🤖 Calling puter.ai with FREE model: ${FREE_AI_MODEL}...`);
+                        
+                        const prompt = `ANALYZE THE ACTUAL IMAGE CONTENT - DO NOT GUESS FROM FILENAME.
+                            
+                            Look at the image and extract EXACTLY what you see:
+                            - What product is shown in the image?
+                            - What brand/manufacturer name is visible on the product or packaging?
+                            - What model number or part number can you read?
+                            - Is there a serial number visible?
+                            - What color is the item?
+                            - What size or dimensions are printed?
+                            - What material is it made of?
+                            - What condition is it in (New, Good, Fair, Worn, Damaged)?
+                            
+                            Return ONLY valid JSON with the EXACT details you can SEE in the image:
+                            {
+                                "name": "exact product name visible in image",
+                                "manufacturer": "brand name visible on product/packaging",
+                                "model": "model number visible",
+                                "serialNumber": "serial number visible",
+                                "color": "color visible",
+                                "size": "size visible",
+                                "material": "material visible",
+                                "condition": "New, Good, Fair, Worn, or Damaged",
+                                "qty": number of units visible,
+                                "item_type": "Consumable or Reusable",
+                                "category": "category based on visible item",
+                                "specifications": "any other visible specs",
+                                "minStock": 1,
+                                "status": "In Stock"
+                            }
+                            
+                            If you can't see something in the image, set it to "Unknown" or "N/A". NEVER guess from filename.`;
+
+                        // ============================================================
+                        // KEY CHANGE: Using FREE model - NO CREDITS USED!
+                        // ============================================================
+                        const response = await puter.ai.chat(
+                            prompt, 
+                            imgData, 
+                            { model: FREE_AI_MODEL }  // <-- FREE!
+                        );
+                        
+                        debugLog('📝 AI response received (FREE model)');
+                        
+                        let text = '';
+                        if (response && response.message && response.message.content) {
+                            text = response.message.content;
+                        } else if (response && response.content) {
+                            text = response.content;
+                        } else if (typeof response === 'string') {
+                            text = response;
+                        } else {
+                            text = JSON.stringify(response);
+                        }
+                        
+                        debugLog('📝 AI raw response: ' + text.substring(0, 500) + '...');
+                        
+                        const start = text.indexOf('{');
+                        const end = text.lastIndexOf('}') + 1;
+                        if (start !== -1 && end !== -1) {
+                            result = JSON.parse(text.substring(start, end));
+                            usedAI = true;
+                            debugLog('✅ AI parsed result from FREE model: ' + JSON.stringify(result, null, 2));
+                            showToast(`✅ FREE AI analyzed the image! (0 credits used)`, 'success');
+                        } else {
+                            throw new Error('No valid JSON found in AI response');
+                        }
+                    } catch(e) {
+                        console.warn('puter.ai with free model failed:', e);
+                        debugLog('❌ puter.ai error with free model: ' + (e.message || 'Unknown error'));
+                        showToast('⚠️ Free AI failed. Check your internet connection.', 'warning');
+                    }
+                } else {
+                    debugLog('⚠️ puter.ai not available. Free AI unavailable.');
+                    showToast('⚠️ No AI available. Please run on puter.com for FREE AI.', 'warning');
+                }
+
+                // ---- IF AI FAILS ----
+                if (!result) {
+                    debugLog('❌ No AI result. Cannot analyze image.');
+                    showToast('❌ Free AI analysis failed. Please try again.', 'error');
+                    document.getElementById('loadingIndicator').style.display = 'none';
+                    return;
+                }
+
+                // ---- ENSURE ALL FIELDS EXIST ----
+                const record = {
+                    id: Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 6),
+                    user_id: isDemoMode ? 'demo_user' : user.id,
+                    name: result.name || 'Unknown Item',
+                    manufacturer: result.manufacturer || 'Unknown',
+                    model: result.model || 'N/A',
+                    serial_number: result.serialNumber || result.serial_number || 'N/A',
+                    color: result.color || 'Unknown',
+                    size: result.size || 'N/A',
+                    material: result.material || 'Unknown',
+                    condition: result.condition || 'Unknown',
+                    qty: parseInt(result.qty) || 1,
+                    item_type: result.item_type || 'Reusable',
+                    category: result.category || 'Equipment',
+                    specifications: result.specifications || 'None',
+                    minStock: result.minStock || 1,
+                    status: result.status || 'In Stock',
+                    industry: currentIndustry
+                };
+
+                debugLog('💾 Saving record from FREE AI: ' + JSON.stringify(record, null, 2));
+
+                // ---- SAVE TO DATABASE ----
+                if (isDemoMode) {
+                    inventory.push(record);
+                    debugLog('✅ Saved to memory (demo)');
+                    document.getElementById('loadingIndicator').style.display = 'none';
+                    renderInventory();
+                    switchTab('dashboard');
+                    showToast(`✅ Added: ${record.name} (${record.manufacturer}) - FREE AI (0 credits)`, 'success');
+                } else {
+                    const { error } = await db.from('inventory').insert([record]);
+                    if (error) {
+                        debugLog('❌ Supabase insert error: ' + error.message);
+                        showToast('❌ Failed to save: ' + error.message);
+                        document.getElementById('loadingIndicator').style.display = 'none';
+                        return;
+                    }
+                    debugLog('✅ Successfully saved to database!');
+                    document.getElementById('loadingIndicator').style.display = 'none';
+                    await loadData();
+                    switchTab('dashboard');
+                    showToast(`✅ Added: ${record.name} (${record.manufacturer}) - FREE AI (0 credits)`, 'success');
+                }
+
+            } catch(e) {
+                document.getElementById('loadingIndicator').style.display = 'none';
+                showToast('Scan failed: ' + e.message);
+                debugLog('❌ Scan error: ' + e.message);
+                console.error(e);
+            }
+        }
+
+        // ============================================================
+        // CHAT (Vizi Assistant) - FREE MODEL
+        // ============================================================
+        async function sendChat() {
+            const msg = document.getElementById('chatInput').value.trim();
+            if (!msg) return;
+            
+            const chatMsgs = document.getElementById('chatMsgs');
+            chatMsgs.innerHTML += `<div class="message user">${msg}</div>`;
+            document.getElementById('chatInput').value = '';
+            chatMsgs.scrollTop = chatMsgs.scrollHeight;
+
+            let answer = "I'm sorry, I couldn't process that. Please try again.";
+
+            try {
+                if (aiAvailable && typeof puter !== 'undefined' && puter.ai && typeof puter.ai.chat === 'function') {
+                    try {
+                        // ============================================================
+                        // KEY CHANGE: Using FREE model for chat - NO CREDITS USED!
+                        // ============================================================
+                        const res = await puter.ai.chat(
+                            `You are Vizi, a FREE AI inventory assistant. You have ${inventory.length} items.
+                            Answer briefly and helpfully: ${msg}`,
+                            null,
+                            { model: FREE_AI_MODEL_CHAT }  // <-- FREE!
+                        );
+                        if (res && res.message && res.message.content) {
+                            answer = res.message.content;
+                        } else if (res && res.content) {
+                            answer = res.content;
+                        } else {
+                            answer = "I received a response but couldn't parse it.";
+                        }
+                        debugLog('💬 Chat used FREE AI model: ' + FREE_AI_MODEL_CHAT);
+                    } catch(e) {
+                        debugLog('❌ Chat AI error: ' + e.message);
+                        throw e;
+                    }
+                } else {
+                    // Simple offline responses
+                    const lower = msg.toLowerCase();
+                    if (lower.includes('hello') || lower.includes('hi')) answer = "Hello! I'm Vizi, a FREE AI assistant. Ask about inventory, manufacturers, conditions, or stock levels.";
+                    else if (lower.includes('stock') || lower.includes('quantity') || lower.includes('inventory')) {
+                        answer = `You have ${inventory.length} total items. ${inventory.filter(i => (i.qty || 0) <= 1).length} are critically low.`;
+                    } else if (lower.includes('manufacturer') || lower.includes('brand')) {
+                        const manufacturers = [...new Set(inventory.map(i => i.manufacturer).filter(b => b && b !== 'Unknown'))];
+                        answer = `Manufacturers: ${manufacturers.length > 0 ? manufacturers.join(', ') : 'None recorded'}`;
+                    } else if (lower.includes('condition')) {
+                        const conditions = {};
+                        inventory.forEach(i => { conditions[i.condition] = (conditions[i.condition] || 0) + 1; });
+                        answer = `Item conditions: ${Object.entries(conditions).map(([c, n]) => `${c}: ${n}`).join(', ')}`;
+                    } else if (lower.includes('color')) {
+                        const colors = [...new Set(inventory.map(i => i.color).filter(c => c && c !== 'Unknown'))];
+                        answer = `Colors: ${colors.length > 0 ? colors.join(', ') : 'None recorded'}`;
+                    } else if (lower.includes('serial')) {
+                        const serials = inventory.filter(i => i.serial_number && i.serial_number !== 'N/A');
+                        answer = `${serials.length} items have serial numbers recorded.`;
+                    } else if (lower.includes('critical') || lower.includes('low')) {
+                        const critical = inventory.filter(i => (i.qty || 0) <= 1);
+                        if (critical.length === 0) answer = "No items are critically low!";
+                        else answer = `Critical items: ${critical.map(i => i.name).join(', ')}`;
+                    } else {
+                        answer = "I'm Vizi (FREE AI). Try: 'Show stock', 'List manufacturers', 'What conditions?', or 'Any critical items?'";
+                    }
+                }
+            } catch(e) {
+                debugLog('❌ Chat error: ' + e.message);
+                answer = "⚠️ AI offline. Ask about stock, manufacturers, conditions, or critical items.";
+            }
+
+            chatMsgs.innerHTML += `<div class="message ai">${answer}</div>`;
+            chatMsgs.scrollTop = chatMsgs.scrollHeight;
+        }
+
+        // ============================================================
+        // INIT
+        // ============================================================
+        setTimeout(detectEnvironment, 500);
+        detectSandbox();
+        checkAuth();
+    </script>
+</body>
+</html>
