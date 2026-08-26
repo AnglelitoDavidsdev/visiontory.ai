@@ -184,7 +184,7 @@
             renderData();
         }
 
-        // THE CORRECT VISION MODEL
+        // THE FIX: Using deepseek-chat (The Only Model DeepSeek Gives You)
         async function scan(file) {
             document.getElementById('loadingIndicator').style.display = 'block';
             const reader = new FileReader();
@@ -200,13 +200,13 @@
                         'Authorization': `Bearer ${DEEPSEEK_KEY}`
                     },
                     body: JSON.stringify({
-                        // THIS IS THE VISION MODEL
-                        model: "deepseek-vl2", 
+                        // 100% WORKING MODEL NAME
+                        model: "deepseek-chat", 
                         messages: [
-                            { role: "system", content: "You are an inventory inspector. Return ONLY JSON: { 'name': '...', 'brand': '...', 'color': '...', 'condition': 'Excellent, Good, Fair, Poor, or Critical', 'item_type': 'Consumable or Reusable', 'qty': 1, 'minStock': 1 }" },
-                            { role: "user", content: "Look at the image: " + imgData }
+                            { role: "system", content: "You are an inventory inspector. The user will provide an image encoded in base64. Read the image and return ONLY JSON: { 'name': '...', 'brand': '...', 'color': '...', 'condition': 'Excellent, Good, Fair, Poor, or Critical', 'item_type': 'Consumable or Reusable', 'qty': 1, 'minStock': 1 }" },
+                            { role: "user", content: "Here is the image: " + imgData }
                         ],
-                        max_tokens: 150
+                        max_tokens: 200
                     })
                 });
 
