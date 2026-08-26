@@ -14,15 +14,16 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: Arial, sans-serif; background: #0f1117; color: white; min-height: 100vh; }
         
-        .navbar { background: #1a1d29; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
-        .container { max-width: 900px; margin: auto; padding: 20px; }
+        .navbar { background: #1a1d29; padding: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        .container { max-width: 1000px; margin: auto; padding: 20px; }
         
         .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
         .tab { padding: 10px 20px; background: #2d3142; border-radius: 8px; cursor: pointer; }
         .tab.active { background: #d946ef; }
         
-        table { width: 100%; border-collapse: collapse; background: #1a1d29; border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #2d3142; }
+        table { width: 100%; border-collapse: collapse; background: #1a1d29; border-radius: 12px; overflow: hidden; margin-bottom: 20px; font-size: 0.9rem; }
+        th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #2d3142; }
+        th { background: #2d3142; color: #aaa; font-weight: 600; }
         
         .stats { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
         .stat-card { flex: 1; background: #1a1d29; padding: 20px; border-radius: 12px; text-align: center; min-width: 120px; }
@@ -31,8 +32,8 @@
         .header-consumable { background: rgba(16, 185, 129, 0.2); color: #10b981; }
         .header-reusable { background: rgba(139, 92, 246, 0.2); color: #8b5cf6; }
         
-        .btn-secondary { background: #2d3142; border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; margin-right: 5px; }
-        .btn-danger { background: #ef4444; border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
+        .btn-secondary { background: #2d3142; border: none; color: white; padding: 5px 12px; border-radius: 6px; cursor: pointer; margin-right: 5px; }
+        .btn-danger { background: #ef4444; border: none; color: white; padding: 5px 12px; border-radius: 6px; cursor: pointer; }
         .btn-primary { width: 100%; padding: 15px; background: #d946ef; border: none; color: white; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; }
         
         .upload-card { background: #1a1d29; border: 2px dashed #2d3142; border-radius: 12px; padding: 40px; text-align: center; }
@@ -58,8 +59,17 @@
         
         .toast { background: #ef4444; color: white; padding: 12px 20px; border-radius: 8px; margin-bottom: 15px; display: none; }
         .toast.success { background: #10b981; }
+        .toast.warning { background: #f59e0b; }
         .badge { background: #d946ef; padding: 2px 10px; border-radius: 12px; font-size: 0.7rem; margin-left: 8px; }
         .env-indicator { font-size: 0.7rem; opacity: 0.6; }
+        .condition-badge { padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; }
+        .condition-new { background: #10b981; color: #fff; }
+        .condition-good { background: #3b82f6; color: #fff; }
+        .condition-fair { background: #f59e0b; color: #000; }
+        .condition-worn { background: #f97316; color: #000; }
+        .condition-damaged { background: #ef4444; color: #fff; }
+        .condition-unknown { background: #6b7280; color: #fff; }
+        .scroll-x { overflow-x: auto; }
     </style>
 </head>
 <body>
@@ -119,10 +129,14 @@
                 </div>
 
                 <div class="section-header header-consumable">🧤 Consumables</div>
-                <table><thead><tr><th>Item</th><th>Brand</th><th>Qty</th><th>Actions</th></tr></thead><tbody id="consumableTable"></tbody></table>
+                <div class="scroll-x">
+                    <table><thead><tr><th>Item</th><th>Brand</th><th>Model</th><th>Condition</th><th>Qty</th><th>Actions</th></tr></thead><tbody id="consumableTable"></tbody></table>
+                </div>
 
                 <div class="section-header header-reusable">🔧 Reusables</div>
-                <table><thead><tr><th>Item</th><th>Brand</th><th>Qty</th><th>Actions</th></tr></thead><tbody id="reusableTable"></tbody></table>
+                <div class="scroll-x">
+                    <table><thead><tr><th>Item</th><th>Brand</th><th>Model</th><th>Condition</th><th>Qty</th><th>Actions</th></tr></thead><tbody id="reusableTable"></tbody></table>
+                </div>
             </div>
 
             <!-- SCAN -->
@@ -132,7 +146,11 @@
                     <p style="opacity:0.6; margin:10px 0;" id="aiStatus">🤖 AI: <span id="aiModelDisplay">Detecting...</span></p>
                     <button class="btn-primary" onclick="document.getElementById('fileInput').click()">📂 Browse Files</button>
                     <input type="file" id="fileInput" style="display:none;" accept="image/*" onchange="scan(this.files[0])">
-                    <div id="loadingIndicator" style="display: none; margin-top: 20px;"><div class="spinner"></div><p>AI Analyzing...</p></div>
+                    <div id="loadingIndicator" style="display: none; margin-top: 20px;">
+                        <div class="spinner"></div>
+                        <p>AI Analyzing image...</p>
+                        <p style="font-size:0.8rem; opacity:0.5;">Extracting brand, condition, and quantity</p>
+                    </div>
                 </div>
             </div>
 
@@ -180,7 +198,6 @@
         // ============================================================
         function detectEnvironment() {
             try {
-                // Check if we're in puter.com
                 if (typeof puter !== 'undefined' && puter.ai) {
                     isPuterEnvironment = true;
                     aiModel = 'puter.ai (GPT-4o)';
@@ -192,15 +209,12 @@
                 }
             } catch(e) {}
 
-            // Not in puter
             isPuterEnvironment = false;
             aiModel = 'Local Mode (Simulated)';
             document.getElementById('envBadge').textContent = 'local';
             document.getElementById('envBadge').style.background = '#f59e0b';
             document.getElementById('envDisplay').textContent = '⚠️ Local Mode - AI Simulated';
             document.getElementById('aiModelDisplay').textContent = aiModel;
-            
-            // Show warning
             showToast('⚠️ Running in local mode. AI will use simulated data. For full AI, open in puter.com', 'warning');
         }
 
@@ -212,6 +226,7 @@
             toast.textContent = msg;
             toast.className = 'toast';
             if (type === 'success') toast.classList.add('success');
+            if (type === 'warning') toast.classList.add('warning');
             toast.style.display = 'block';
             setTimeout(() => { toast.style.display = 'none'; }, 5000);
         }
@@ -295,14 +310,42 @@
             }
         }
 
+        function getConditionBadge(condition) {
+            const c = (condition || 'Unknown').toLowerCase();
+            const map = {
+                'new': 'condition-new',
+                'good': 'condition-good',
+                'fair': 'condition-fair',
+                'worn': 'condition-worn',
+                'damaged': 'condition-damaged'
+            };
+            return `<span class="condition-badge ${map[c] || 'condition-unknown'}">${condition || 'Unknown'}</span>`;
+        }
+
         function renderInventory() {
             const consumableTbody = document.getElementById('consumableTable');
             const reusableTbody = document.getElementById('reusableTable');
             consumableTbody.innerHTML = '';
             reusableTbody.innerHTML = '';
 
+            if (inventory.length === 0) {
+                const emptyRow = `<tr><td colspan="6" style="text-align:center; opacity:0.5; padding:20px;">No items yet. Scan something!</td></tr>`;
+                consumableTbody.innerHTML = emptyRow;
+                reusableTbody.innerHTML = emptyRow;
+            }
+
             inventory.forEach(i => {
-                const row = `<tr><td>${i.name || "Unknown"}</td><td>${i.manufacturer || "Unknown"}</td><td>${i.qty || 0}</td><td><button class="btn-secondary" onclick="editQty('${i.id}', ${i.qty})">Edit</button> <button class="btn-danger" onclick="deleteItem('${i.id}')">Del</button></td></tr>`;
+                const row = `<tr>
+                    <td>${i.name || 'Unknown'}</td>
+                    <td>${i.brand || 'Unknown'}</td>
+                    <td>${i.model || 'N/A'}</td>
+                    <td>${getConditionBadge(i.condition)}</td>
+                    <td>${i.qty || 0}</td>
+                    <td>
+                        <button class="btn-secondary" onclick="editQty('${i.id}', ${i.qty})">Edit</button>
+                        <button class="btn-danger" onclick="deleteItem('${i.id}')">Del</button>
+                    </td>
+                </tr>`;
                 if (i.item_type === 'Consumable') consumableTbody.innerHTML += row;
                 else reusableTbody.innerHTML += row;
             });
@@ -381,7 +424,7 @@
         }
 
         // ============================================================
-        // SCAN - AI IMAGE ANALYSIS (Works on puter + Local fallback)
+        // SCAN - AI IMAGE ANALYSIS (Full: Brand, Condition, Qty)
         // ============================================================
         async function scan(file) {
             if (!file) return;
@@ -400,7 +443,19 @@
                 if (isPuterEnvironment && typeof puter !== 'undefined' && puter.ai) {
                     try {
                         const res = await puter.ai.chat(
-                            "Identify this item. Return ONLY valid JSON with no extra text: { 'name': 'item name', 'manufacturer': 'brand name', 'category': 'category', 'item_type': 'Consumable or Reusable', 'qty': 1, 'minStock': 1, 'status': 'In Stock' }",
+                            `Analyze this product image. Extract details from visible text/labels/logos.
+                            Return ONLY valid JSON with no extra text:
+                            {
+                                "name": "product name visible on item or box",
+                                "brand": "brand name from logo or text (if not visible, 'Unknown')",
+                                "model": "model number or version (if visible, else 'N/A')",
+                                "condition": "assess visual condition: New, Good, Fair, Worn, or Damaged",
+                                "quantity": "number of units visible (default 1)",
+                                "item_type": "Consumable or Reusable",
+                                "category": "general category (e.g., Watch, Tool, Equipment)",
+                                "minStock": 1,
+                                "status": "In Stock"
+                            }`,
                             imgData, 
                             { model: "gpt-4o" }
                         );
@@ -417,26 +472,44 @@
                     }
                 }
 
-                // ---- FALLBACK: Simulated AI (works everywhere) ----
+                // ---- FALLBACK: Simulated AI ----
                 if (!result) {
-                    // Extract filename for a guess
+                    await new Promise(r => setTimeout(r, 1500));
+                    
                     const nameGuess = file.name.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' ');
                     
-                    // Simulate a delay like real AI
-                    await new Promise(r => setTimeout(r, 1500));
+                    // Detect if it's a watch from filename or image context
+                    const isWatch = nameGuess.toLowerCase().includes('watch') || nameGuess.toLowerCase().includes('rolex') || nameGuess.toLowerCase().includes('casio');
                     
                     result = {
                         name: nameGuess || 'Scanned Item',
-                        manufacturer: 'Unknown',
-                        category: 'General',
+                        brand: isWatch ? 'Unknown' : 'Unknown',
+                        model: 'N/A',
+                        condition: 'Good',
+                        quantity: 1,
                         item_type: 'Reusable',
-                        qty: 1,
+                        category: isWatch ? 'Watch' : 'Equipment',
                         minStock: 1,
                         status: 'In Stock'
                     };
+
+                    // Try to guess brand from filename
+                    const brandKeywords = ['rolex', 'casio', 'seiko', 'omega', 'apple', 'samsung', 'sony', 'bosch', 'makita'];
+                    for (const b of brandKeywords) {
+                        if (nameGuess.toLowerCase().includes(b)) {
+                            result.brand = b.charAt(0).toUpperCase() + b.slice(1);
+                            break;
+                        }
+                    }
+
+                    // Guess condition from filename
+                    if (nameGuess.toLowerCase().includes('new')) result.condition = 'New';
+                    else if (nameGuess.toLowerCase().includes('damaged')) result.condition = 'Damaged';
+                    else if (nameGuess.toLowerCase().includes('worn')) result.condition = 'Worn';
+                    else if (nameGuess.toLowerCase().includes('fair')) result.condition = 'Fair';
                     
-                    // Try to guess if it's a consumable based on name
-                    const consumableKeywords = ['glove', 'mask', 'filter', 'gauze', 'tape', 'bandage', 'syringe', 'needle', 'swab'];
+                    // Guess if consumable
+                    const consumableKeywords = ['glove', 'mask', 'filter', 'gauze', 'tape', 'bandage', 'syringe', 'needle', 'swab', 'battery'];
                     if (consumableKeywords.some(k => nameGuess.toLowerCase().includes(k))) {
                         result.item_type = 'Consumable';
                     }
@@ -444,16 +517,29 @@
                     showToast('ℹ️ Using simulated AI (local mode)', 'warning');
                 }
 
+                // ---- ENSURE ALL FIELDS EXIST ----
+                result = {
+                    name: result.name || 'Scanned Item',
+                    brand: result.brand || 'Unknown',
+                    model: result.model || 'N/A',
+                    condition: result.condition || 'Good',
+                    qty: parseInt(result.quantity) || 1,
+                    item_type: result.item_type || 'Reusable',
+                    category: result.category || 'Equipment',
+                    minStock: result.minStock || 1,
+                    status: result.status || 'In Stock',
+                    industry: currentIndustry,
+                    user_id: user.id
+                };
+
                 // ---- SAVE TO DATABASE ----
-                result.industry = currentIndustry;
-                result.user_id = user.id;
                 const id = Date.now().toString(36);
                 await db.from('inventory').insert([{ id, ...result }]);
 
                 document.getElementById('loadingIndicator').style.display = 'none';
                 await loadData();
                 switchTab('dashboard');
-                showToast(`✅ Added: ${result.name} (${result.item_type})`, 'success');
+                showToast(`✅ Added: ${result.name} (${result.brand}) - ${result.condition}`, 'success');
 
             } catch(e) {
                 document.getElementById('loadingIndicator').style.display = 'none';
@@ -479,31 +565,33 @@
             try {
                 if (isPuterEnvironment && typeof puter !== 'undefined' && puter.ai) {
                     const res = await puter.ai.chat(
-                        "You are Vizi, an AI inventory assistant. Answer briefly and helpfully: " + msg,
+                        `You are Vizi, an AI inventory assistant. You have access to ${inventory.length} items.
+                        Answer briefly and helpfully: ${msg}`,
                         { model: "gpt-4o-mini" }
                     );
                     answer = res.message.content;
                 } else {
-                    // Local fallback: simple responses
                     const lower = msg.toLowerCase();
-                    if (lower.includes('hello') || lower.includes('hi')) answer = "Hello! How can I help with your inventory today?";
-                    else if (lower.includes('stock') || lower.includes('quantity')) answer = `You have ${inventory.length} total items. ${inventory.filter(i => i.qty <= 1).length} are critically low.`;
-                    else if (lower.includes('critical') || lower.includes('low')) {
+                    if (lower.includes('hello') || lower.includes('hi')) answer = "Hello! I'm Vizi. I can help with your inventory. Ask about items, conditions, or stock levels.";
+                    else if (lower.includes('stock') || lower.includes('quantity')) {
+                        answer = `You have ${inventory.length} total items. ${inventory.filter(i => i.qty <= 1).length} are critically low.`;
+                    } else if (lower.includes('condition')) {
+                        const conditions = {};
+                        inventory.forEach(i => { conditions[i.condition] = (conditions[i.condition] || 0) + 1; });
+                        answer = `Item conditions: ${Object.entries(conditions).map(([c, n]) => `${c}: ${n}`).join(', ')}`;
+                    } else if (lower.includes('critical') || lower.includes('low')) {
                         const critical = inventory.filter(i => i.qty <= 1);
-                        if (critical.length === 0) answer = "No items are critically low. Good job!";
+                        if (critical.length === 0) answer = "No items are critically low. Great job!";
                         else answer = `Critical items: ${critical.map(i => i.name).join(', ')}`;
-                    } else if (lower.includes('consumable')) {
-                        const cons = inventory.filter(i => i.item_type === 'Consumable');
-                        answer = `You have ${cons.length} consumable items.`;
-                    } else if (lower.includes('reusable')) {
-                        const reuse = inventory.filter(i => i.item_type === 'Reusable');
-                        answer = `You have ${reuse.length} reusable items.`;
+                    } else if (lower.includes('brand')) {
+                        const brands = [...new Set(inventory.map(i => i.brand).filter(b => b && b !== 'Unknown'))];
+                        answer = `Brands in inventory: ${brands.length > 0 ? brands.join(', ') : 'No brands recorded yet'}`;
                     } else {
-                        answer = "I'm Vizi, your AI assistant. I can help with inventory questions. Try asking about stock levels, critical items, or categories.";
+                        answer = "I'm Vizi, your AI assistant. Try asking: 'Show stock levels', 'What conditions?', or 'Any critical items?'";
                     }
                 }
             } catch(e) {
-                answer = "⚠️ AI unavailable. Using offline mode. Ask about stock, critical items, or categories.";
+                answer = "⚠️ AI unavailable. Using offline mode. Ask about stock, conditions, or critical items.";
             }
 
             chatMsgs.innerHTML += `<div class="message ai">${answer}</div>`;
@@ -513,7 +601,6 @@
         // ============================================================
         // INIT
         // ============================================================
-        // Detect environment early
         setTimeout(detectEnvironment, 500);
         checkAuth();
     </script>
