@@ -5,13 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>VisionTory.ai</title>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <!-- PASTE YOUR FREE GEMINI API KEY HERE -->
+    <!-- PASTE YOUR GOOGLE GEMINI API KEY HERE -->
     <script>
-        const GOOGLE_API_KEY = 'YOUR_GEMINI_API_KEY_HERE';
+        const GOOGLE_API_KEY = 'YOUR_GEMINI_API_KEY';
     </script>
 
     <style>
@@ -23,7 +22,7 @@
         body[data-theme="aviation"] { --bg: #f8fafc; --card: #ffffff; --text: #0f172a; --muted: #475569; --accent: #f97316; --accent-2: #ef4444; --border: #e2e8f0; background: #f8fafc; }
 
         .navbar { background: var(--card); padding: 15px; display: flex; justify-content: space-between; align-items: center; }
-        .container { max-width: 900px; margin: auto; padding: 20px; }
+        .container { max-width: 800px; margin: auto; padding: 20px; }
         
         .auth-screen { display: flex; justify-content: center; align-items: center; height: 100vh; background: var(--bg); }
         .auth-card { background: var(--card); padding: 30px; border-radius: 12px; width: 350px; text-align: center; }
@@ -42,7 +41,7 @@
         td { padding: 10px; border-bottom: 1px solid var(--border); color: var(--text); font-size: 0.85rem; }
         button.small { background: var(--border); border: none; color: var(--text); padding: 5px 10px; border-radius: 4px; cursor: pointer; margin-right: 5px; }
 
-        .upload-card { background: var(--card); border: 2px dashed var(--border); border-radius: 8px; padding: 30px; text-align: center; position: relative; z-index: 2; }
+        .upload-card { background: var(--card); border: 2px dashed var(--border); border-radius: 8px; padding: 30px; text-align: center; }
         .spinner { border: 4px solid rgba(255,255,255,0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: var(--accent); animation: spin 1s linear infinite; display: inline-block; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
@@ -75,19 +74,8 @@
             </div>
             <input type="email" id="loginEmail" class="auth-input" placeholder="Email">
             <input type="password" id="loginPassword" class="auth-input" placeholder="Password">
-            <button class="auth-btn" onclick="handleLogin()">Login</button>
-            <p style="margin-top: 15px; color: var(--muted); font-size: 0.9rem;">Don't have an account? <a href="#" onclick="showSignUp()" style="color: var(--accent);">Sign Up</a></p>
-        </div>
-    </div>
-
-    <!-- SIGN UP -->
-    <div id="signUpScreen" class="auth-screen" style="display: none;">
-        <div class="auth-card">
-            <h2 style="color: var(--text);">Create Account</h2>
-            <input type="email" id="signUpEmail" class="auth-input" placeholder="Email">
-            <input type="password" id="signUpPassword" class="auth-input" placeholder="Password">
-            <button class="auth-btn" onclick="handleSignUp()">Sign Up</button>
-            <p style="margin-top: 15px; color: var(--muted); font-size: 0.9rem;">Already have an account? <a href="#" onclick="showLogin()" style="color: var(--accent);">Login</a></p>
+            <button class="auth-btn" onclick="login()">Login</button>
+            <p style="margin-top: 15px; color: var(--muted); font-size: 0.9rem;">No account needed! Just log in.</p>
         </div>
     </div>
 
@@ -101,7 +89,7 @@
                     <option value="medical">🏥 Medical</option>
                     <option value="aviation">✈️ Aviation</option>
                 </select>
-                <button onclick="handleLogout()" style="background: transparent; border: 1px solid var(--border); color: var(--text); padding: 8px 15px; border-radius: 6px; cursor: pointer;">Logout</button>
+                <button onclick="logout()" style="background: transparent; border: 1px solid var(--border); color: var(--text); padding: 8px 15px; border-radius: 6px; cursor: pointer;">Logout</button>
             </div>
         </div>
 
@@ -121,10 +109,10 @@
                 </div>
 
                 <div class="section-header header-consumable">🧤 Consumables</div>
-                <table><thead><tr><th>Item</th><th>Brand</th><th>Color</th><th>Condition</th><th>Qty</th><th>Actions</th></tr></thead><tbody id="consumableTable"></tbody></table>
+                <table><thead><tr><th>Item</th><th>Brand</th><th>Qty</th><th>Actions</th></tr></thead><tbody id="consumableTable"></tbody></table>
 
                 <div class="section-header header-reusable">🔧 Reusables</div>
-                <table><thead><tr><th>Item</th><th>Brand</th><th>Color</th><th>Condition</th><th>Qty</th><th>Actions</th></tr></thead><tbody id="reusableTable"></tbody></table>
+                <table><thead><tr><th>Item</th><th>Brand</th><th>Qty</th><th>Actions</th></tr></thead><tbody id="reusableTable"></tbody></table>
             </div>
 
             <!-- SCAN -->
@@ -162,14 +150,29 @@
     </div>
 
     <script>
-        const db = supabase.createClient('https://lymobhzjswiuymcbcabq.supabase.co', 'sb_publishable_dz-2RaJJ2ZS0v301P5SuPQ_0LSEFSjT');
-
+        // ==========================================================
+        // LOCAL STORAGE DATABASE (No Supabase, No Crashes)
+        // ==========================================================
         let currentIndustry = 'industrial';
-        let user = null;
-        let inventory = [];
-        let jobs = [];
+        let inventory = JSON.parse(localStorage.getItem('inventory')) || [];
+        let jobs = JSON.parse(localStorage.getItem('jobs')) || [];
         let map, marker;
         let matrixInterval;
+
+        function saveData() {
+            localStorage.setItem('inventory', JSON.stringify(inventory));
+            localStorage.setItem('jobs', JSON.stringify(jobs));
+        }
+
+        function login() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('appScreen').style.display = 'block';
+            renderData();
+        }
+
+        function logout() {
+            window.location.reload();
+        }
 
         function selectLoginIndustry(industry, btn) {
             currentIndustry = industry;
@@ -181,69 +184,25 @@
         function changeIndustry(industry) {
             currentIndustry = industry;
             document.body.setAttribute('data-theme', industry);
-            loadData();
-        }
-
-        function showSignUp() { document.getElementById('loginScreen').style.display = 'none'; document.getElementById('signUpScreen').style.display = 'flex'; }
-        function showLogin() { document.getElementById('signUpScreen').style.display = 'none'; document.getElementById('loginScreen').style.display = 'flex'; }
-
-        async function handleLogin() {
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            const { data, error } = await db.auth.signInWithPassword({ email, password });
-            if (error) { alert('Login Failed: ' + error.message); return; }
-            user = data.user;
-            enterApp();
-        }
-
-        async function handleSignUp() {
-            const email = document.getElementById('signUpEmail').value;
-            const password = document.getElementById('signUpPassword').value;
-            const { data, error } = await db.auth.signUp({ email, password });
-            if (error) { alert('Sign Up Failed: ' + error.message); return; }
-            alert('Account created! Please log in.');
-            showLogin();
-        }
-
-        async function handleLogout() { await db.auth.signOut(); window.location.reload(); }
-        async function checkAuth() { const { data } = await db.auth.getUser(); if (data.user) { user = data.user; enterApp(); } }
-        async function enterApp() {
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('signUpScreen').style.display = 'none';
-            document.getElementById('appScreen').style.display = 'block';
-            document.body.setAttribute('data-theme', currentIndustry);
-            await loadData();
+            renderData();
         }
 
         function switchTab(tab) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('#dashboard, #scan, #jobs, #chat').forEach(d => d.style.display = 'none');
             document.getElementById(tab).style.display = 'block';
-            document.body.classList.remove('matrix-on');
-            
-            if (tab === 'scan') { document.querySelectorAll('.tab')[1].classList.add('active'); startMatrix(); }
-            else if (tab === 'jobs') { document.querySelectorAll('.tab')[2].classList.add('active'); setTimeout(initMap, 100); }
-            else if (tab === 'dashboard') document.querySelectorAll('.tab')[0].classList.add('active');
-            else if (tab === 'chat') document.querySelectorAll('.tab')[3].classList.add('active');
+            if (tab === 'scan') { startMatrix(); }
+            if (tab === 'jobs') { setTimeout(initMap, 100); }
         }
 
-        async function loadData() {
-            const inv = await db.from('inventory').select('*').eq('user_id', user.id).eq('industry', currentIndustry);
-            inventory = inv.data || [];
-            const job = await db.from('jobs').select('*').eq('user_id', user.id).eq('industry', currentIndustry);
-            jobs = job.data || [];
-            renderInventory();
-            renderJobs();
-        }
-
-        function renderInventory() {
+        function renderData() {
             const consumableTbody = document.getElementById('consumableTable');
             const reusableTbody = document.getElementById('reusableTable');
             consumableTbody.innerHTML = '';
             reusableTbody.innerHTML = '';
 
             inventory.forEach(i => {
-                const row = `<tr><td><strong>${i.name || "Unknown"}</strong></td><td>${i.brand || "N/A"}</td><td>${i.color || "N/A"}</td><td>${i.condition || "Good"}</td><td>${i.qty || 0}</td><td><button class="small" onclick="editQty('${i.id}')">Edit</button> <button class="small" onclick="deleteItem('${i.id}')">Del</button></td></tr>`;
+                const row = `<tr><td><strong>${i.name || "Unknown"}</strong></td><td>${i.brand || "N/A"}</td><td>${i.qty || 0}</td><td><button class="small" onclick="editQty('${i.id}')">Edit</button> <button class="small" onclick="deleteItem('${i.id}')">Del</button></td></tr>`;
                 if (i.item_type === 'Consumable') consumableTbody.innerHTML += row;
                 else reusableTbody.innerHTML += row;
             });
@@ -260,22 +219,18 @@
             const item = inventory.find(i => i.id === id);
             const newQty = prompt("New quantity:", item.qty);
             if (newQty !== null) {
-                await db.from('inventory').update({ qty: parseInt(newQty) }).eq('id', id);
-                loadData();
+                item.qty = parseInt(newQty);
+                saveData();
+                renderData();
             }
         }
 
         async function deleteItem(id) {
             if (confirm("Delete item?")) {
-                await db.from('inventory').delete().eq('id', id);
-                loadData();
+                inventory = inventory.filter(i => i.id !== id);
+                saveData();
+                renderData();
             }
-        }
-
-        function renderJobs() {
-            const tbody = document.getElementById('jobTable');
-            tbody.innerHTML = '';
-            jobs.forEach(j => tbody.innerHTML += `<tr><td>${j.job_name || "Job"}</td><td>${j.status || "Open"}</td></tr>`);
         }
 
         function initMap() {
@@ -299,13 +254,16 @@
         async function addJob() {
             const jobData = { job_name: document.getElementById('jobName').value, job_location: document.getElementById('jobLocation').value, status: 'Open', industry: currentIndustry };
             const id = Date.now().toString(36);
-            await db.from('jobs').insert([{ id, user_id: user.id, ...jobData }]);
+            jobs.push({ id, ...jobData });
+            saveData();
+            renderData();
             document.getElementById('jobName').value = '';
             document.getElementById('jobLocation').value = '';
-            loadData();
         }
 
-        // THE ACCURATE GOOGLE GEMINI SCAN
+        // ==========================================================
+        // GOOGLE GEMINI AI SCAN (FREE, NO CARD)
+        // ==========================================================
         async function scan(file) {
             document.getElementById('loadingIndicator').style.display = 'block';
             const reader = new FileReader();
@@ -340,12 +298,16 @@
             } catch (e) {}
 
             const id = Date.now().toString(36);
-            await db.from('inventory').insert([{ id, user_id: user.id, ...fallback }]);
+            inventory.push({ id, ...fallback });
+            saveData();
+            renderData();
             document.getElementById('loadingIndicator').style.display = 'none';
-            loadData();
             switchTab('dashboard');
         }
 
+        // ==========================================================
+        // GOOGLE GEMINI CHAT (FREE, NO CARD)
+        // ==========================================================
         async function sendChat() {
             const msg = document.getElementById('chatInput').value;
             if (!msg) return;
@@ -394,6 +356,8 @@
         function stopMatrix() {
             if (matrixInterval) { clearInterval(matrixInterval); matrixInterval = null; document.body.classList.remove('matrix-on'); }
         }
+
+        renderData();
     </script>
 </body>
 </html>
