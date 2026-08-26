@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>VisionTory.ai</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://js.puter.com/v2/"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; background: #0f1117; color: white; min-height: 100vh; }
+        
+        .navbar { background: #1a1d29; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .container { max-width: 900px; margin: auto; padding: 20px; }
+        
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .tab { padding: 10px 20px; background: #2d3142; border-radius: 8px; cursor: pointer; }
+        .tab.active { background: #d946ef; }
+        
+        table { width: 100%; border-collapse: collapse; background: #1a1d29; border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #2d3142; }
+        
+        .stats { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
+        .stat-card { flex: 1; background: #1a1d29; padding: 20px; border-radius: 12px; text-align: center; min-width: 120px; }
+        
+        .section-header { padding: 10px; border-radius: 8px; margin-bottom: 10px; font-weight: 700; }
+        .header-consumable { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+        .header-reusable { background: rgba(139, 92, 246, 0.2); color: #8b5cf6; }
+        
+        .btn-secondary { background: #2d3142; border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; margin-right: 5px; }
+        .btn-danger { background: #ef4444; border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
+        .btn-primary { width: 100%; padding: 15px; background: #d946ef; border: none; color: white; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        
+        .upload-card { background: #1a1d29; border: 2px dashed #2d3142; border-radius: 12px; padding: 40px; text-align: center; }
+        .spinner { border: 4px solid rgba(255,255,255,0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: #d946ef; animation: spin 1s linear infinite; display: inline-block; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .auth-screen { display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .auth-card { background: #1a1d29; padding: 30px; border-radius: 12px; width: 350px; text-align: center; }
+        .auth-input { width: 100%; padding: 12px; margin-bottom: 10px; background: #0f1117; border: 1px solid #2d3142; border-radius: 6px; color: white; }
+        .auth-btn { width: 100%; padding: 12px; background: #d946ef; border: none; color: white; border-radius: 6px; cursor: pointer; }
+        
+        .industry-selector { display: flex; justify-content: space-between; margin-bottom: 15px; gap: 5px; }
+        .industry-btn { flex: 1; background: #2d3142; border: none; color: white; padding: 10px; margin: 0 5px; border-radius: 6px; cursor: pointer; }
+        .industry-btn.active { background: #d946ef; }
+        
+        .chat-messages { height: 300px; overflow-y: auto; background: #0f1117; border-radius: 8px; padding: 10px; margin-bottom: 10px; }
+        .message { margin-bottom: 10px; padding: 10px; border-radius: 8px; }
+        .message.user { background: #d946ef; text-align: right; }
+        .message.ai { background: #2d3142; text-align: left; }
+        
+        #map { height: 200px; border-radius: 8px; margin-bottom: 15px; background: #1a1d29; }
+        input, select, textarea { width: 100%; padding: 12px; margin-bottom: 10px; background: #0f1117; border: 1px solid #2d3142; border-radius: 6px; color: white; }
+        
+        .toast { background: #ef4444; color: white; padding: 12px 20px; border-radius: 8px; margin-bottom: 15px; display: none; }
+        .toast.success { background: #10b981; }
+        .badge { background: #d946ef; padding: 2px 10px; border-radius: 12px; font-size: 0.7rem; margin-left: 8px; }
+        .env-indicator { font-size: 0.7rem; opacity: 0.6; }
+    </style>
+</head>
+<body>
+
+    <!-- LOGIN SCREEN -->
+    <div id="loginScreen" class="auth-screen">
+        <div class="auth-card">
+            <h2 style="margin-bottom: 20px;">VisionTory.ai</h2>
+            <p class="env-indicator" id="envDisplay">🌐 Checking environment...</p>
+            
+            <div class="industry-selector">
+                <button class="industry-btn" onclick="selectLoginIndustry('industrial', this)">🏭 Industrial</button>
+                <button class="industry-btn" onclick="selectLoginIndustry('medical', this)">🏥 Medical</button>
+                <button class="industry-btn" onclick="selectLoginIndustry('aviation', this)">✈️ Aviation</button>
+            </div>
+
+            <input type="email" id="loginEmail" class="auth-input" placeholder="Email address">
+            <input type="password" id="loginPassword" class="auth-input" placeholder="Password">
+            <button class="auth-btn" onclick="handleLogin()">Login</button>
+            <p style="margin-top: 15px; font-size: 0.9rem;">Don't have an account? <a href="#" onclick="showSignUp()" style="color: #d946ef;">Sign Up</a></p>
+        </div>
+    </div>
+
+    <!-- SIGN UP SCREEN -->
+    <div id="signUpScreen" class="auth-screen" style="display: none;">
+        <div class="auth-card">
+            <h2 style="margin-bottom: 20px;">Create Account</h2>
+            <input type="email" id="signUpEmail" class="auth-input" placeholder="Email address">
+            <input type="password" id="signUpPassword" class="auth-input" placeholder="Password">
+            <button class="auth-btn" onclick="handleSignUp()">Sign Up</button>
+            <p style="margin-top: 15px; font-size: 0.9rem;">Already have an account? <a href="#" onclick="showLogin()" style="color: #d946ef;">Login</a></p>
+        </div>
+    </div>
+
+    <!-- APP SCREEN -->
+    <div id="appScreen" style="display: none;">
+        <div class="navbar">
+            <div><strong>VisionTory.ai</strong> <span class="badge" id="envBadge">puter</span></div>
+            <button onclick="handleLogout()" style="background: transparent; border: 1px solid #555; color: white; padding: 8px 15px; border-radius: 6px; cursor: pointer;">Logout</button>
+        </div>
+
+        <div class="container">
+            <div id="toast" class="toast"></div>
+
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('dashboard')">Dashboard</div>
+                <div class="tab" onclick="switchTab('scan')">Scan</div>
+                <div class="tab" onclick="switchTab('jobs')">Jobs</div>
+                <div class="tab" onclick="switchTab('chat')">Vizi Chat</div>
+            </div>
+
+            <!-- DASHBOARD -->
+            <div id="dashboard">
+                <div class="stats">
+                    <div class="stat-card"><h3>Total Items</h3><h1 id="totalItems">0</h1></div>
+                    <div class="stat-card"><h3>Critical</h3><h1 id="lowStock" style="color: #ef4444;">0</h1></div>
+                </div>
+
+                <div class="section-header header-consumable">🧤 Consumables</div>
+                <table><thead><tr><th>Item</th><th>Brand</th><th>Qty</th><th>Actions</th></tr></thead><tbody id="consumableTable"></tbody></table>
+
+                <div class="section-header header-reusable">🔧 Reusables</div>
+                <table><thead><tr><th>Item</th><th>Brand</th><th>Qty</th><th>Actions</th></tr></thead><tbody id="reusableTable"></tbody></table>
+            </div>
+
+            <!-- SCAN -->
+            <div id="scan" style="display: none;">
+                <div class="upload-card">
+                    <h2>Scan Equipment</h2>
+                    <p style="opacity:0.6; margin:10px 0;" id="aiStatus">🤖 AI: <span id="aiModelDisplay">Detecting...</span></p>
+                    <button class="btn-primary" onclick="document.getElementById('fileInput').click()">📂 Browse Files</button>
+                    <input type="file" id="fileInput" style="display:none;" accept="image/*" onchange="scan(this.files[0])">
+                    <div id="loadingIndicator" style="display: none; margin-top: 20px;"><div class="spinner"></div><p>AI Analyzing...</p></div>
+                </div>
+            </div>
+
+            <!-- JOBS -->
+            <div id="jobs" style="display: none;">
+                <div style="background: #1a1d29; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                    <h2 style="margin-bottom: 15px;">Create Job</h2>
+                    <input type="text" id="jobName" placeholder="Job Name">
+                    <input type="text" id="jobLocation" placeholder="Job Location" oninput="updateMap()">
+                    <div id="map"></div>
+                    <button class="btn-primary" onclick="addJob()">Save Job</button>
+                </div>
+                <table><thead><tr><th>Job</th><th>Status</th></tr></thead><tbody id="jobTable"></tbody></table>
+            </div>
+
+            <!-- CHAT -->
+            <div id="chat" style="display: none;">
+                <div style="background: #1a1d29; padding: 20px; border-radius: 12px;">
+                    <h2 style="margin-bottom: 15px;">💬 Vizi Assistant</h2>
+                    <div class="chat-messages" id="chatMsgs"><div class="message ai">Hello! How can I help you?</div></div>
+                    <input type="text" id="chatInput" placeholder="Ask Vizi..." onkeydown="if(event.key==='Enter') sendChat()">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // CONFIGURATION
+        // ============================================================
+        const SUPABASE_URL = 'https://lymobhzjswiuymcbcabq.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_dz-2RaJJ2ZS0v301P5SuPQ_0LSEFSjT';
+        const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let currentIndustry = 'industrial';
+        let user = null;
+        let inventory = [];
+        let jobs = [];
+        let map, marker;
+        let isPuterEnvironment = false;
+        let aiModel = 'Offline Mode';
+
+        // ============================================================
+        // ENVIRONMENT DETECTION
+        // ============================================================
+        function detectEnvironment() {
+            try {
+                // Check if we're in puter.com
+                if (typeof puter !== 'undefined' && puter.ai) {
+                    isPuterEnvironment = true;
+                    aiModel = 'puter.ai (GPT-4o)';
+                    document.getElementById('envBadge').textContent = 'puter';
+                    document.getElementById('envBadge').style.background = '#10b981';
+                    document.getElementById('envDisplay').textContent = '✅ puter.com (AI Ready)';
+                    document.getElementById('aiModelDisplay').textContent = aiModel;
+                    return;
+                }
+            } catch(e) {}
+
+            // Not in puter
+            isPuterEnvironment = false;
+            aiModel = 'Local Mode (Simulated)';
+            document.getElementById('envBadge').textContent = 'local';
+            document.getElementById('envBadge').style.background = '#f59e0b';
+            document.getElementById('envDisplay').textContent = '⚠️ Local Mode - AI Simulated';
+            document.getElementById('aiModelDisplay').textContent = aiModel;
+            
+            // Show warning
+            showToast('⚠️ Running in local mode. AI will use simulated data. For full AI, open in puter.com', 'warning');
+        }
+
+        // ============================================================
+        // TOAST NOTIFICATIONS
+        // ============================================================
+        function showToast(msg, type = 'error') {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.className = 'toast';
+            if (type === 'success') toast.classList.add('success');
+            toast.style.display = 'block';
+            setTimeout(() => { toast.style.display = 'none'; }, 5000);
+        }
+
+        // ============================================================
+        // AUTH
+        // ============================================================
+        function selectLoginIndustry(industry, btn) {
+            currentIndustry = industry;
+            document.querySelectorAll('.industry-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.body.style.background = industry === 'industrial' ? '#0f1117' : (industry === 'medical' ? '#f4f6fb' : '#f8fafc');
+        }
+
+        function showSignUp() { document.getElementById('loginScreen').style.display = 'none'; document.getElementById('signUpScreen').style.display = 'flex'; }
+        function showLogin() { document.getElementById('signUpScreen').style.display = 'none'; document.getElementById('loginScreen').style.display = 'flex'; }
+
+        async function handleLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            if (!email || !password) { showToast('Please enter email and password'); return; }
+            
+            const { data, error } = await db.auth.signInWithPassword({ email, password });
+            if (error) { showToast('Login Failed: ' + error.message); return; }
+            user = data.user;
+            showToast('Welcome back!', 'success');
+            enterApp();
+        }
+
+        async function handleSignUp() {
+            const email = document.getElementById('signUpEmail').value;
+            const password = document.getElementById('signUpPassword').value;
+            if (!email || !password) { showToast('Please enter email and password'); return; }
+            if (password.length < 6) { showToast('Password must be at least 6 characters'); return; }
+            
+            const { data, error } = await db.auth.signUp({ email, password });
+            if (error) { showToast('Sign Up Failed: ' + error.message); return; }
+            showToast('Account created! Please log in.', 'success');
+            showLogin();
+        }
+
+        async function handleLogout() { await db.auth.signOut(); window.location.reload(); }
+        
+        async function checkAuth() {
+            const { data } = await db.auth.getUser();
+            if (data.user) { user = data.user; enterApp(); }
+        }
+
+        async function enterApp() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('signUpScreen').style.display = 'none';
+            document.getElementById('appScreen').style.display = 'block';
+            detectEnvironment();
+            await loadData();
+        }
+
+        // ============================================================
+        // NAVIGATION
+        // ============================================================
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('#dashboard, #scan, #jobs, #chat').forEach(d => d.style.display = 'none');
+            document.getElementById(tab).style.display = 'block';
+            document.querySelector(`.tab[onclick*="${tab}"]`)?.classList.add('active');
+            if (tab === 'jobs') setTimeout(initMap, 100);
+        }
+
+        // ============================================================
+        // DATA LOADING
+        // ============================================================
+        async function loadData() {
+            try {
+                const inv = await db.from('inventory').select('*').eq('user_id', user.id);
+                inventory = inv.data || [];
+                const job = await db.from('jobs').select('*').eq('user_id', user.id);
+                jobs = job.data || [];
+                renderInventory();
+                renderJobs();
+            } catch(e) {
+                showToast('Error loading data: ' + e.message);
+            }
+        }
+
+        function renderInventory() {
+            const consumableTbody = document.getElementById('consumableTable');
+            const reusableTbody = document.getElementById('reusableTable');
+            consumableTbody.innerHTML = '';
+            reusableTbody.innerHTML = '';
+
+            inventory.forEach(i => {
+                const row = `<tr><td>${i.name || "Unknown"}</td><td>${i.manufacturer || "Unknown"}</td><td>${i.qty || 0}</td><td><button class="btn-secondary" onclick="editQty('${i.id}', ${i.qty})">Edit</button> <button class="btn-danger" onclick="deleteItem('${i.id}')">Del</button></td></tr>`;
+                if (i.item_type === 'Consumable') consumableTbody.innerHTML += row;
+                else reusableTbody.innerHTML += row;
+            });
+            
+            document.getElementById('totalItems').innerText = inventory.length;
+            document.getElementById('lowStock').innerText = inventory.filter(i => i.qty <= (i.minStock || 1)).length;
+        }
+
+        async function editQty(id, qty) {
+            const newQty = prompt("New quantity:", qty);
+            if (newQty !== null && !isNaN(newQty)) {
+                await db.from('inventory').update({ qty: parseInt(newQty) }).eq('id', id);
+                await loadData();
+                showToast('Quantity updated', 'success');
+            }
+        }
+
+        async function deleteItem(id) {
+            if (confirm("Delete this item?")) {
+                await db.from('inventory').delete().eq('id', id);
+                await loadData();
+                showToast('Item deleted', 'success');
+            }
+        }
+
+        function renderJobs() {
+            const tbody = document.getElementById('jobTable');
+            tbody.innerHTML = '';
+            if (jobs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; opacity:0.5;">No jobs yet</td></tr>';
+                return;
+            }
+            jobs.forEach(j => tbody.innerHTML += `<tr><td>${j.job_name || "Job"}</td><td>${j.status || "Open"}</td></tr>`);
+        }
+
+        // ============================================================
+        // MAP
+        // ============================================================
+        function initMap() {
+            if (!map) { 
+                map = L.map('map').setView([-26.2041, 28.0473], 6); 
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map); 
+            } else map.invalidateSize();
+        }
+
+        function updateMap() {
+            const loc = document.getElementById('jobLocation').value;
+            if (!loc || !map) return;
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(loc)}`)
+                .then(r => r.json()).then(d => {
+                    if (d.length > 0) {
+                        if (!marker) marker = L.marker([d[0].lat, d[0].lon]).addTo(map);
+                        else marker.setLatLng([d[0].lat, d[0].lon]);
+                        map.setView([d[0].lat, d[0].lon], 12);
+                    }
+                }).catch(() => {});
+        }
+
+        async function addJob() {
+            const name = document.getElementById('jobName').value;
+            const location = document.getElementById('jobLocation').value;
+            if (!name) { showToast('Please enter a job name'); return; }
+            
+            const jobData = { 
+                job_name: name, 
+                job_location: location || 'Unknown', 
+                status: 'Open', 
+                industry: currentIndustry 
+            };
+            const id = Date.now().toString(36);
+            await db.from('jobs').insert([{ id, user_id: user.id, ...jobData }]);
+            document.getElementById('jobName').value = '';
+            document.getElementById('jobLocation').value = '';
+            await loadData();
+            showToast('Job created!', 'success');
+        }
+
+        // ============================================================
+        // SCAN - AI IMAGE ANALYSIS (Works on puter + Local fallback)
+        // ============================================================
+        async function scan(file) {
+            if (!file) return;
+            
+            document.getElementById('loadingIndicator').style.display = 'block';
+            const imgData = await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.readAsDataURL(file);
+            });
+
+            try {
+                let result = null;
+
+                // ---- TRY PUTER.AI (if available) ----
+                if (isPuterEnvironment && typeof puter !== 'undefined' && puter.ai) {
+                    try {
+                        const res = await puter.ai.chat(
+                            "Identify this item. Return ONLY valid JSON with no extra text: { 'name': 'item name', 'manufacturer': 'brand name', 'category': 'category', 'item_type': 'Consumable or Reusable', 'qty': 1, 'minStock': 1, 'status': 'In Stock' }",
+                            imgData, 
+                            { model: "gpt-4o" }
+                        );
+                        let text = res.message.content;
+                        const start = text.indexOf('{');
+                        const end = text.lastIndexOf('}') + 1;
+                        if (start !== -1 && end !== -1) {
+                            result = JSON.parse(text.substring(start, end));
+                        }
+                        showToast('✅ AI analysis complete!', 'success');
+                    } catch(e) {
+                        console.warn('puter.ai failed:', e);
+                        showToast('⚠️ puter.ai failed, using fallback', 'warning');
+                    }
+                }
+
+                // ---- FALLBACK: Simulated AI (works everywhere) ----
+                if (!result) {
+                    // Extract filename for a guess
+                    const nameGuess = file.name.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' ');
+                    
+                    // Simulate a delay like real AI
+                    await new Promise(r => setTimeout(r, 1500));
+                    
+                    result = {
+                        name: nameGuess || 'Scanned Item',
+                        manufacturer: 'Unknown',
+                        category: 'General',
+                        item_type: 'Reusable',
+                        qty: 1,
+                        minStock: 1,
+                        status: 'In Stock'
+                    };
+                    
+                    // Try to guess if it's a consumable based on name
+                    const consumableKeywords = ['glove', 'mask', 'filter', 'gauze', 'tape', 'bandage', 'syringe', 'needle', 'swab'];
+                    if (consumableKeywords.some(k => nameGuess.toLowerCase().includes(k))) {
+                        result.item_type = 'Consumable';
+                    }
+                    
+                    showToast('ℹ️ Using simulated AI (local mode)', 'warning');
+                }
+
+                // ---- SAVE TO DATABASE ----
+                result.industry = currentIndustry;
+                result.user_id = user.id;
+                const id = Date.now().toString(36);
+                await db.from('inventory').insert([{ id, ...result }]);
+
+                document.getElementById('loadingIndicator').style.display = 'none';
+                await loadData();
+                switchTab('dashboard');
+                showToast(`✅ Added: ${result.name} (${result.item_type})`, 'success');
+
+            } catch(e) {
+                document.getElementById('loadingIndicator').style.display = 'none';
+                showToast('Scan failed: ' + e.message);
+                console.error(e);
+            }
+        }
+
+        // ============================================================
+        // CHAT (Vizi Assistant)
+        // ============================================================
+        async function sendChat() {
+            const msg = document.getElementById('chatInput').value.trim();
+            if (!msg) return;
+            
+            const chatMsgs = document.getElementById('chatMsgs');
+            chatMsgs.innerHTML += `<div class="message user">${msg}</div>`;
+            document.getElementById('chatInput').value = '';
+            chatMsgs.scrollTop = chatMsgs.scrollHeight;
+
+            let answer = "I'm sorry, I couldn't process that. Please try again.";
+
+            try {
+                if (isPuterEnvironment && typeof puter !== 'undefined' && puter.ai) {
+                    const res = await puter.ai.chat(
+                        "You are Vizi, an AI inventory assistant. Answer briefly and helpfully: " + msg,
+                        { model: "gpt-4o-mini" }
+                    );
+                    answer = res.message.content;
+                } else {
+                    // Local fallback: simple responses
+                    const lower = msg.toLowerCase();
+                    if (lower.includes('hello') || lower.includes('hi')) answer = "Hello! How can I help with your inventory today?";
+                    else if (lower.includes('stock') || lower.includes('quantity')) answer = `You have ${inventory.length} total items. ${inventory.filter(i => i.qty <= 1).length} are critically low.`;
+                    else if (lower.includes('critical') || lower.includes('low')) {
+                        const critical = inventory.filter(i => i.qty <= 1);
+                        if (critical.length === 0) answer = "No items are critically low. Good job!";
+                        else answer = `Critical items: ${critical.map(i => i.name).join(', ')}`;
+                    } else if (lower.includes('consumable')) {
+                        const cons = inventory.filter(i => i.item_type === 'Consumable');
+                        answer = `You have ${cons.length} consumable items.`;
+                    } else if (lower.includes('reusable')) {
+                        const reuse = inventory.filter(i => i.item_type === 'Reusable');
+                        answer = `You have ${reuse.length} reusable items.`;
+                    } else {
+                        answer = "I'm Vizi, your AI assistant. I can help with inventory questions. Try asking about stock levels, critical items, or categories.";
+                    }
+                }
+            } catch(e) {
+                answer = "⚠️ AI unavailable. Using offline mode. Ask about stock, critical items, or categories.";
+            }
+
+            chatMsgs.innerHTML += `<div class="message ai">${answer}</div>`;
+            chatMsgs.scrollTop = chatMsgs.scrollHeight;
+        }
+
+        // ============================================================
+        // INIT
+        // ============================================================
+        // Detect environment early
+        setTimeout(detectEnvironment, 500);
+        checkAuth();
+    </script>
+</body>
+</html>
